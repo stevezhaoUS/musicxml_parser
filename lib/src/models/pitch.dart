@@ -14,10 +14,10 @@ class Pitch {
   final int? alter;
 
   /// Creates a new [Pitch] instance.
-  /// 
+  ///
   /// Validates that the step is one of C, D, E, F, G, A, B and
   /// the octave is within the valid range (0-9).
-  /// 
+  ///
   /// Throws [MusicXmlValidationException] if validation fails.
   const Pitch({
     required this.step,
@@ -26,7 +26,7 @@ class Pitch {
   });
 
   /// Creates a new [Pitch] instance with validation.
-  /// 
+  ///
   /// This factory constructor performs validation and throws
   /// [MusicXmlValidationException] if the pitch is invalid.
   factory Pitch.validated({

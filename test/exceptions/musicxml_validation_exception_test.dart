@@ -5,7 +5,7 @@ void main() {
   group('MusicXmlValidationException', () {
     test('creates exception with message only', () {
       final exception = MusicXmlValidationException('Validation error');
-      
+
       expect(exception.message, equals('Validation error'));
       expect(exception.rule, isNull);
       expect(exception.line, isNull);
@@ -18,7 +18,7 @@ void main() {
         'Pitch out of range',
         rule: 'pitch_range_validation',
       );
-      
+
       expect(exception.message, equals('Pitch out of range'));
       expect(exception.rule, equals('pitch_range_validation'));
     });
@@ -32,7 +32,7 @@ void main() {
         node: 'pitch',
         context: context,
       );
-      
+
       expect(exception.message, equals('Pitch out of range'));
       expect(exception.rule, equals('pitch_range_validation'));
       expect(exception.line, equals(28));
@@ -45,8 +45,9 @@ void main() {
         'Test error',
         rule: 'test_rule',
       );
-      
-      expect(exception.toString(), contains('MusicXmlValidationException: Test error'));
+
+      expect(exception.toString(),
+          contains('MusicXmlValidationException: Test error'));
       expect(exception.toString(), contains('[rule: test_rule]'));
     });
 
@@ -56,8 +57,9 @@ void main() {
         line: 42,
         node: 'pitch',
       );
-      
-      expect(exception.toString(), contains('MusicXmlValidationException: Test error'));
+
+      expect(exception.toString(),
+          contains('MusicXmlValidationException: Test error'));
       expect(exception.toString(), contains('(node: pitch, line: 42)'));
     });
 
@@ -66,8 +68,9 @@ void main() {
         'Test error',
         context: {'measure': 5},
       );
-      
-      expect(exception.toString(), contains('MusicXmlValidationException: Test error'));
+
+      expect(exception.toString(),
+          contains('MusicXmlValidationException: Test error'));
       expect(exception.toString(), contains('[context: {measure: 5}]'));
     });
 
@@ -79,7 +82,7 @@ void main() {
         node: 'note',
         context: {'voice': 1},
       );
-      
+
       final result = exception.toString();
       expect(result, contains('MusicXmlValidationException: Complex error'));
       expect(result, contains('[rule: complex_rule]'));
@@ -89,7 +92,7 @@ void main() {
 
     test('inherits from InvalidMusicXmlException', () {
       final exception = MusicXmlValidationException('Test error');
-      
+
       expect(exception, isA<Exception>());
     });
   });

@@ -1,6 +1,6 @@
-include: package:lint/analysis_options.yaml
+# Analysis options for musicxml_parser package
+# Based on lint package strict rules with package-specific additions
 
-# Additional linter rules specific to this package
 linter:
   rules:
     - always_declare_return_types

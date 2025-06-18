@@ -24,10 +24,11 @@ class MusicXmlParser {
   final WarningSystem warningSystem;
 
   /// Creates a new [MusicXmlParser].
-  /// 
+  ///
   /// [warningSystem] - Optional warning system. If not provided, a new one will be created.
-  MusicXmlParser({WarningSystem? warningSystem}) 
+  MusicXmlParser({WarningSystem? warningSystem})
       : warningSystem = warningSystem ?? WarningSystem();
+
   /// Parses a MusicXML string into a [Score] object.
   ///
   /// Throws specific exception types based on the error:
@@ -166,7 +167,7 @@ class MusicXmlParser {
   Part _parsePart(XmlElement element) {
     final id = element.getAttribute('id');
     final line = _getLineNumber(element);
-    
+
     if (id == null || id.isEmpty) {
       throw MusicXmlStructureException(
         'Part element missing required "id" attribute',
@@ -217,7 +218,7 @@ class MusicXmlParser {
         final measure = _parseMeasure(measureElement, id);
         measures.add(measure);
       } catch (e) {
-        if (e is MusicXmlValidationException || 
+        if (e is MusicXmlValidationException ||
             e is MusicXmlStructureException ||
             e is MusicXmlParseException) {
           rethrow;
@@ -254,10 +255,11 @@ class MusicXmlParser {
         .firstOrNull;
     if (keyElement != null) {
       try {
-        final fifthsText = _findOptionalTextElement(keyElement, 'fifths') ?? '0';
+        final fifthsText =
+            _findOptionalTextElement(keyElement, 'fifths') ?? '0';
         final fifths = int.tryParse(fifthsText) ?? 0;
         final mode = _findOptionalTextElement(keyElement, 'mode');
-        
+
         keySignature = KeySignature.validated(
           fifths: fifths,
           mode: mode,
@@ -296,7 +298,7 @@ class MusicXmlParser {
         if (beatsText != null && beatTypeText != null) {
           final beats = int.tryParse(beatsText);
           final beatType = int.tryParse(beatTypeText);
-          
+
           if (beats == null) {
             throw MusicXmlParseException(
               'Invalid beats value "$beatsText" in time signature',
@@ -305,7 +307,7 @@ class MusicXmlParser {
               context: _createContext(partId: partId, measureNumber: number),
             );
           }
-          
+
           if (beatType == null) {
             throw MusicXmlParseException(
               'Invalid beat-type value "$beatTypeText" in time signature',
@@ -314,7 +316,7 @@ class MusicXmlParser {
               context: _createContext(partId: partId, measureNumber: number),
             );
           }
-          
+
           timeSignature = TimeSignature.validated(
             beats: beats,
             beatType: beatType,
@@ -386,7 +388,7 @@ class MusicXmlParser {
           notes.add(note);
         }
       } catch (e) {
-        if (e is MusicXmlValidationException || 
+        if (e is MusicXmlValidationException ||
             e is MusicXmlStructureException ||
             e is MusicXmlParseException) {
           rethrow;
@@ -434,9 +436,10 @@ class MusicXmlParser {
     );
   }
 
-  Note? _parseNote(XmlElement element, int? parentDivisions, String partId, String measureNumber) {
+  Note? _parseNote(XmlElement element, int? parentDivisions, String partId,
+      String measureNumber) {
     final line = _getLineNumber(element);
-    
+
     // Check if it's a rest
     final isRest = element.findElements('rest').isNotEmpty;
 
@@ -456,17 +459,19 @@ class MusicXmlParser {
               requiredElement: 'step',
               parentElement: 'pitch',
               line: _getLineNumber(pitchElement),
-              context: _createContext(partId: partId, measureNumber: measureNumber),
+              context:
+                  _createContext(partId: partId, measureNumber: measureNumber),
             );
           }
-          
+
           if (octaveText == null) {
             throw MusicXmlStructureException(
               'Pitch element missing required octave',
               requiredElement: 'octave',
               parentElement: 'pitch',
               line: _getLineNumber(pitchElement),
-              context: _createContext(partId: partId, measureNumber: measureNumber),
+              context:
+                  _createContext(partId: partId, measureNumber: measureNumber),
             );
           }
 
@@ -476,10 +481,11 @@ class MusicXmlParser {
               'Invalid octave value "$octaveText"',
               line: _getLineNumber(pitchElement),
               element: 'octave',
-              context: _createContext(partId: partId, measureNumber: measureNumber),
+              context:
+                  _createContext(partId: partId, measureNumber: measureNumber),
             );
           }
-          
+
           int? alter;
           if (alterText != null) {
             alter = int.tryParse(alterText);
@@ -488,21 +494,23 @@ class MusicXmlParser {
                 'Invalid alter value "$alterText"',
                 line: _getLineNumber(pitchElement),
                 element: 'alter',
-                context: _createContext(partId: partId, measureNumber: measureNumber),
+                context: _createContext(
+                    partId: partId, measureNumber: measureNumber),
               );
             }
           }
-          
+
           pitch = Pitch.validated(
             step: step,
             octave: octave,
             alter: alter,
             line: _getLineNumber(pitchElement),
-            context: _createContext(partId: partId, measureNumber: measureNumber),
+            context:
+                _createContext(partId: partId, measureNumber: measureNumber),
           );
         } catch (e) {
-          if (e is MusicXmlValidationException || 
-              e is MusicXmlParseException || 
+          if (e is MusicXmlValidationException ||
+              e is MusicXmlParseException ||
               e is MusicXmlStructureException) {
             rethrow;
           }
@@ -510,7 +518,8 @@ class MusicXmlParser {
             'Error parsing pitch: $e',
             line: _getLineNumber(pitchElement),
             element: 'pitch',
-            context: _createContext(partId: partId, measureNumber: measureNumber),
+            context:
+                _createContext(partId: partId, measureNumber: measureNumber),
           );
         }
       } else {
@@ -548,7 +557,7 @@ class MusicXmlParser {
         context: _createContext(partId: partId, measureNumber: measureNumber),
       );
     }
-    
+
     final divisions = parentDivisions ?? 1; // Default to 1 if not specified
 
     Duration duration;
