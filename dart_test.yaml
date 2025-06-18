@@ -1,0 +1,13 @@
+test_on: vm
+
+# Coverage configuration
+coverage:
+  # Include all source files in coverage
+  include: "lib/**"
+  
+  # Exclude test files and generated files
+  exclude:
+    - "lib/**/*.g.dart"
+    - "lib/**/*.freezed.dart"
+    - "test/**"
+    - "example/**"
