@@ -11,7 +11,7 @@ class KeySignature {
   final String? mode;
 
   /// Creates a new [KeySignature] instance.
-  /// 
+  ///
   /// The [fifths] value should be between -7 and +7.
   const KeySignature({
     required this.fifths,
@@ -19,7 +19,7 @@ class KeySignature {
   });
 
   /// Creates a new [KeySignature] instance with validation.
-  /// 
+  ///
   /// This factory constructor performs validation and throws
   /// [MusicXmlValidationException] if the key signature is invalid.
   factory KeySignature.validated({
@@ -29,7 +29,8 @@ class KeySignature {
     Map<String, dynamic>? context,
   }) {
     final keySignature = KeySignature(fifths: fifths, mode: mode);
-    ValidationUtils.validateKeySignature(keySignature, line: line, context: context);
+    ValidationUtils.validateKeySignature(keySignature,
+        line: line, context: context);
     return keySignature;
   }
 

@@ -11,7 +11,7 @@ class Duration {
   final int divisions;
 
   /// Creates a new [Duration] instance.
-  /// 
+  ///
   /// Both [value] and [divisions] must be positive.
   const Duration({
     required this.value,
@@ -19,7 +19,7 @@ class Duration {
   });
 
   /// Creates a new [Duration] instance with validation.
-  /// 
+  ///
   /// This factory constructor performs validation and throws
   /// [MusicXmlValidationException] if the duration values are invalid.
   factory Duration.validated({
