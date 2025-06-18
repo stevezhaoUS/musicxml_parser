@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:musicxml_parser/src/utils/validation_utils.dart';
 
 /// Represents a pitch in music notation.
 @immutable
@@ -13,11 +14,32 @@ class Pitch {
   final int? alter;
 
   /// Creates a new [Pitch] instance.
+  /// 
+  /// Validates that the step is one of C, D, E, F, G, A, B and
+  /// the octave is within the valid range (0-9).
+  /// 
+  /// Throws [MusicXmlValidationException] if validation fails.
   const Pitch({
     required this.step,
     required this.octave,
     this.alter,
   });
+
+  /// Creates a new [Pitch] instance with validation.
+  /// 
+  /// This factory constructor performs validation and throws
+  /// [MusicXmlValidationException] if the pitch is invalid.
+  factory Pitch.validated({
+    required String step,
+    required int octave,
+    int? alter,
+    int? line,
+    Map<String, dynamic>? context,
+  }) {
+    final pitch = Pitch(step: step, octave: octave, alter: alter);
+    ValidationUtils.validatePitch(pitch, line: line, context: context);
+    return pitch;
+  }
 
   @override
   bool operator ==(Object other) =>
