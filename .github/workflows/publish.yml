@@ -1,0 +1,75 @@
+name: Publish to pub.dev
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  publish:
+    if: github.repository_owner == 'yourusername' # Replace with your GitHub username
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 'stable'
+
+      - name: Get dependencies
+        run: dart pub get
+
+      - name: Run tests
+        run: dart test
+
+      - name: Check package health
+        run: |
+          dart pub global activate pana
+          dart pub global run pana --no-warning
+
+      - name: Verify pub publish
+        run: dart pub publish --dry-run
+
+      - name: Publish to pub.dev
+        uses: k-paxian/dart-package-publisher@v1.6
+        with:
+          accessToken: ${{ secrets.OAUTH_ACCESS_TOKEN }}
+          refreshToken: ${{ secrets.OAUTH_REFRESH_TOKEN }}
+          flutter: false
+          skipTests: true
+
+  create-release:
+    needs: publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref }}
+          name: Release v${{ steps.version.outputs.VERSION }}
+          body: |
+            ## Changes in v${{ steps.version.outputs.VERSION }}
+            
+            See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
+            
+            ## Installation
+            
+            Add this to your `pubspec.yaml`:
+            
+            ```yaml
+            dependencies:
+              musicxml_parser: ^${{ steps.version.outputs.VERSION }}
+            ```
+          draft: false
+          prerelease: false

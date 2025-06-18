@@ -1,0 +1,42 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 'stable'
+
+      - name: Get dependencies
+        run: dart pub get
+
+      - name: Check package health
+        run: dart pub global activate pana && dart pub global run pana --no-warning
+
+      - name: Check documentation coverage
+        run: |
+          dart pub global activate dartdoc
+          dart doc --validate-links
+
+      - name: Run additional lints
+        run: |
+          dart pub global activate dart_code_metrics
+          dart pub global run dart_code_metrics:metrics analyze lib --fatal-style --fatal-performance --fatal-warnings
+
+      - name: Check for outdated dependencies
+        run: dart pub outdated --mode=null-safety
+
+      - name: Verify pub publish
+        run: dart pub publish --dry-run

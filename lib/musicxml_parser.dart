@@ -1,0 +1,23 @@
+/// A Dart package for parsing MusicXML files into Dart objects.
+///
+/// This library provides a comprehensive set of tools for parsing MusicXML files,
+/// which are a standard format for representing musical scores in XML.
+/// The parsed data is converted into immutable Dart objects that can be used
+/// in any Dart application.
+library;
+
+// Export exceptions
+export 'src/exceptions/invalid_musicxml_exception.dart';
+export 'src/models/duration.dart';
+export 'src/models/key_signature.dart';
+export 'src/models/measure.dart';
+export 'src/models/note.dart';
+export 'src/models/part.dart';
+export 'src/models/pitch.dart';
+// Export models
+export 'src/models/score.dart';
+export 'src/models/time_signature.dart';
+// Export parser
+export 'src/parser/musicxml_parser.dart';
+// Export utils
+export 'src/utils/musicxml_utils.dart';
