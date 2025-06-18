@@ -8,6 +8,10 @@ library;
 
 // Export exceptions
 export 'src/exceptions/invalid_musicxml_exception.dart';
+export 'src/exceptions/musicxml_parse_exception.dart';
+export 'src/exceptions/musicxml_structure_exception.dart';
+export 'src/exceptions/musicxml_validation_exception.dart';
+// Export models
 export 'src/models/duration.dart';
 export 'src/models/key_signature.dart';
 export 'src/models/measure.dart';
@@ -21,3 +25,5 @@ export 'src/models/time_signature.dart';
 export 'src/parser/musicxml_parser.dart';
 // Export utils
 export 'src/utils/musicxml_utils.dart';
+export 'src/utils/validation_utils.dart';
+export 'src/utils/warning_system.dart';

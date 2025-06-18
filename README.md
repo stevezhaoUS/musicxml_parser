@@ -14,10 +14,14 @@ A Dart package for parsing MusicXML files (versions 3.0/3.1/4.0) into Dart objec
 - ✅ Support key signatures, time signatures, and clefs
 - ✅ Basic tie and chord support
 - ✅ Metadata parsing (title, composer, identification)
+- ✅ **Enhanced error handling with detailed error messages and context**
+- ✅ **Musical validation (pitch ranges, time signatures, key signatures)**
+- ✅ **Warning system for non-critical issues**
 - 🚧 Dotted notes and basic tuplets
 - ⏳ Repeats, articulations, and dynamics (planned)
 
-📋 **[Complete Feature Support List](docs/feature-support.md)** - See detailed status of all MusicXML features
+📋 **[Complete Feature Support List](docs/feature-support.md)** - See detailed status of all MusicXML features  
+🚨 **[Enhanced Error Handling Examples](docs/error-handling-examples.md)** - Learn about the comprehensive error handling system
 
 ## Project Status
 
@@ -44,10 +48,21 @@ A Dart package for parsing MusicXML files (versions 3.0/3.1/4.0) into Dart objec
 ```dart
 import 'package:musicxml_parser/musicxml_parser.dart';
 
+// Basic parsing
 final parser = MusicXmlParser();
 final score = parser.parse(musicXmlString);
 print('Title: ${score.title}');
 print('Notes: ${score.parts.first.measures.first.notes.length}');
+
+// With enhanced error handling
+try {
+  final score = parser.parse(xmlString);
+  print('Parsed successfully!');
+} on MusicXmlValidationException catch (e) {
+  print('Validation error: ${e.message}');
+} on MusicXmlParseException catch (e) {
+  print('Parse error: ${e.message}');
+}
 ```
 
 ## Installation
@@ -63,17 +78,37 @@ dependencies:
 import 'package:musicxml_parser/musicxml_parser.dart';
 
 void main() async {
-  final parser = MusicXmlParser();
+  // Create parser with warning system
+  final warningSystem = WarningSystem();
+  final parser = MusicXmlParser(warningSystem: warningSystem);
   
-  // Parse from string
-  final xmlString = '<?xml version="1.0"?><score-partwise>...</score-partwise>';
-  final score = parser.parse(xmlString);
-  
-  // Parse from file
-  final score2 = await parser.parseFromFile('path/to/score.musicxml');
-  
-  // Access score data
-  print('Title: ${score.title}');
+  try {
+    // Parse from string
+    final xmlString = '<?xml version="1.0"?><score-partwise>...</score-partwise>';
+    final score = parser.parse(xmlString);
+    
+    // Parse from file
+    final score2 = await parser.parseFromFile('path/to/score.musicxml');
+    
+    // Access score data
+    print('Title: ${score.title}');
+    print('Composer: ${score.composer}');
+    print('Parts: ${score.parts.length}');
+    
+    // Check for warnings
+    if (warningSystem.hasWarnings) {
+      print('Found ${warningSystem.warningCount} warnings');
+      warningSystem.printWarnings();
+    }
+    
+  } on MusicXmlStructureException catch (e) {
+    print('Structure error: ${e.message}');
+  } on MusicXmlValidationException catch (e) {
+    print('Validation error: ${e.message}');
+  } on MusicXmlParseException catch (e) {
+    print('Parse error: ${e.message}');
+  }
+}
   print('Composer: ${score.composer}');
   
   for (final part in score.parts) {
