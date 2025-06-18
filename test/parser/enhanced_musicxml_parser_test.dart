@@ -32,8 +32,10 @@ void main() {
       expect(
         () => parser.parse(xml),
         throwsA(isA<MusicXmlStructureException>()
-            .having((e) => e.message, 'message', contains('not a valid MusicXML file'))
-            .having((e) => e.requiredElement, 'requiredElement', 'score-partwise or score-timewise')),
+            .having((e) => e.message, 'message',
+                contains('not a valid MusicXML file'))
+            .having((e) => e.requiredElement, 'requiredElement',
+                'score-partwise or score-timewise')),
       );
     });
 
@@ -45,8 +47,8 @@ void main() {
 
       expect(
         () => parser.parse(xml),
-        throwsA(isA<MusicXmlParseException>()
-            .having((e) => e.message, 'message', contains('XML parsing error'))),
+        throwsA(isA<MusicXmlParseException>().having(
+            (e) => e.message, 'message', contains('XML parsing error'))),
       );
     });
 
@@ -58,8 +60,10 @@ void main() {
       expect(
         () => parser.parse(xml),
         throwsA(isA<MusicXmlStructureException>()
-            .having((e) => e.message, 'message', contains('not fully implemented'))
-            .having((e) => e.requiredElement, 'requiredElement', 'score-partwise')
+            .having(
+                (e) => e.message, 'message', contains('not fully implemented'))
+            .having(
+                (e) => e.requiredElement, 'requiredElement', 'score-partwise')
             .having((e) => e.parentElement, 'parentElement', 'score-timewise')),
       );
     });
@@ -76,7 +80,8 @@ void main() {
       expect(
         () => parser.parse(xml),
         throwsA(isA<MusicXmlStructureException>()
-            .having((e) => e.message, 'message', contains('missing required "id" attribute'))
+            .having((e) => e.message, 'message',
+                contains('missing required "id" attribute'))
             .having((e) => e.requiredElement, 'requiredElement', 'id')
             .having((e) => e.parentElement, 'parentElement', 'part')),
       );
@@ -92,7 +97,7 @@ void main() {
 </score-partwise>''';
 
       final score = parser.parse(xml);
-      
+
       expect(score.parts, hasLength(1));
       expect(score.parts.first.id, equals('P1'));
       expect(score.parts.first.measures, hasLength(1));
@@ -109,9 +114,10 @@ void main() {
 </score-partwise>''';
 
       parser.parse(xml);
-      
+
       expect(warningSystem.hasWarnings, isTrue);
-      final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+      final warnings =
+          warningSystem.getWarningsByCategory(WarningCategories.structure);
       expect(warnings, hasLength(1));
       expect(warnings.first.message, contains('Missing part-list'));
     });
@@ -134,7 +140,8 @@ void main() {
         () => parser.parse(xml),
         throwsA(isA<MusicXmlValidationException>()
             .having((e) => e.rule, 'rule', 'key_signature_fifths_validation')
-            .having((e) => e.message, 'message', contains('out of valid range'))),
+            .having(
+                (e) => e.message, 'message', contains('out of valid range'))),
       );
     });
 
@@ -156,8 +163,10 @@ void main() {
       expect(
         () => parser.parse(xml),
         throwsA(isA<MusicXmlValidationException>()
-            .having((e) => e.rule, 'rule', 'time_signature_beat_type_validation')
-            .having((e) => e.message, 'message', contains('must be a positive power of 2'))),
+            .having(
+                (e) => e.rule, 'rule', 'time_signature_beat_type_validation')
+            .having((e) => e.message, 'message',
+                contains('must be a positive power of 2'))),
       );
     });
 
@@ -176,7 +185,8 @@ void main() {
       expect(
         () => parser.parse(xml),
         throwsA(isA<MusicXmlParseException>()
-            .having((e) => e.message, 'message', contains('Invalid divisions value'))
+            .having((e) => e.message, 'message',
+                contains('Invalid divisions value'))
             .having((e) => e.element, 'element', 'divisions')),
       );
     });
@@ -201,7 +211,8 @@ void main() {
       );
     });
 
-    test('throws MusicXmlStructureException for non-rest note without pitch', () {
+    test('throws MusicXmlStructureException for non-rest note without pitch',
+        () {
       const xml = '''<?xml version="1.0" encoding="UTF-8"?>
 <score-partwise>
   <part id="P1">
@@ -216,7 +227,8 @@ void main() {
       expect(
         () => parser.parse(xml),
         throwsA(isA<MusicXmlStructureException>()
-            .having((e) => e.message, 'message', contains('missing pitch element'))
+            .having(
+                (e) => e.message, 'message', contains('missing pitch element'))
             .having((e) => e.requiredElement, 'requiredElement', 'pitch')
             .having((e) => e.parentElement, 'parentElement', 'note')),
       );
@@ -243,7 +255,7 @@ void main() {
 </score-partwise>''';
 
       final score = parser.parse(xml);
-      
+
       expect(score.parts.first.measures.first.notes, hasLength(1));
       final note = score.parts.first.measures.first.notes.first;
       expect(note.pitch?.step, equals('C'));
@@ -268,11 +280,12 @@ void main() {
 </score-partwise>''';
 
       final score = parser.parse(xml);
-      
+
       expect(score.parts.first.measures.first.notes, isEmpty);
       expect(warningSystem.hasWarnings, isTrue);
-      
-      final warnings = warningSystem.getWarningsByCategory(WarningCategories.duration);
+
+      final warnings =
+          warningSystem.getWarningsByCategory(WarningCategories.duration);
       expect(warnings, hasLength(1));
       expect(warnings.first.message, contains('without duration'));
     });
@@ -291,7 +304,7 @@ void main() {
 </score-partwise>''';
 
       final score = parser.parse(xml);
-      
+
       expect(score.parts.first.measures.first.notes, hasLength(1));
       final note = score.parts.first.measures.first.notes.first;
       expect(note.isRest, isTrue);

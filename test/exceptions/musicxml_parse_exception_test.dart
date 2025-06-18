@@ -5,7 +5,7 @@ void main() {
   group('MusicXmlParseException', () {
     test('creates exception with message only', () {
       final exception = MusicXmlParseException('Test error message');
-      
+
       expect(exception.message, equals('Test error message'));
       expect(exception.line, isNull);
       expect(exception.element, isNull);
@@ -17,7 +17,7 @@ void main() {
         'Test error message',
         line: 42,
       );
-      
+
       expect(exception.message, equals('Test error message'));
       expect(exception.line, equals(42));
       expect(exception.element, isNull);
@@ -29,7 +29,7 @@ void main() {
         'Test error message',
         element: 'pitch',
       );
-      
+
       expect(exception.message, equals('Test error message'));
       expect(exception.line, isNull);
       expect(exception.element, equals('pitch'));
@@ -44,7 +44,7 @@ void main() {
         element: 'pitch',
         context: context,
       );
-      
+
       expect(exception.message, equals('Test error message'));
       expect(exception.line, equals(42));
       expect(exception.element, equals('pitch'));
@@ -53,8 +53,9 @@ void main() {
 
     test('toString includes message only', () {
       final exception = MusicXmlParseException('Test error');
-      
-      expect(exception.toString(), equals('MusicXmlParseException: Test error'));
+
+      expect(
+          exception.toString(), equals('MusicXmlParseException: Test error'));
     });
 
     test('toString includes element and line', () {
@@ -63,8 +64,9 @@ void main() {
         line: 42,
         element: 'pitch',
       );
-      
-      expect(exception.toString(), contains('MusicXmlParseException: Test error'));
+
+      expect(
+          exception.toString(), contains('MusicXmlParseException: Test error'));
       expect(exception.toString(), contains('(element: pitch, line: 42)'));
     });
 
@@ -73,8 +75,9 @@ void main() {
         'Test error',
         context: {'measure': 5},
       );
-      
-      expect(exception.toString(), contains('MusicXmlParseException: Test error'));
+
+      expect(
+          exception.toString(), contains('MusicXmlParseException: Test error'));
       expect(exception.toString(), contains('[context: {measure: 5}]'));
     });
 
@@ -83,14 +86,15 @@ void main() {
         'Test error',
         line: 42,
       );
-      
-      expect(exception.toString(), contains('MusicXmlParseException: Test error'));
+
+      expect(
+          exception.toString(), contains('MusicXmlParseException: Test error'));
       expect(exception.toString(), contains('(line: 42)'));
     });
 
     test('inherits from InvalidMusicXmlException', () {
       final exception = MusicXmlParseException('Test error');
-      
+
       expect(exception, isA<Exception>());
     });
   });

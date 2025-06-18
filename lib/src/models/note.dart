@@ -45,7 +45,7 @@ class Note {
             'A rest must not have a pitch, and a note must have a pitch');
 
   /// Creates a new [Note] instance with validation.
-  /// 
+  ///
   /// This factory constructor performs comprehensive validation and throws
   /// [MusicXmlValidationException] if the note is invalid.
   factory Note.validated({
@@ -62,15 +62,15 @@ class Note {
   }) {
     // Perform validation first, before creating the Note
     // This allows us to provide better error messages
-    
+
     // Validate duration
     ValidationUtils.validateDuration(duration, line: line, context: context);
-    
+
     // Validate pitch if not a rest
     if (!isRest && pitch != null) {
       ValidationUtils.validatePitch(pitch, line: line, context: context);
     }
-    
+
     // Validate voice (should be positive if specified)
     if (voice != null && voice <= 0) {
       throw MusicXmlValidationException(
@@ -84,7 +84,7 @@ class Note {
         },
       );
     }
-    
+
     // Validate that rests don't have pitches
     if (isRest && pitch != null) {
       throw MusicXmlValidationException(
@@ -93,12 +93,12 @@ class Note {
         line: line,
         context: {
           'isRest': isRest,
-          'hasPitch': pitch != null,
+          'hasPitch': true,
           ...?context,
         },
       );
     }
-    
+
     // Validate that non-rest notes have pitches (unless it's a special case)
     if (!isRest && pitch == null) {
       throw MusicXmlValidationException(
@@ -107,12 +107,12 @@ class Note {
         line: line,
         context: {
           'isRest': isRest,
-          'hasPitch': pitch != null,
+          'hasPitch': false,
           ...?context,
         },
       );
     }
-    
+
     // Create the Note - this will still trigger the assertion if validation missed something
     return Note(
       pitch: pitch,

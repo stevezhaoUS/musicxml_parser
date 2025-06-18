@@ -5,7 +5,7 @@ void main() {
   group('MusicXmlStructureException', () {
     test('creates exception with message only', () {
       final exception = MusicXmlStructureException('Structure error');
-      
+
       expect(exception.message, equals('Structure error'));
       expect(exception.requiredElement, isNull);
       expect(exception.parentElement, isNull);
@@ -19,7 +19,7 @@ void main() {
         'Missing required element',
         requiredElement: 'part-list',
       );
-      
+
       expect(exception.message, equals('Missing required element'));
       expect(exception.requiredElement, equals('part-list'));
     });
@@ -30,7 +30,7 @@ void main() {
         requiredElement: 'part-list',
         parentElement: 'score-partwise',
       );
-      
+
       expect(exception.message, equals('Missing element'));
       expect(exception.requiredElement, equals('part-list'));
       expect(exception.parentElement, equals('score-partwise'));
@@ -46,7 +46,7 @@ void main() {
         node: 'score-partwise',
         context: context,
       );
-      
+
       expect(exception.message, equals('Structure problem'));
       expect(exception.requiredElement, equals('part-list'));
       expect(exception.parentElement, equals('score-partwise'));
@@ -60,8 +60,9 @@ void main() {
         'Test error',
         requiredElement: 'part-list',
       );
-      
-      expect(exception.toString(), contains('MusicXmlStructureException: Test error'));
+
+      expect(exception.toString(),
+          contains('MusicXmlStructureException: Test error'));
       expect(exception.toString(), contains('[required: part-list]'));
     });
 
@@ -71,9 +72,11 @@ void main() {
         requiredElement: 'part-list',
         parentElement: 'score-partwise',
       );
-      
-      expect(exception.toString(), contains('MusicXmlStructureException: Test error'));
-      expect(exception.toString(), contains('[required: part-list in score-partwise]'));
+
+      expect(exception.toString(),
+          contains('MusicXmlStructureException: Test error'));
+      expect(exception.toString(),
+          contains('[required: part-list in score-partwise]'));
     });
 
     test('toString includes node and line', () {
@@ -82,9 +85,11 @@ void main() {
         line: 42,
         node: 'score-partwise',
       );
-      
-      expect(exception.toString(), contains('MusicXmlStructureException: Test error'));
-      expect(exception.toString(), contains('(node: score-partwise, line: 42)'));
+
+      expect(exception.toString(),
+          contains('MusicXmlStructureException: Test error'));
+      expect(
+          exception.toString(), contains('(node: score-partwise, line: 42)'));
     });
 
     test('toString includes context', () {
@@ -92,8 +97,9 @@ void main() {
         'Test error',
         context: {'file': 'test.xml'},
       );
-      
-      expect(exception.toString(), contains('MusicXmlStructureException: Test error'));
+
+      expect(exception.toString(),
+          contains('MusicXmlStructureException: Test error'));
       expect(exception.toString(), contains('[context: {file: test.xml}]'));
     });
 
@@ -106,7 +112,7 @@ void main() {
         node: 'score-partwise',
         context: {'file': 'test.xml'},
       );
-      
+
       final result = exception.toString();
       expect(result, contains('MusicXmlStructureException: Complex error'));
       expect(result, contains('[required: part-list in score-partwise]'));
@@ -116,7 +122,7 @@ void main() {
 
     test('inherits from InvalidMusicXmlException', () {
       final exception = MusicXmlStructureException('Test error');
-      
+
       expect(exception, isA<Exception>());
     });
   });

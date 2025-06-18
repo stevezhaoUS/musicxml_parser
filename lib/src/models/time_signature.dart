@@ -11,7 +11,7 @@ class TimeSignature {
   final int beatType;
 
   /// Creates a new [TimeSignature] instance.
-  /// 
+  ///
   /// [beats] must be positive and [beatType] must be a positive power of 2.
   const TimeSignature({
     required this.beats,
@@ -19,7 +19,7 @@ class TimeSignature {
   });
 
   /// Creates a new [TimeSignature] instance with validation.
-  /// 
+  ///
   /// This factory constructor performs validation and throws
   /// [MusicXmlValidationException] if the time signature is invalid.
   factory TimeSignature.validated({
@@ -29,7 +29,8 @@ class TimeSignature {
     Map<String, dynamic>? context,
   }) {
     final timeSignature = TimeSignature(beats: beats, beatType: beatType);
-    ValidationUtils.validateTimeSignature(timeSignature, line: line, context: context);
+    ValidationUtils.validateTimeSignature(timeSignature,
+        line: line, context: context);
     return timeSignature;
   }
 

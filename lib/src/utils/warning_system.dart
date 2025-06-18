@@ -1,23 +1,23 @@
 /// Represents a warning that occurred during MusicXML parsing.
-/// 
+///
 /// Warnings are non-critical issues that don't prevent parsing but
 /// may indicate potential problems or unusual patterns in the MusicXML.
 class MusicXmlWarning {
   /// The warning message.
   final String message;
-  
+
   /// The category of warning.
   final String category;
-  
+
   /// The line number where the warning occurred, if available.
   final int? line;
-  
+
   /// The XML element where the warning occurred, if available.
   final String? element;
-  
+
   /// Additional context information.
   final Map<String, dynamic>? context;
-  
+
   /// The severity level of the warning.
   final WarningSeverity severity;
 
@@ -33,8 +33,9 @@ class MusicXmlWarning {
 
   @override
   String toString() {
-    final buffer = StringBuffer('WARNING [${severity.name.toUpperCase()}] $category: $message');
-    
+    final buffer = StringBuffer(
+        'WARNING [${severity.name.toUpperCase()}] $category: $message');
+
     if (element != null) {
       buffer.write(' (element: $element');
       if (line != null) {
@@ -44,11 +45,11 @@ class MusicXmlWarning {
     } else if (line != null) {
       buffer.write(' (line: $line)');
     }
-    
+
     if (context != null && context!.isNotEmpty) {
       buffer.write(' [context: $context]');
     }
-    
+
     return buffer.toString();
   }
 
@@ -76,27 +77,27 @@ class MusicXmlWarning {
 enum WarningSeverity {
   /// Informational warnings.
   info,
-  
+
   /// Minor issues that might affect interpretation.
   minor,
-  
+
   /// Moderate issues that could cause problems.
   moderate,
-  
+
   /// Serious issues that are likely to cause problems.
   serious,
 }
 
 /// System for collecting and managing warnings during MusicXML parsing.
-/// 
+///
 /// The warning system allows the parser to report non-critical issues
 /// without stopping the parsing process. This is useful for identifying
 /// potential problems or unusual patterns in MusicXML files.
-/// 
+///
 /// Example usage:
 /// ```dart
 /// final warningSystem = WarningSystem();
-/// 
+///
 /// // Add a warning
 /// warningSystem.addWarning(
 ///   'Unusual time signature found',
@@ -105,25 +106,25 @@ enum WarningSeverity {
 ///   element: 'time',
 ///   severity: WarningSeverity.minor,
 /// );
-/// 
+///
 /// // Get all warnings
 /// final warnings = warningSystem.getWarnings();
-/// 
+///
 /// // Get warnings by category
 /// final timeWarnings = warningSystem.getWarningsByCategory('time_signature');
 /// ```
 class WarningSystem {
   final List<MusicXmlWarning> _warnings = [];
-  
-  /// The maximum number of warnings to collect. 
+
+  /// The maximum number of warnings to collect.
   /// If exceeded, older warnings will be discarded.
   final int maxWarnings;
-  
+
   /// Whether to collect warnings or ignore them.
   bool enabled;
 
   /// Creates a new [WarningSystem].
-  /// 
+  ///
   /// [maxWarnings] - Maximum number of warnings to store (default: 1000)
   /// [enabled] - Whether warnings are collected (default: true)
   WarningSystem({
@@ -132,7 +133,7 @@ class WarningSystem {
   });
 
   /// Adds a warning to the system.
-  /// 
+  ///
   /// If warnings are disabled or the maximum number of warnings has been
   /// reached, the warning may be ignored or older warnings may be discarded.
   void addWarning(
@@ -144,7 +145,7 @@ class WarningSystem {
     WarningSeverity severity = WarningSeverity.info,
   }) {
     if (!enabled) return;
-    
+
     final warning = MusicXmlWarning(
       message: message,
       category: category,
@@ -153,9 +154,9 @@ class WarningSystem {
       context: context,
       severity: severity,
     );
-    
+
     _warnings.add(warning);
-    
+
     // Remove oldest warnings if we've exceeded the limit
     while (_warnings.length > maxWarnings) {
       _warnings.removeAt(0);
@@ -174,7 +175,7 @@ class WarningSystem {
       _warnings.where((w) => w.severity == severity).toList();
 
   /// Gets warnings filtered by minimum severity level.
-  /// 
+  ///
   /// For example, calling with [WarningSeverity.moderate] will return
   /// warnings with moderate or serious severity.
   List<MusicXmlWarning> getWarningsByMinSeverity(WarningSeverity minSeverity) {
@@ -226,11 +227,11 @@ class WarningSystem {
     if (_warnings.isEmpty) {
       return 'No warnings';
     }
-    
+
     final buffer = StringBuffer();
     buffer.writeln('Warning Summary:');
     buffer.writeln('Total warnings: ${_warnings.length}');
-    
+
     final categoryCount = getWarningCountsByCategory();
     if (categoryCount.isNotEmpty) {
       buffer.writeln('\nBy category:');
@@ -238,7 +239,7 @@ class WarningSystem {
         buffer.writeln('  ${entry.key}: ${entry.value}');
       }
     }
-    
+
     final severityCount = getWarningCountsBySeverity();
     if (severityCount.isNotEmpty) {
       buffer.writeln('\nBy severity:');
@@ -246,7 +247,7 @@ class WarningSystem {
         buffer.writeln('  ${entry.key.name}: ${entry.value}');
       }
     }
-    
+
     return buffer.toString().trim();
   }
 
@@ -256,7 +257,7 @@ class WarningSystem {
       print('No warnings');
       return;
     }
-    
+
     print('Warnings (${_warnings.length}):');
     for (int i = 0; i < _warnings.length; i++) {
       print('${i + 1}. ${_warnings[i]}');
