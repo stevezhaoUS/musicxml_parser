@@ -31,7 +31,7 @@ class MeasureParser {
     WarningSystem? warningSystem,
   })  : warningSystem = warningSystem ?? WarningSystem(),
         _noteParser = noteParser ?? NoteParser(warningSystem: warningSystem ?? WarningSystem()),
-        _attributesParser = attributesParser ?? AttributesParser(warningSystem: warningSystem ?? WarningSystem());
+        _attributesParser = attributesParser ?? const AttributesParser();
 
   /// Parses a measure element into a [Measure] object.
   ///
