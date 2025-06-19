@@ -830,18 +830,18 @@ void exportSummary(Score score, String sourceFilePath) {
 /// Inspects the beams in a measure.
 void inspectBeamsInMeasure(Measure measure) {
   print('\nBeams in Measure ${measure.number}:');
-  
+
   if (measure.beams.isEmpty) {
     print('No beams in this measure.');
     return;
   }
-  
+
   // Group beams by beam number for better readability
   final beamsByNumber = <int, List<Beam>>{};
   for (final beam in measure.beams) {
     beamsByNumber.putIfAbsent(beam.number, () => []).add(beam);
   }
-  
+
   // Display beams by number
   beamsByNumber.forEach((number, beams) {
     print('\nBeam #$number:');
@@ -849,7 +849,7 @@ void inspectBeamsInMeasure(Measure measure) {
       final beam = beams[i];
       print('${i + 1}. Type: ${beam.type}');
       print('   Notes: ${beam.noteIndices.map((idx) => idx + 1).join(', ')}');
-      
+
       // Show note information for this beam
       print('   Connected notes:');
       for (final noteIdx in beam.noteIndices) {
@@ -863,7 +863,7 @@ void inspectBeamsInMeasure(Measure measure) {
       }
     }
   });
-  
+
   // Wait for user input to continue
   print('\nPress any key to continue...');
   readSingleKey();
@@ -891,7 +891,7 @@ void inspectBeams(Score score) {
   }
 
   final part = score.parts[partIndex - 1];
-  
+
   // Find measures with beams
   final measuresWithBeams = <Measure>[];
   for (final measure in part.measures) {
@@ -899,30 +899,31 @@ void inspectBeams(Score score) {
       measuresWithBeams.add(measure);
     }
   }
-  
+
   if (measuresWithBeams.isEmpty) {
     print('\nNo beams found in this part.');
     return;
   }
-  
+
   print('\nMeasures with beams in ${part.name ?? 'Part $partIndex'}:');
   for (int i = 0; i < measuresWithBeams.length; i++) {
-    print('${i + 1}. Measure ${measuresWithBeams[i].number} (${measuresWithBeams[i].beams.length} beams)');
+    print(
+        '${i + 1}. Measure ${measuresWithBeams[i].number} (${measuresWithBeams[i].beams.length} beams)');
   }
-  
+
   print('\nEnter measure number to inspect (or press ESC to go back):');
   final measureInput = readNumberInput();
-  
+
   if (measureInput == 'ESC') {
     return; // Go back to main menu
   }
-  
+
   final measureIndex = int.tryParse(measureInput) ?? 0;
   if (measureIndex < 1 || measureIndex > measuresWithBeams.length) {
     print('Invalid measure number. Going back...');
     return;
   }
-  
+
   // Inspect the selected measure's beams
   inspectBeamsInMeasure(measuresWithBeams[measureIndex - 1]);
 }
