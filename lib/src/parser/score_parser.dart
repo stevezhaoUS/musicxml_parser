@@ -21,7 +21,8 @@ class ScoreParser {
     PartParser? partParser,
     WarningSystem? warningSystem,
   })  : warningSystem = warningSystem ?? WarningSystem(),
-        _partParser = partParser ?? PartParser(warningSystem: warningSystem ?? WarningSystem());
+        _partParser = partParser ??
+            PartParser(warningSystem: warningSystem ?? WarningSystem());
 
   /// Parses a MusicXML document into a [Score] object.
   ///
@@ -55,15 +56,16 @@ class ScoreParser {
   /// Parses a score-partwise element into a [Score] object.
   Score _parseScorePartwise(XmlElement element) {
     // Extract score metadata
-    final title = XmlHelper.findOptionalTextElement(element, 'work/work-title') ??
-        XmlHelper.findOptionalTextElement(element, 'movement-title');
+    final title =
+        XmlHelper.findOptionalTextElement(element, 'work/work-title') ??
+            XmlHelper.findOptionalTextElement(element, 'movement-title');
     final composer = XmlHelper.findOptionalTextElement(
         element, 'identification/creator[@type="composer"]');
     final version = element.getAttribute('version');
 
     // Find part-list
     final partList = element.findElements('part-list').firstOrNull;
-    
+
     if (partList == null) {
       warningSystem.addWarning(
         'Missing part-list element in score',
@@ -75,9 +77,12 @@ class ScoreParser {
     }
 
     // Parse parts
-    final parts = element.findElements('part').map(
-      (part) => _partParser.parse(part, partList),
-    ).toList();
+    final parts = element
+        .findElements('part')
+        .map(
+          (part) => _partParser.parse(part, partList),
+        )
+        .toList();
 
     return Score(
       title: title,

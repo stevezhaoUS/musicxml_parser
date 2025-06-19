@@ -33,7 +33,7 @@ class AttributesParser {
     if (divisionsElement != null) {
       final divisionsText = divisionsElement.innerText.trim();
       final divisionsValue = int.tryParse(divisionsText);
-      
+
       if (divisionsValue == null) {
         throw MusicXmlParseException(
           'Invalid divisions value "$divisionsText"',
@@ -45,7 +45,7 @@ class AttributesParser {
           },
         );
       }
-      
+
       if (divisionsValue <= 0) {
         throw MusicXmlValidationException(
           'Divisions value must be positive, got $divisionsValue',
@@ -58,7 +58,7 @@ class AttributesParser {
           },
         );
       }
-      
+
       divisions = divisionsValue;
     }
 
@@ -158,10 +158,11 @@ class AttributesParser {
           'measure': measureNumber,
           'line': line,
         },
-      );      }
+      );
+    }
 
     // Note: We could use symbol attribute for special time signatures in the future
-    
+
     return TimeSignature.validated(
       beats: beats,
       beatType: beatType,

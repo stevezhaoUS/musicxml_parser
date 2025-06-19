@@ -8,14 +8,14 @@ class XmlHelper {
   /// Returns -1 if the line number is not available.
   static int getLineNumber(XmlElement? element) {
     if (element == null) return -1;
-    
+
     // Check for line number in element attributes
     final lineAttribute = element.getAttribute('line');
     if (lineAttribute != null) {
       final lineNum = int.tryParse(lineAttribute);
       if (lineNum != null) return lineNum;
     }
-    
+
     // Line number not available
     return -1;
   }
@@ -29,23 +29,23 @@ class XmlHelper {
   static String? findOptionalTextElement(XmlElement element, String path) {
     XmlElement? current = element;
     final parts = path.split('/');
-    
+
     for (final part in parts) {
       if (current == null) return null;
-      
+
       // Handle attribute selector
       if (part.startsWith('@')) {
         final attrName = part.substring(1);
         return current.getAttribute(attrName);
       }
-      
+
       // Handle predicates like element[@attr="value"]
       if (part.contains('[') && part.contains(']')) {
         final match = RegExp(r'(.+?)\[(.+?)\]').firstMatch(part);
         if (match != null) {
           final elementName = match.group(1);
           final predicate = match.group(2);
-          
+
           if (elementName != null && predicate != null) {
             // Handle @attr="value" predicate
             if (predicate.startsWith('@')) {
@@ -53,7 +53,7 @@ class XmlHelper {
               if (attrMatch != null) {
                 final attrName = attrMatch.group(1);
                 final attrValue = attrMatch.group(2);
-                
+
                 if (attrName != null && attrValue != null) {
                   final elements = current.findElements(elementName);
                   XmlElement? found = null;
@@ -70,7 +70,7 @@ class XmlHelper {
             }
           }
         }
-        
+
         // Regular element name
         current = current.findElements(part).firstOrNull;
       } else {
@@ -78,7 +78,7 @@ class XmlHelper {
         current = current.findElements(part).firstOrNull;
       }
     }
-    
+
     return current?.innerText.trim();
   }
 
@@ -114,7 +114,7 @@ class XmlHelper {
   /// Returns null if the element is not found or the content is not a valid integer.
   static int? getElementTextAsInt(XmlElement? element) {
     if (element == null) return null;
-    
+
     final text = element.innerText.trim();
     return int.tryParse(text);
   }
@@ -124,7 +124,7 @@ class XmlHelper {
   /// Returns null if the element is not found or the content is not a valid double.
   static double? getElementTextAsDouble(XmlElement? element) {
     if (element == null) return null;
-    
+
     final text = element.innerText.trim();
     return double.tryParse(text);
   }
