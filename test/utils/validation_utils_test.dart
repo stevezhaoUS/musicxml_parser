@@ -331,63 +331,6 @@ void main() {
       });
     });
 
-    group('validateVoiceConsistency', () {
-      test('accepts consistent tied notes', () {
-        final pitch = Pitch(step: 'C', octave: 4);
-        final duration = Duration(value: 240, divisions: 480);
-
-        final notes = [
-          Note(
-            pitch: pitch,
-            duration: duration,
-            isRest: false,
-            voice: 1,
-            tiedStart: true,
-          ),
-          Note(
-            pitch: pitch,
-            duration: duration,
-            isRest: false,
-            voice: 1,
-            tiedEnd: true,
-          ),
-        ];
-
-        expect(() => ValidationUtils.validateVoiceConsistency(notes),
-            returnsNormally);
-      });
-
-      test('rejects inconsistent ties', () {
-        final pitch = Pitch(step: 'C', octave: 4);
-        final duration = Duration(value: 240, divisions: 480);
-
-        final notes = [
-          Note(
-            pitch: pitch,
-            duration: duration,
-            isRest: false,
-            voice: 1,
-            tiedStart: true,
-          ),
-          Note(
-            pitch: pitch,
-            duration: duration,
-            isRest: false,
-            voice: 1,
-            tiedEnd: false,
-          ),
-        ];
-
-        expect(
-          () => ValidationUtils.validateVoiceConsistency(notes),
-          throwsA(isA<MusicXmlValidationException>()
-              .having((e) => e.rule, 'rule', 'voice_tie_consistency_validation')
-              .having((e) => e.message, 'message',
-                  contains('Tie start found but no corresponding tie end'))),
-        );
-      });
-    });
-
     group('validateMeasureDuration', () {
       test('accepts correct measure duration', () {
         final duration = Duration(value: 480, divisions: 480);

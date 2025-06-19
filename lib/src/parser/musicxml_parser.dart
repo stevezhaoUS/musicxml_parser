@@ -600,45 +600,14 @@ class MusicXmlParser {
       }
     }
 
-    // Parse lyric
-    final lyricElement = element.findElements('lyric').firstOrNull;
-    final lyric = lyricElement != null
-        ? _findOptionalTextElement(lyricElement, 'text')
-        : null;
-
-    // Parse tie information
-    bool tiedStart = false;
-    bool tiedEnd = false;
-
-    for (final tieElement in element.findElements('tie')) {
-      final tieType = tieElement.getAttribute('type');
-      if (tieType == 'start') {
-        tiedStart = true;
-      } else if (tieType == 'stop') {
-        tiedEnd = true;
-      } else if (tieType != null) {
-        warningSystem.addWarning(
-          'Unknown tie type "$tieType"',
-          category: WarningCategories.tie,
-          line: _getLineNumber(tieElement),
-          element: 'tie',
-          severity: WarningSeverity.minor,
-          context: _createContext(partId: partId, measureNumber: measureNumber),
-        );
-      }
-    }
-
     // Create and validate note
     try {
       return Note.validated(
         pitch: pitch,
         duration: duration,
         isRest: isRest,
-        lyric: lyric,
         voice: voice,
         type: type,
-        tiedStart: tiedStart,
-        tiedEnd: tiedEnd,
         line: line,
         context: _createContext(partId: partId, measureNumber: measureNumber),
       );

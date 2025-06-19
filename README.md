@@ -9,10 +9,10 @@ A Dart package for parsing MusicXML files (versions 3.0/3.1/4.0) into Dart objec
 
 ## Features
 
-- ✅ Parse core MusicXML elements (notes, pitches, durations, lyrics)
+- ✅ Parse core MusicXML elements (notes, pitches, durations)
 - ✅ Handle multi-part scores with proper part/measure structure
 - ✅ Support key signatures, time signatures, and clefs
-- ✅ Basic tie and chord support
+- ✅ Basic chord support
 - ✅ Metadata parsing (title, composer, identification)
 - ✅ **Enhanced error handling with detailed error messages and context**
 - ✅ **Musical validation (pitch ranges, time signatures, key signatures)**
@@ -137,7 +137,6 @@ void main() async {
 - ✅ Basic note parsing (pitch, duration, type)
 - ✅ Multi-part scores and measures
 - ✅ Key and time signatures
-- ✅ Basic lyrics support
 - ✅ Metadata parsing
 
 ### Next Release (v0.2.0)

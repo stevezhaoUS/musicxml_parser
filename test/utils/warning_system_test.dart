@@ -333,7 +333,6 @@ void main() {
       expect(WarningCategories.measure, equals('measure'));
       expect(WarningCategories.voice, equals('voice'));
       expect(WarningCategories.tie, equals('tie'));
-      expect(WarningCategories.lyric, equals('lyric'));
       expect(WarningCategories.notation, equals('notation'));
       expect(WarningCategories.performance, equals('performance'));
       expect(WarningCategories.compatibility, equals('compatibility'));
