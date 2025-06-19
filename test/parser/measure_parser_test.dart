@@ -88,7 +88,8 @@ void main() {
       });
 
       test('parses measure with width attribute', () {
-        final xml = XmlDocument.parse('<measure number="1" width="120.5"></measure>');
+        final xml =
+            XmlDocument.parse('<measure number="1" width="120.5"></measure>');
         final element = xml.rootElement;
 
         final result = measureParser.parse(element, 'P1');
@@ -98,7 +99,8 @@ void main() {
       });
 
       test('handles invalid width attribute gracefully', () {
-        final xml = XmlDocument.parse('<measure number="1" width="invalid"></measure>');
+        final xml =
+            XmlDocument.parse('<measure number="1" width="invalid"></measure>');
         final element = xml.rootElement;
 
         final result = measureParser.parse(element, 'P1');
@@ -110,12 +112,12 @@ void main() {
       test('inherits values from parameters', () {
         final xml = XmlDocument.parse('<measure number="1"></measure>');
         final element = xml.rootElement;
-        
         final keySignature = const KeySignature(fifths: 2);
         final timeSignature = const TimeSignature(beats: 4, beatType: 4);
 
         final result = measureParser.parse(
           element, 
+          element,
           'P1',
           inheritedDivisions: 480,
           inheritedKeySignature: keySignature,
@@ -134,7 +136,8 @@ void main() {
           expect(
             () => measureParser.parse(element, 'P1'),
             throwsA(isA<MusicXmlValidationException>()
-                .having((e) => e.message, 'message', 'Measure number is required')
+                .having(
+                    (e) => e.message, 'message', 'Measure number is required')
                 .having((e) => e.context?['part'], 'part context', 'P1')),
           );
         });
@@ -145,8 +148,8 @@ void main() {
 
           expect(
             () => measureParser.parse(element, 'P1'),
-            throwsA(isA<MusicXmlValidationException>()
-                .having((e) => e.message, 'message', 'Measure number is required')),
+            throwsA(isA<MusicXmlValidationException>().having(
+                (e) => e.message, 'message', 'Measure number is required')),
           );
         });
 
@@ -180,8 +183,8 @@ void main() {
 
           expect(
             () => measureParser.parse(element, 'P1'),
-            throwsA(isA<MusicXmlValidationException>()
-                .having((e) => e.message, 'message', 'Invalid measure number: -1')),
+            throwsA(isA<MusicXmlValidationException>().having(
+                (e) => e.message, 'message', 'Invalid measure number: -1')),
           );
         });
       });
@@ -270,8 +273,8 @@ void main() {
           var callCount = 0;
           when(mockAttributesParser.parse(any, any, any, any)).thenAnswer((_) {
             callCount++;
-            return callCount == 1 
-                ? {'divisions': 480} 
+            return callCount == 1
+                ? {'divisions': 480}
                 : {'keySignature': keySignature};
           });
 
@@ -296,6 +299,7 @@ void main() {
           when(mockAttributesParser.parse(any, any, any, any))
               .thenReturn({});
 
+
           measureParser.parse(element, 'P1', inheritedDivisions: 240);
 
           verify(mockAttributesParser.parse(any, 'P1', '1', 240)).called(1);
@@ -316,7 +320,7 @@ void main() {
             </measure>
           ''');
           final element = xml.rootElement;
-          
+
           final note = const Note(
             pitch: const Pitch(step: 'C', octave: 4),
             duration: const Duration(value: 480, divisions: 480),
@@ -349,13 +353,13 @@ void main() {
             </measure>
           ''');
           final element = xml.rootElement;
-          
+
           final note1 = const Note(
             pitch: const Pitch(step: 'C', octave: 4),
             duration: const Duration(value: 480, divisions: 480),
             isRest: false,
           );
-          
+
           final note2 = const Note(
             pitch: null,
             duration: const Duration(value: 480, divisions: 480),
@@ -392,7 +396,7 @@ void main() {
             </measure>
           ''');
           final element = xml.rootElement;
-          
+
           final note = const Note(
             pitch: const Pitch(step: 'C', octave: 4),
             duration: const Duration(value: 480, divisions: 480),
@@ -428,7 +432,7 @@ void main() {
             </measure>
           ''');
           final element = xml.rootElement;
-          
+
           final note = const Note(
             pitch: const Pitch(step: 'C', octave: 4),
             duration: const Duration(value: 240, divisions: 240),
@@ -474,7 +478,9 @@ void main() {
           // Should not throw any exceptions
         });
 
+
         test('handles mixed content with attributes, notes, and unknown elements', () {
+
           final xml = XmlDocument.parse('''
             <measure number="1">
               <unknown-element/>
@@ -498,7 +504,7 @@ void main() {
             </measure>
           ''');
           final element = xml.rootElement;
-          
+
           final note = const Note(
             pitch: const Pitch(step: 'C', octave: 4),
             duration: const Duration(value: 480, divisions: 480),
@@ -552,13 +558,13 @@ void main() {
           final inheritedTime = const TimeSignature(beats: 4, beatType: 4);
           final newKey = const KeySignature(fifths: 3);
           final newTime = const TimeSignature(beats: 6, beatType: 8);
-          
+
           final note1 = const Note(
             pitch: const Pitch(step: 'A', octave: 4),
             duration: const Duration(value: 480, divisions: 960),
             isRest: false,
           );
-          
+
           final note2 = const Note(
             pitch: null,
             duration: const Duration(value: 480, divisions: 960),
@@ -570,7 +576,7 @@ void main() {
             'keySignature': newKey,
             'timeSignature': newTime,
           });
-          
+
           var callCount = 0;
           when(mockNoteParser.parse(any, any, any, any)).thenAnswer((_) {
             callCount++;
@@ -588,9 +594,11 @@ void main() {
           expect(result.number, equals('42'));
           expect(result.width, equals(150.0));
           expect(result.notes, hasLength(2));
+
           expect(result.keySignature, equals(newKey)); // Updated from attributes
           expect(result.timeSignature, equals(newTime)); // Updated from attributes
           
+
           verify(mockAttributesParser.parse(any, 'P1', '42', 480)).called(1);
           verify(mockNoteParser.parse(any, 960, 'P1', '42')).called(2);
         });
@@ -598,3 +606,4 @@ void main() {
     });
   });
 }
+

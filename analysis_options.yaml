@@ -39,11 +39,12 @@ linter:
     - unrelated_type_equality_checks
     - use_rethrow_when_possible
 
-# Allow certain excluded files
 analyzer:
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
-    - "example/**"  # Exclude example directory from strict analysis
+    - "**/*.mocks.dart"
+    - "example/**"
+
   errors:
     invalid_annotation_target: ignore
