@@ -373,7 +373,7 @@ void inspectNotes(Score score) {
             ? 'Rest'
             : '${note.pitch?.step}${note.pitch?.alter != null ? (note.pitch!.alter! > 0 ? '#' : '♭') : ''}${note.pitch?.octave}';
 
-        final duration = note.duration.value.toString();
+        final duration = note.duration?.value.toString();
 
         print('${i + 1}. $noteInfo ($duration divisions)');
       }
@@ -431,7 +431,7 @@ void inspectNotes(Score score) {
         }
       }
 
-      print('Duration: ${note.duration.value} divisions');
+      print('Duration: ${note.duration?.value} divisions');
       if (note.type != null) {
         print('Note Type: ${note.type}');
       }
