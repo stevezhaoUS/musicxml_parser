@@ -33,7 +33,8 @@ class BeamParser {
   ///
   /// 这个方法会基于 beam 的 number 和 type (begin, continue, end) 属性
   /// 将相关的 beam 元素连接起来，形成完整的 beam 组
-  static List<Beam> mergeBeams(List<Beam> individualBeams, String measureNumber) {
+  static List<Beam> mergeBeams(
+      List<Beam> individualBeams, String measureNumber) {
     if (individualBeams.isEmpty) return [];
 
     // 按 beam number 分组
