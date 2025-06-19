@@ -21,32 +21,16 @@ class MusicXmlParser {
   
   /// The warning system for collecting non-critical issues.
   final WarningSystem warningSystem;
-  
-  /// The logging configuration for this parser instance.
-  final LoggingConfig loggingConfig;
-  
-  /// Logger instance for this parser.
-  late final Logger _logger;
 
   /// Creates a new [MusicXmlParser].
   ///
   /// [scoreParser] - Optional score parser. If not provided, a new one will be created.
   /// [warningSystem] - Optional warning system. If not provided, a new one will be created.
-
-  /// [loggingConfig] - Optional logging configuration. If not provided, uses default settings.
   MusicXmlParser({
+    ScoreParser? scoreParser,
     WarningSystem? warningSystem,
-    LoggingConfig? loggingConfig,
-  })  : warningSystem = warningSystem ?? WarningSystem(),
-        loggingConfig = loggingConfig ?? const LoggingConfig() {
-    _logger = LoggingUtils.createLogger('MusicXmlParser');
-    _scoreParser = scoreParser ?? ScoreParser(warningSystem: warningSystem)
-    
-    // Setup logging if this is the first parser instance or config changed
-    // Don't clear listeners in case we're in a test environment
-    LoggingUtils.setupLogging(this.loggingConfig, clearExistingListeners: false);
-  }
-
+  })  : _scoreParser = scoreParser ?? ScoreParser(warningSystem: warningSystem),
+        warningSystem = warningSystem ?? WarningSystem();
 
   /// Parses a MusicXML string into a [Score] object.
   ///
@@ -55,74 +39,22 @@ class MusicXmlParser {
   /// - [MusicXmlStructureException] for structural problems
   /// - [MusicXmlValidationException] for validation issues
   Score parse(String xmlString) {
-    _logger.info('Starting MusicXML parsing');
-    
-    final startTime = DateTime.now();
-    
     try {
-      if (loggingConfig.enableDebugLogs) {
-        _logger.fine('Parsing XML document (${xmlString.length} characters)');
-      }
-      
       final document = XmlDocument.parse(xmlString);
-
       return _scoreParser.parse(document);
     } on XmlException catch (e) {
       throw MusicXmlParseException(
-
         'XML parsing error: ${e.message}',
         // Note: XmlException doesn't provide line numbers in this package version
       );
-      
-      LoggingUtils.logException(
-        _logger,
-        exception,
-        stackTrace: loggingConfig.includeStackTraces ? stackTrace : null,
-        additionalMessage: 'Failed to parse XML document',
-      );
-      
-      throw exception;
-      
-    } on MusicXmlParseException catch (e, stackTrace) {
-      LoggingUtils.logException(
-        _logger,
-        e,
-        stackTrace: loggingConfig.includeStackTraces ? stackTrace : null,
-        element: e.element,
-        line: e.line,
-        context: e.context,
-      );
+    } on MusicXmlParseException {
       rethrow;
-      
-    } on MusicXmlStructureException catch (e, stackTrace) {
-      LoggingUtils.logException(
-        _logger,
-        e,
-        stackTrace: loggingConfig.includeStackTraces ? stackTrace : null,
-        additionalMessage: 'Structure validation failed',
-      );
+    } on MusicXmlStructureException {
       rethrow;
-      
-    } on MusicXmlValidationException catch (e, stackTrace) {
-      LoggingUtils.logException(
-        _logger,
-        e,
-        stackTrace: loggingConfig.includeStackTraces ? stackTrace : null,
-        additionalMessage: 'Validation failed',
-      );
+    } on MusicXmlValidationException {
       rethrow;
-      
-    } catch (e, stackTrace) {
-      final exception = MusicXmlParseException('Failed to parse MusicXML: $e');
-      
-      LoggingUtils.logException(
-        _logger,
-        exception,
-        stackTrace: loggingConfig.includeStackTraces ? stackTrace : null,
-        additionalMessage: 'Unexpected error during parsing',
-      );
-      
-      throw exception;
+    } catch (e) {
+      throw MusicXmlParseException('Failed to parse MusicXML: $e');
     }
   }
 
@@ -131,38 +63,15 @@ class MusicXmlParser {
   /// Throws [MusicXmlParseException] if the file doesn't exist or
   /// contains invalid MusicXML.
   Future<Score> parseFromFile(String path) async {
-    _logger.info('Starting to parse MusicXML file: $path');
-    
     try {
       final file = File(path);
-      
-      if (loggingConfig.enableDebugLogs) {
-        _logger.fine('Reading file: $path');
-      }
-      
       final xmlString = await file.readAsString();
-      
-      if (loggingConfig.enableDebugLogs) {
-        _logger.fine('File read successfully (${xmlString.length} characters)');
-      }
-      
       return parse(xmlString);
-      
-    } on FileSystemException catch (e, stackTrace) {
-      final exception = MusicXmlParseException(
+    } on FileSystemException catch (e) {
+      throw MusicXmlParseException(
         'File error: ${e.message}',
         context: {'filePath': path},
       );
-      
-      LoggingUtils.logException(
-        _logger,
-        exception,
-        stackTrace: loggingConfig.includeStackTraces ? stackTrace : null,
-        context: {'filePath': path},
-        additionalMessage: 'Failed to read MusicXML file',
-      );
-      
-      throw exception;
     }
   }
 
@@ -198,5 +107,4 @@ class MusicXmlParser {
       );
     }
   }
-
 }

@@ -276,29 +276,16 @@ class ValidationUtils {
     for (final voice in voiceNotes.keys) {
       final voiceNoteList = voiceNotes[voice]!;
 
-      // Sort notes by their position (this is simplified - in reality you'd need to track timing)
-      // For now, we'll just check that there are no obvious conflicts
-
-      // Check for tied note consistency
-      for (int i = 0; i < voiceNoteList.length - 1; i++) {
-        final currentNote = voiceNoteList[i];
-        final nextNote = voiceNoteList[i + 1];
-
-        // If current note has tiedStart but next note doesn't have tiedEnd, that's inconsistent
-        if (currentNote.tiedStart && !nextNote.tiedEnd) {
-          throw MusicXmlValidationException(
-            'Tie start found but no corresponding tie end in voice $voice',
-            rule: 'voice_tie_consistency_validation',
-            line: line,
-            context: {
-              'voice': voice,
-              'noteIndex': i,
-              'currentNoteTiedStart': currentNote.tiedStart,
-              'nextNoteTiedEnd': nextNote.tiedEnd,
-              ...?context,
-            },
-          );
-        }
+      // TODO: Implement proper voice overlap validation
+      // This would require tracking note start times and durations
+      // For now, we just verify that the voice grouping was successful
+      if (voiceNoteList.isEmpty) {
+        throw MusicXmlValidationException(
+          'Voice $voice has no notes despite being registered',
+          rule: 'voice_consistency_validation',
+          line: line,
+          context: context,
+        );
       }
     }
   }

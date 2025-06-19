@@ -76,9 +76,9 @@ This document tracks the current implementation status of MusicXML features in t
 ### Text and Lyrics
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<lyric>` | ✅ | Basic lyric text |
-| Syllabic types | 🚧 | Begin, middle, end, single |
-| Multiple verses | 🚧 | Partial support |
+| `<lyric>` | ❌ | Planned for future version |
+| Syllabic types | ❌ | Planned for future version |
+| Multiple verses | ❌ | Planned for future version |
 | `<words>` (directions) | ❌ | Planned for v0.4.0 |
 | `<rehearsal>` marks | ❌ | Planned for v0.4.0 |
 
