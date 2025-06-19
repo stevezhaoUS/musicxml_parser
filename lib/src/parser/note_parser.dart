@@ -100,6 +100,11 @@ class NoteParser {
       return null;
     }
 
+    // Return null if duration parsing failed
+    if (duration == null) {
+      return null;
+    }
+
     // Parse note type
     final typeElement = element.findElements('type').firstOrNull;
     final type = typeElement?.innerText.trim();
@@ -112,7 +117,7 @@ class NoteParser {
     // Create and return the note
     return Note(
       pitch: pitch,
-      duration: duration!,
+      duration: duration,
       isRest: isRest,
       type: type,
       voice: voiceNum,
