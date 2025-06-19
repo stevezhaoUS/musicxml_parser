@@ -12,6 +12,7 @@ export 'src/exceptions/musicxml_parse_exception.dart';
 export 'src/exceptions/musicxml_structure_exception.dart';
 export 'src/exceptions/musicxml_validation_exception.dart';
 // Export models
+export 'src/models/beam.dart';
 export 'src/models/duration.dart';
 export 'src/models/key_signature.dart';
 export 'src/models/measure.dart';
