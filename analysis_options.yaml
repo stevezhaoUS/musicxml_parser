@@ -45,5 +45,6 @@ analyzer:
     - "**/*.freezed.dart"
     - "**/*.mocks.dart"
     - "example/**"
+
   errors:
     invalid_annotation_target: ignore
