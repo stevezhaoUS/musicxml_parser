@@ -11,13 +11,13 @@ void main() {
   group('ValidationUtils', () {
     group('validatePitch', () {
       test('accepts valid pitch', () {
-        final pitch = Pitch(step: 'C', octave: 4);
+        final pitch = const Pitch(step: 'C', octave: 4);
 
         expect(() => ValidationUtils.validatePitch(pitch), returnsNormally);
       });
 
       test('rejects invalid pitch step', () {
-        final pitch = Pitch(step: 'H', octave: 4);
+        final pitch = const Pitch(step: 'H', octave: 4);
 
         expect(
           () => ValidationUtils.validatePitch(pitch),
@@ -29,7 +29,7 @@ void main() {
       });
 
       test('rejects octave too low', () {
-        final pitch = Pitch(step: 'C', octave: -1);
+        final pitch = const Pitch(step: 'C', octave: -1);
 
         expect(
           () => ValidationUtils.validatePitch(pitch),
@@ -41,7 +41,7 @@ void main() {
       });
 
       test('rejects octave too high', () {
-        final pitch = Pitch(step: 'C', octave: 10);
+        final pitch = const Pitch(step: 'C', octave: 10);
 
         expect(
           () => ValidationUtils.validatePitch(pitch),
@@ -53,13 +53,13 @@ void main() {
       });
 
       test('accepts valid alteration', () {
-        final pitch = Pitch(step: 'C', octave: 4, alter: 1);
+        final pitch = const Pitch(step: 'C', octave: 4, alter: 1);
 
         expect(() => ValidationUtils.validatePitch(pitch), returnsNormally);
       });
 
       test('rejects extreme alteration', () {
-        final pitch = Pitch(step: 'C', octave: 4, alter: 3);
+        final pitch = const Pitch(step: 'C', octave: 4, alter: 3);
 
         expect(
           () => ValidationUtils.validatePitch(pitch),
@@ -71,7 +71,7 @@ void main() {
       });
 
       test('includes context in validation error', () {
-        final pitch = Pitch(step: 'H', octave: 4);
+        final pitch = const Pitch(step: 'H', octave: 4);
         final context = {'measure': 5, 'part': 'P1'};
 
         expect(
@@ -86,14 +86,14 @@ void main() {
 
     group('validateDuration', () {
       test('accepts valid duration', () {
-        final duration = Duration(value: 480, divisions: 480);
+        final duration = const Duration(value: 480, divisions: 480);
 
         expect(
             () => ValidationUtils.validateDuration(duration), returnsNormally);
       });
 
       test('rejects zero duration value', () {
-        final duration = Duration(value: 0, divisions: 480);
+        final duration = const Duration(value: 0, divisions: 480);
 
         expect(
           () => ValidationUtils.validateDuration(duration),
@@ -105,7 +105,7 @@ void main() {
       });
 
       test('rejects negative duration value', () {
-        final duration = Duration(value: -100, divisions: 480);
+        final duration = const Duration(value: -100, divisions: 480);
 
         expect(
           () => ValidationUtils.validateDuration(duration),
@@ -115,7 +115,7 @@ void main() {
       });
 
       test('rejects zero divisions', () {
-        final duration = Duration(value: 480, divisions: 0);
+        final duration = const Duration(value: 480, divisions: 0);
 
         expect(
           () => ValidationUtils.validateDuration(duration),
@@ -129,14 +129,14 @@ void main() {
 
     group('validateKeySignature', () {
       test('accepts valid key signature', () {
-        final keySignature = KeySignature(fifths: 2, mode: 'major');
+        final keySignature = const KeySignature(fifths: 2, mode: 'major');
 
         expect(() => ValidationUtils.validateKeySignature(keySignature),
             returnsNormally);
       });
 
       test('rejects fifths too low', () {
-        final keySignature = KeySignature(fifths: -8);
+        final keySignature = const KeySignature(fifths: -8);
 
         expect(
           () => ValidationUtils.validateKeySignature(keySignature),
@@ -148,7 +148,7 @@ void main() {
       });
 
       test('rejects fifths too high', () {
-        final keySignature = KeySignature(fifths: 8);
+        final keySignature = const KeySignature(fifths: 8);
 
         expect(
           () => ValidationUtils.validateKeySignature(keySignature),
@@ -173,7 +173,7 @@ void main() {
       });
 
       test('rejects invalid mode', () {
-        final keySignature = KeySignature(fifths: 0, mode: 'invalid');
+        final keySignature = const KeySignature(fifths: 0, mode: 'invalid');
 
         expect(
           () => ValidationUtils.validateKeySignature(keySignature),
@@ -185,7 +185,7 @@ void main() {
       });
 
       test('accepts null mode', () {
-        final keySignature = KeySignature(fifths: 0);
+        final keySignature = const KeySignature(fifths: 0);
 
         expect(() => ValidationUtils.validateKeySignature(keySignature),
             returnsNormally);
@@ -194,14 +194,14 @@ void main() {
 
     group('validateTimeSignature', () {
       test('accepts valid time signature', () {
-        final timeSignature = TimeSignature(beats: 4, beatType: 4);
+        final timeSignature = const TimeSignature(beats: 4, beatType: 4);
 
         expect(() => ValidationUtils.validateTimeSignature(timeSignature),
             returnsNormally);
       });
 
       test('rejects zero beats', () {
-        final timeSignature = TimeSignature(beats: 0, beatType: 4);
+        final timeSignature = const TimeSignature(beats: 0, beatType: 4);
 
         expect(
           () => ValidationUtils.validateTimeSignature(timeSignature),
@@ -213,7 +213,7 @@ void main() {
       });
 
       test('rejects negative beats', () {
-        final timeSignature = TimeSignature(beats: -1, beatType: 4);
+        final timeSignature = const TimeSignature(beats: -1, beatType: 4);
 
         expect(
           () => ValidationUtils.validateTimeSignature(timeSignature),
@@ -245,7 +245,7 @@ void main() {
       });
 
       test('rejects zero beat type', () {
-        final timeSignature = TimeSignature(beats: 4, beatType: 0);
+        final timeSignature = const TimeSignature(beats: 4, beatType: 0);
 
         expect(
           () => ValidationUtils.validateTimeSignature(timeSignature),
@@ -257,8 +257,8 @@ void main() {
 
     group('validateNote', () {
       test('accepts valid note with pitch', () {
-        final pitch = Pitch(step: 'C', octave: 4);
-        final duration = Duration(value: 480, divisions: 480);
+        final pitch = const Pitch(step: 'C', octave: 4);
+        final duration = const Duration(value: 480, divisions: 480);
         final note = Note(
           pitch: pitch,
           duration: duration,
@@ -270,7 +270,7 @@ void main() {
       });
 
       test('accepts valid rest', () {
-        final duration = Duration(value: 480, divisions: 480);
+        final duration = const Duration(value: 480, divisions: 480);
         final note = Note(
           duration: duration,
           isRest: true,
@@ -280,8 +280,8 @@ void main() {
       });
 
       test('rejects rest with pitch', () {
-        final pitch = Pitch(step: 'C', octave: 4);
-        final duration = Duration(value: 480, divisions: 480);
+        final pitch = const Pitch(step: 'C', octave: 4);
+        final duration = const Duration(value: 480, divisions: 480);
 
         expect(
           () => Note.validated(
@@ -297,7 +297,7 @@ void main() {
       });
 
       test('rejects non-rest without pitch', () {
-        final duration = Duration(value: 480, divisions: 480);
+        final duration = const Duration(value: 480, divisions: 480);
 
         expect(
           () => Note.validated(
@@ -312,8 +312,8 @@ void main() {
       });
 
       test('rejects zero voice', () {
-        final pitch = Pitch(step: 'C', octave: 4);
-        final duration = Duration(value: 480, divisions: 480);
+        final pitch = const Pitch(step: 'C', octave: 4);
+        final duration = const Duration(value: 480, divisions: 480);
         final note = Note(
           pitch: pitch,
           duration: duration,
@@ -333,26 +333,26 @@ void main() {
 
     group('validateMeasureDuration', () {
       test('accepts correct measure duration', () {
-        final duration = Duration(value: 480, divisions: 480);
+        final duration = const Duration(value: 480, divisions: 480);
         final notes = [
           Note(
               duration: duration,
               isRest: false,
-              pitch: Pitch(step: 'C', octave: 4)),
+              pitch: const Pitch(step: 'C', octave: 4)),
           Note(
               duration: duration,
               isRest: false,
-              pitch: Pitch(step: 'D', octave: 4)),
+              pitch: const Pitch(step: 'D', octave: 4)),
           Note(
               duration: duration,
               isRest: false,
-              pitch: Pitch(step: 'E', octave: 4)),
+              pitch: const Pitch(step: 'E', octave: 4)),
           Note(
               duration: duration,
               isRest: false,
-              pitch: Pitch(step: 'F', octave: 4)),
+              pitch: const Pitch(step: 'F', octave: 4)),
         ];
-        final timeSignature = TimeSignature(beats: 4, beatType: 4);
+        final timeSignature = const TimeSignature(beats: 4, beatType: 4);
 
         expect(
           () => ValidationUtils.validateMeasureDuration(
@@ -362,18 +362,18 @@ void main() {
       });
 
       test('rejects incorrect measure duration', () {
-        final duration = Duration(value: 480, divisions: 480);
+        final duration = const Duration(value: 480, divisions: 480);
         final notes = [
           Note(
               duration: duration,
               isRest: false,
-              pitch: Pitch(step: 'C', octave: 4)),
+              pitch: const Pitch(step: 'C', octave: 4)),
           Note(
               duration: duration,
               isRest: false,
-              pitch: Pitch(step: 'D', octave: 4)),
+              pitch: const Pitch(step: 'D', octave: 4)),
         ];
-        final timeSignature = TimeSignature(beats: 4, beatType: 4);
+        final timeSignature = const TimeSignature(beats: 4, beatType: 4);
 
         expect(
           () => ValidationUtils.validateMeasureDuration(
@@ -386,12 +386,12 @@ void main() {
       });
 
       test('skips validation when time signature is null', () {
-        final duration = Duration(value: 480, divisions: 480);
+        final duration = const Duration(value: 480, divisions: 480);
         final notes = [
           Note(
               duration: duration,
               isRest: false,
-              pitch: Pitch(step: 'C', octave: 4)),
+              pitch: const Pitch(step: 'C', octave: 4)),
         ];
 
         expect(
@@ -401,14 +401,14 @@ void main() {
       });
 
       test('skips validation when divisions is null', () {
-        final duration = Duration(value: 480, divisions: 480);
+        final duration = const Duration(value: 480, divisions: 480);
         final notes = [
           Note(
               duration: duration,
               isRest: false,
-              pitch: Pitch(step: 'C', octave: 4)),
+              pitch: const Pitch(step: 'C', octave: 4)),
         ];
-        final timeSignature = TimeSignature(beats: 4, beatType: 4);
+        final timeSignature = const TimeSignature(beats: 4, beatType: 4);
 
         expect(
           () => ValidationUtils.validateMeasureDuration(

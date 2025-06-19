@@ -4,7 +4,7 @@ import 'package:musicxml_parser/src/utils/warning_system.dart';
 void main() {
   group('MusicXmlWarning', () {
     test('creates warning with required fields', () {
-      final warning = MusicXmlWarning(
+      final warning = const MusicXmlWarning(
         message: 'Test warning',
         category: 'test',
       );
@@ -37,7 +37,7 @@ void main() {
     });
 
     test('toString with minimal fields', () {
-      final warning = MusicXmlWarning(
+      final warning = const MusicXmlWarning(
         message: 'Test warning',
         category: 'test',
       );
@@ -46,7 +46,7 @@ void main() {
     });
 
     test('toString with element and line', () {
-      final warning = MusicXmlWarning(
+      final warning = const MusicXmlWarning(
         message: 'Test warning',
         category: 'test',
         line: 42,
@@ -58,7 +58,7 @@ void main() {
     });
 
     test('toString with context', () {
-      final warning = MusicXmlWarning(
+      final warning = const MusicXmlWarning(
         message: 'Test warning',
         category: 'test',
         context: {'key': 'value'},
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('toString with serious severity', () {
-      final warning = MusicXmlWarning(
+      final warning = const MusicXmlWarning(
         message: 'Test warning',
         category: 'test',
         severity: WarningSeverity.serious,
@@ -80,19 +80,19 @@ void main() {
     });
 
     test('equality based on content', () {
-      final warning1 = MusicXmlWarning(
+      final warning1 = const MusicXmlWarning(
         message: 'Test warning',
         category: 'test',
         line: 42,
       );
 
-      final warning2 = MusicXmlWarning(
+      final warning2 = const MusicXmlWarning(
         message: 'Test warning',
         category: 'test',
         line: 42,
       );
 
-      final warning3 = MusicXmlWarning(
+      final warning3 = const MusicXmlWarning(
         message: 'Different warning',
         category: 'test',
         line: 42,
