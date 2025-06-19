@@ -24,6 +24,7 @@ export 'src/models/time_signature.dart';
 // Export parser
 export 'src/parser/musicxml_parser.dart';
 // Export utils
+export 'src/utils/logging_config.dart';
 export 'src/utils/musicxml_utils.dart';
 export 'src/utils/validation_utils.dart';
 export 'src/utils/warning_system.dart';

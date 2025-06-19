@@ -63,6 +63,12 @@ try {
 } on MusicXmlParseException catch (e) {
   print('Parse error: ${e.message}');
 }
+
+// With logging for debugging
+final debugParser = MusicXmlParser(
+  loggingConfig: const LoggingConfig.debug(),
+);
+final score = debugParser.parse(xmlString);
 ```
 
 ## Installation

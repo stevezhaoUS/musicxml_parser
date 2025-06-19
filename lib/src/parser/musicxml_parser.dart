@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_parse_exception.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
@@ -13,6 +14,7 @@ import 'package:musicxml_parser/src/models/part.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
 import 'package:musicxml_parser/src/models/score.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
+import 'package:musicxml_parser/src/utils/logging_config.dart';
 import 'package:musicxml_parser/src/utils/validation_utils.dart';
 import 'package:musicxml_parser/src/utils/warning_system.dart';
 import 'package:xml/xml.dart';
@@ -22,12 +24,28 @@ import 'package:xml/xml_events.dart';
 class MusicXmlParser {
   /// The warning system for collecting non-critical issues.
   final WarningSystem warningSystem;
+  
+  /// The logging configuration for this parser instance.
+  final LoggingConfig loggingConfig;
+  
+  /// Logger instance for this parser.
+  late final Logger _logger;
 
   /// Creates a new [MusicXmlParser].
   ///
   /// [warningSystem] - Optional warning system. If not provided, a new one will be created.
-  MusicXmlParser({WarningSystem? warningSystem})
-      : warningSystem = warningSystem ?? WarningSystem();
+  /// [loggingConfig] - Optional logging configuration. If not provided, uses default settings.
+  MusicXmlParser({
+    WarningSystem? warningSystem,
+    LoggingConfig? loggingConfig,
+  })  : warningSystem = warningSystem ?? WarningSystem(),
+        loggingConfig = loggingConfig ?? const LoggingConfig() {
+    _logger = LoggingUtils.createLogger('MusicXmlParser');
+    
+    // Setup logging if this is the first parser instance or config changed
+    // Don't clear listeners in case we're in a test environment
+    LoggingUtils.setupLogging(this.loggingConfig, clearExistingListeners: false);
+  }
 
   /// Parses a MusicXML string into a [Score] object.
   ///
@@ -36,39 +54,123 @@ class MusicXmlParser {
   /// - [MusicXmlStructureException] for structural problems
   /// - [MusicXmlValidationException] for validation issues
   Score parse(String xmlString) {
+    _logger.info('Starting MusicXML parsing');
+    
+    final startTime = DateTime.now();
+    
     try {
+      if (loggingConfig.enableDebugLogs) {
+        _logger.fine('Parsing XML document (${xmlString.length} characters)');
+      }
+      
       final document = XmlDocument.parse(xmlString);
+      
+      if (loggingConfig.enableDebugLogs) {
+        _logger.fine('XML document parsed successfully, looking for root elements');
+      }
+      
       final scorePartwise = document.findElements('score-partwise').firstOrNull;
 
       if (scorePartwise == null) {
+        _logger.fine('score-partwise element not found, trying score-timewise');
+        
         // Try score-timewise format
         final scoreTimewise =
             document.findElements('score-timewise').firstOrNull;
         if (scoreTimewise == null) {
-          throw MusicXmlStructureException(
+          final exception = MusicXmlStructureException(
             'Document is not a valid MusicXML file. Root element must be either "score-partwise" or "score-timewise"',
             requiredElement: 'score-partwise or score-timewise',
             line: _getLineNumber(document.rootElement),
           );
+          
+          LoggingUtils.logException(
+            _logger,
+            exception,
+            element: document.rootElement.name.qualified,
+            additionalMessage: 'Invalid MusicXML root element',
+          );
+          
+          throw exception;
         }
+        
+        _logger.info('Found score-timewise format, converting to score-partwise');
         // Convert score-timewise to score-partwise format
-        return _parseScoreTimewise(scoreTimewise);
+        final result = _parseScoreTimewise(scoreTimewise);
+        
+        if (loggingConfig.enablePerformanceLogs) {
+          final duration = DateTime.now().difference(startTime);
+          _logger.info('MusicXML parsing completed in ${duration.inMilliseconds}ms (score-timewise format)');
+        }
+        
+        return result;
       }
 
-      return _parseScorePartwise(scorePartwise);
-    } on XmlException catch (e) {
-      throw MusicXmlParseException(
+      _logger.info('Found score-partwise format, parsing...');
+      final result = _parseScorePartwise(scorePartwise);
+      
+      if (loggingConfig.enablePerformanceLogs) {
+        final duration = DateTime.now().difference(startTime);
+        _logger.info('MusicXML parsing completed in ${duration.inMilliseconds}ms (score-partwise format)');
+      }
+      
+      return result;
+      
+    } on XmlException catch (e, stackTrace) {
+      final exception = MusicXmlParseException(
         'XML parsing error: ${e.message}',
         // Note: XmlException doesn't provide line numbers in this package version
       );
-    } on MusicXmlParseException {
+      
+      LoggingUtils.logException(
+        _logger,
+        exception,
+        stackTrace: loggingConfig.includeStackTraces ? stackTrace : null,
+        additionalMessage: 'Failed to parse XML document',
+      );
+      
+      throw exception;
+      
+    } on MusicXmlParseException catch (e, stackTrace) {
+      LoggingUtils.logException(
+        _logger,
+        e,
+        stackTrace: loggingConfig.includeStackTraces ? stackTrace : null,
+        element: e.element,
+        line: e.line,
+        context: e.context,
+      );
       rethrow;
-    } on MusicXmlStructureException {
+      
+    } on MusicXmlStructureException catch (e, stackTrace) {
+      LoggingUtils.logException(
+        _logger,
+        e,
+        stackTrace: loggingConfig.includeStackTraces ? stackTrace : null,
+        additionalMessage: 'Structure validation failed',
+      );
       rethrow;
-    } on MusicXmlValidationException {
+      
+    } on MusicXmlValidationException catch (e, stackTrace) {
+      LoggingUtils.logException(
+        _logger,
+        e,
+        stackTrace: loggingConfig.includeStackTraces ? stackTrace : null,
+        additionalMessage: 'Validation failed',
+      );
       rethrow;
-    } catch (e) {
-      throw MusicXmlParseException('Failed to parse MusicXML: $e');
+      
+    } catch (e, stackTrace) {
+      final exception = MusicXmlParseException('Failed to parse MusicXML: $e');
+      
+      LoggingUtils.logException(
+        _logger,
+        exception,
+        stackTrace: loggingConfig.includeStackTraces ? stackTrace : null,
+        additionalMessage: 'Unexpected error during parsing',
+      );
+      
+      throw exception;
     }
   }
 
@@ -77,15 +179,38 @@ class MusicXmlParser {
   /// Throws [MusicXmlParseException] if the file doesn't exist or
   /// contains invalid MusicXML.
   Future<Score> parseFromFile(String path) async {
+    _logger.info('Starting to parse MusicXML file: $path');
+    
     try {
       final file = File(path);
+      
+      if (loggingConfig.enableDebugLogs) {
+        _logger.fine('Reading file: $path');
+      }
+      
       final xmlString = await file.readAsString();
+      
+      if (loggingConfig.enableDebugLogs) {
+        _logger.fine('File read successfully (${xmlString.length} characters)');
+      }
+      
       return parse(xmlString);
-    } on FileSystemException catch (e) {
-      throw MusicXmlParseException(
+      
+    } on FileSystemException catch (e, stackTrace) {
+      final exception = MusicXmlParseException(
         'File error: ${e.message}',
         context: {'filePath': path},
       );
+      
+      LoggingUtils.logException(
+        _logger,
+        exception,
+        stackTrace: loggingConfig.includeStackTraces ? stackTrace : null,
+        context: {'filePath': path},
+        additionalMessage: 'Failed to read MusicXML file',
+      );
+      
+      throw exception;
     }
   }
 
@@ -125,12 +250,20 @@ class MusicXmlParser {
   // Private parsing methods
 
   Score _parseScorePartwise(XmlElement element) {
+    if (loggingConfig.enableDebugLogs) {
+      _logger.fine('Parsing score-partwise element');
+    }
+    
     // Extract score metadata
     final title = _findOptionalTextElement(element, 'work/work-title') ??
         _findOptionalTextElement(element, 'movement-title');
     final composer = _findOptionalTextElement(
         element, 'identification/creator[@type="composer"]');
     final version = element.getAttribute('version');
+
+    if (loggingConfig.enableDebugLogs) {
+      _logger.fine('Score metadata - Title: $title, Composer: $composer, Version: $version');
+    }
 
     // Find divisions (if specified at the score level)
     final scoreDefaultsElement = element.findElements('defaults').firstOrNull;
@@ -140,8 +273,19 @@ class MusicXmlParser {
         ? int.tryParse(divisionsByQuarterElement.innerText)
         : null;
 
+    if (loggingConfig.enableDebugLogs && divisions != null) {
+      _logger.fine('Found score-level divisions: $divisions');
+    }
+
     // Parse parts
-    final parts = element.findElements('part').map(_parsePart).toList();
+    final partElements = element.findElements('part').toList();
+    _logger.info('Parsing ${partElements.length} parts');
+    
+    final parts = partElements.map(_parsePart).toList();
+
+    if (loggingConfig.enableDebugLogs) {
+      _logger.fine('Successfully parsed ${parts.length} parts');
+    }
 
     return Score(
       title: title,
