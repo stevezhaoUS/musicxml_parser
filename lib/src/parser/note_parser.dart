@@ -85,6 +85,7 @@ class NoteParser {
             'line': line,
           },
         );
+        return null;
       }
     } else {
       // Duration is required for most notes
@@ -97,11 +98,6 @@ class NoteParser {
           'line': line,
         },
       );
-      return null;
-    }
-
-    // Return null if duration parsing failed
-    if (duration == null) {
       return null;
     }
 

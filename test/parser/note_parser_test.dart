@@ -289,8 +289,8 @@ void main() {
 
         expect(
           () => noteParser.parse(element, 480, 'P1', '1'),
-          throwsA(isA<MusicXmlValidationException>()
-              .having((e) => e.message, 'message', 'Invalid alter value: sharp')),
+          throwsA(isA<MusicXmlValidationException>().having(
+              (e) => e.message, 'message', 'Invalid alter value: sharp')),
         );
       });
 
@@ -351,7 +351,8 @@ void main() {
         expect(result, isNull);
         final warnings = warningSystem.getWarningsByCategory('note_duration');
         expect(warnings, isNotEmpty);
-        expect(warnings.first.message, contains('Invalid duration value: -100'));
+        expect(
+            warnings.first.message, contains('Invalid duration value: -100'));
       });
 
       test('warns for non-numeric duration', () {
@@ -373,7 +374,8 @@ void main() {
         expect(warnings, isNotEmpty);
       });
 
-      test('warns and uses default divisions when parent divisions is null', () {
+      test('warns and uses default divisions when parent divisions is null',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch>
@@ -396,7 +398,8 @@ void main() {
             contains('No valid divisions specified for note'));
       });
 
-      test('warns and uses default divisions when parent divisions is zero', () {
+      test('warns and uses default divisions when parent divisions is zero',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch>
@@ -417,7 +420,8 @@ void main() {
         expect(warnings, isNotEmpty);
       });
 
-      test('warns and uses default divisions when parent divisions is negative', () {
+      test('warns and uses default divisions when parent divisions is negative',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch>
