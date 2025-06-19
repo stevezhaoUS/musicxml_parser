@@ -88,7 +88,7 @@ class NoteParser {
         return null;
       }
     } else {
-      // Duration is required for most notes
+      // Duration is optional but recommended for most notes
       warningSystem.addWarning(
         'Note without duration',
         category: WarningCategories.duration,
@@ -98,7 +98,6 @@ class NoteParser {
           'line': line,
         },
       );
-      return null;
     }
 
     // Parse note type

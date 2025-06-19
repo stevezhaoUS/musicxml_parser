@@ -11,7 +11,7 @@ class Note {
   final Pitch? pitch;
 
   /// The duration of the note.
-  final Duration duration;
+  final Duration? duration;
 
   /// Indicates whether this note is a rest.
   final bool isRest;
@@ -25,7 +25,7 @@ class Note {
   /// Creates a new [Note] instance.
   const Note({
     this.pitch,
-    required this.duration,
+    this.duration,
     this.isRest = false,
     this.voice,
     this.type,
@@ -38,7 +38,7 @@ class Note {
   /// [MusicXmlValidationException] if the note is invalid.
   factory Note.validated({
     Pitch? pitch,
-    required Duration duration,
+    Duration? duration,
     bool isRest = false,
     int? voice,
     String? type,
@@ -48,8 +48,10 @@ class Note {
     // Perform validation first, before creating the Note
     // This allows us to provide better error messages
 
-    // Validate duration
-    ValidationUtils.validateDuration(duration, line: line, context: context);
+    // Validate duration if present
+    if (duration != null) {
+      ValidationUtils.validateDuration(duration, line: line, context: context);
+    }
 
     // Validate pitch if not a rest
     if (!isRest && pitch != null) {
@@ -122,7 +124,7 @@ class Note {
   @override
   int get hashCode =>
       pitch.hashCode ^
-      duration.hashCode ^
+      (duration?.hashCode ?? 0) ^
       isRest.hashCode ^
       (voice?.hashCode ?? 0) ^
       (type?.hashCode ?? 0);

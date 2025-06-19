@@ -75,7 +75,8 @@ void main() {
       expect(note.isRest, isFalse);
       expect(note.pitch?.step, equals('C'));
       expect(note.pitch?.octave, equals(4));
-      expect(note.duration.value, equals(1));
+      expect(note.duration, isNotNull);
+      expect(note.duration!.value, equals(1));
     });
 
     test('throws exception for invalid XML', () {

@@ -52,8 +52,9 @@ void main() {
         expect(result.pitch!.step, equals('C'));
         expect(result.pitch!.octave, equals(4));
         expect(result.pitch!.alter, isNull);
-        expect(result.duration.value, equals(960));
-        expect(result.duration.divisions, equals(480));
+        expect(result.duration, isNotNull);
+        expect(result.duration!.value, equals(960));
+        expect(result.duration!.divisions, equals(480));
         expect(result.type, equals('quarter'));
         expect(result.voice, equals(1));
       });
@@ -115,7 +116,8 @@ void main() {
         expect(result, isNotNull);
         expect(result!.isRest, isTrue);
         expect(result.pitch, isNull);
-        expect(result.duration.value, equals(480));
+        expect(result.duration, isNotNull);
+        expect(result.duration!.value, equals(480));
         expect(result.type, equals('quarter'));
       });
 
@@ -317,7 +319,7 @@ void main() {
     });
 
     group('duration parsing', () {
-      test('returns null for note without duration', () {
+      test('creates note with null duration when duration is missing', () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch>
@@ -330,7 +332,11 @@ void main() {
 
         final result = noteParser.parse(element, 480, 'P1', '1');
 
-        expect(result, isNull);
+        expect(result, isNotNull);
+        expect(result!.duration, isNull);
+        expect(result.pitch, isNotNull);
+        expect(result.pitch!.step, equals('C'));
+        expect(result.pitch!.octave, equals(4));
         expect(warningSystem.getWarningsByCategory('duration'), isNotEmpty);
       });
 
@@ -390,7 +396,8 @@ void main() {
         final result = noteParser.parse(element, null, 'P1', '1');
 
         expect(result, isNotNull);
-        expect(result!.duration.divisions, equals(1));
+        expect(result!.duration, isNotNull);
+        expect(result!.duration!.divisions, equals(1));
 
         final warnings = warningSystem.getWarningsByCategory('note_divisions');
         expect(warnings, isNotEmpty);
@@ -414,7 +421,8 @@ void main() {
         final result = noteParser.parse(element, 0, 'P1', '1');
 
         expect(result, isNotNull);
-        expect(result!.duration.divisions, equals(1));
+        expect(result!.duration, isNotNull);
+        expect(result!.duration!.divisions, equals(1));
 
         final warnings = warningSystem.getWarningsByCategory('note_divisions');
         expect(warnings, isNotEmpty);
@@ -436,7 +444,8 @@ void main() {
         final result = noteParser.parse(element, -5, 'P1', '1');
 
         expect(result, isNotNull);
-        expect(result!.duration.divisions, equals(1));
+        expect(result!.duration, isNotNull);
+        expect(result!.duration!.divisions, equals(1));
 
         final warnings = warningSystem.getWarningsByCategory('note_divisions');
         expect(warnings, isNotEmpty);
@@ -558,7 +567,8 @@ void main() {
         expect(result, isNotNull);
         expect(result!.pitch!.step, equals('C'));
         expect(result.pitch!.octave, equals(4));
-        expect(result.duration.value, equals(480));
+        expect(result.duration, isNotNull);
+        expect(result.duration!.value, equals(480));
         expect(result.type, equals('quarter'));
         expect(result.voice, equals(1));
       });
