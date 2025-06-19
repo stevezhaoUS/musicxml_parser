@@ -5,5 +5,4 @@
 * Initial version with basic MusicXML parsing functionality
 * Support for parsing scores, parts, measures, notes, pitches, durations
 * Support for key signatures and time signatures
-* Basic support for lyrics
-* Support for rests and ties
+* Support for rests

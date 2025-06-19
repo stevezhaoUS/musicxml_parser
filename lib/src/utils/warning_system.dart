@@ -275,7 +275,6 @@ class WarningSystem {
   static const String measure = 'measure';
   static const String voice = 'voice';
   static const String tie = 'tie';
-  static const String lyric = 'lyric';
   static const String notation = 'notation';
   static const String performance = 'performance';
   static const String compatibility = 'compatibility';
@@ -293,7 +292,6 @@ class WarningCategories {
   static const String measure = 'measure';
   static const String voice = 'voice';
   static const String tie = 'tie';
-  static const String lyric = 'lyric';
   static const String notation = 'notation';
   static const String performance = 'performance';
   static const String compatibility = 'compatibility';
