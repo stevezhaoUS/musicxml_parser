@@ -18,7 +18,7 @@ import 'package:xml/xml_events.dart';
 class MusicXmlParser {
   /// The score parser component.
   final ScoreParser _scoreParser;
-  
+
   /// The warning system for collecting non-critical issues.
   final WarningSystem warningSystem;
 

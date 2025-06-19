@@ -30,8 +30,10 @@ class MeasureParser {
     AttributesParser? attributesParser,
     WarningSystem? warningSystem,
   })  : warningSystem = warningSystem ?? WarningSystem(),
-        _noteParser = noteParser ?? NoteParser(warningSystem: warningSystem ?? WarningSystem()),
-        _attributesParser = attributesParser ?? AttributesParser(warningSystem: warningSystem ?? WarningSystem());
+        _noteParser = noteParser ??
+            NoteParser(warningSystem: warningSystem ?? WarningSystem()),
+        _attributesParser = attributesParser ??
+            AttributesParser(warningSystem: warningSystem ?? WarningSystem());
 
   /// Parses a measure element into a [Measure] object.
   ///
