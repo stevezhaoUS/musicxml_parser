@@ -260,7 +260,8 @@ void main() {
       final note = score.parts.first.measures.first.notes.first;
       expect(note.pitch?.step, equals('C'));
       expect(note.pitch?.octave, equals(4));
-      expect(note.duration.value, equals(480));
+      expect(note.duration, isNotNull);
+      expect(note.duration!.value, equals(480));
       expect(note.type, equals('quarter'));
     });
 
@@ -281,7 +282,9 @@ void main() {
 
       final score = parser.parse(xml);
 
-      expect(score.parts.first.measures.first.notes, isEmpty);
+      expect(score.parts.first.measures.first.notes, hasLength(1));
+      final note = score.parts.first.measures.first.notes.first;
+      expect(note.duration, isNull);
       expect(warningSystem.hasWarnings, isTrue);
 
       final warnings =
@@ -309,7 +312,8 @@ void main() {
       final note = score.parts.first.measures.first.notes.first;
       expect(note.isRest, isTrue);
       expect(note.pitch, isNull);
-      expect(note.duration.value, equals(480));
+      expect(note.duration, isNotNull);
+      expect(note.duration!.value, equals(480));
     });
   });
 }

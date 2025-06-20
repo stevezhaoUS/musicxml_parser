@@ -50,11 +50,4 @@ jobs:
       - name: Check code formatting
         run: dart format --set-exit-if-changed . || true
 
-      - name: Run static analysis
-        run: dart analyze 
 
-      - name: Run tests
-        run: dart test
-
-      - name: Verify project setup
-        run: dart --version

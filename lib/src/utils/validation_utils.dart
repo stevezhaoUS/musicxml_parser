@@ -208,8 +208,10 @@ class ValidationUtils {
   /// Throws [MusicXmlValidationException] if validation fails.
   static void validateNote(Note note,
       {int? line, Map<String, dynamic>? context}) {
-    // Validate duration
-    validateDuration(note.duration, line: line, context: context);
+    // Validate duration if present
+    if (note.duration != null) {
+      validateDuration(note.duration!, line: line, context: context);
+    }
 
     // Validate pitch if not a rest
     if (!note.isRest && note.pitch != null) {
@@ -311,10 +313,12 @@ class ValidationUtils {
     final expectedDuration =
         (timeSignature.beats * divisions * 4) ~/ timeSignature.beatType;
 
-    // Calculate actual duration from notes
+    // Calculate actual duration from notes (skip notes without duration)
     var actualDuration = 0;
     for (final note in notes) {
-      actualDuration += note.duration.value;
+      if (note.duration != null) {
+        actualDuration += note.duration!.value;
+      }
     }
 
     if (actualDuration != expectedDuration) {

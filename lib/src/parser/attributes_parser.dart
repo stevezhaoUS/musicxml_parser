@@ -3,19 +3,12 @@ import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dar
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
 import 'package:musicxml_parser/src/parser/xml_helper.dart';
-import 'package:musicxml_parser/src/utils/warning_system.dart';
 import 'package:xml/xml.dart';
 
 /// Parser for MusicXML attributes elements (key, time signatures, etc.).
 class AttributesParser {
-  /// The warning system for collecting non-critical issues.
-  final WarningSystem warningSystem;
-
   /// Creates a new [AttributesParser].
-  ///
-  /// [warningSystem] - Optional warning system. If not provided, a new one will be created.
-  AttributesParser({WarningSystem? warningSystem})
-      : warningSystem = warningSystem ?? WarningSystem();
+  const AttributesParser();
 
   /// Parses an attributes element and extracts divisions, key signature, and time signature.
   ///
@@ -40,7 +33,7 @@ class AttributesParser {
     if (divisionsElement != null) {
       final divisionsText = divisionsElement.innerText.trim();
       final divisionsValue = int.tryParse(divisionsText);
-      
+
       if (divisionsValue == null) {
         throw MusicXmlParseException(
           'Invalid divisions value "$divisionsText"',
@@ -52,7 +45,7 @@ class AttributesParser {
           },
         );
       }
-      
+
       if (divisionsValue <= 0) {
         throw MusicXmlValidationException(
           'Divisions value must be positive, got $divisionsValue',
@@ -65,7 +58,7 @@ class AttributesParser {
           },
         );
       }
-      
+
       divisions = divisionsValue;
     }
 
@@ -169,8 +162,7 @@ class AttributesParser {
     }
 
     // Note: We could use symbol attribute for special time signatures in the future
-    // final symbol = element.getAttribute('symbol');
-    
+
     return TimeSignature.validated(
       beats: beats,
       beatType: beatType,

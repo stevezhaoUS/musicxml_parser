@@ -2,6 +2,8 @@ import 'package:meta/meta.dart';
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
+import 'package:musicxml_parser/src/models/beam.dart';
+import 'package:musicxml_parser/src/models/barline.dart';
 
 /// Represents a measure in a musical score.
 @immutable
@@ -21,6 +23,15 @@ class Measure {
   /// The width of the measure in tenths.
   final double? width;
 
+  /// The beams contained in the measure.
+  final List<Beam> beams;
+
+  /// The barlines contained in the measure.
+  /// 
+  /// Barlines can appear at the left, right, or middle of measures
+  /// and may contain repeat signs, endings, and other structural information.
+  final List<Barline> barlines;
+
   /// Creates a new [Measure] instance.
   const Measure({
     required this.number,
@@ -28,6 +39,8 @@ class Measure {
     this.keySignature,
     this.timeSignature,
     this.width,
+    this.beams = const [],
+    this.barlines = const [],
   });
 
   @override
@@ -39,7 +52,9 @@ class Measure {
           notes == other.notes &&
           keySignature == other.keySignature &&
           timeSignature == other.timeSignature &&
-          width == other.width;
+          width == other.width &&
+          beams == other.beams &&
+          barlines == other.barlines;
 
   @override
   int get hashCode =>
@@ -47,8 +62,11 @@ class Measure {
       notes.hashCode ^
       keySignature.hashCode ^
       timeSignature.hashCode ^
-      (width?.hashCode ?? 0);
+      (width?.hashCode ?? 0) ^
+      beams.hashCode ^
+      barlines.hashCode;
 
   @override
-  String toString() => 'Measure{number: $number, notes: ${notes.length}}';
+  String toString() =>
+      'Measure{number: $number, notes: ${notes.length}, beams: ${beams.length}, barlines: ${barlines.length}}';
 }

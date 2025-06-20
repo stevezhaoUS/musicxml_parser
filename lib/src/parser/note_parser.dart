@@ -56,7 +56,7 @@ class NoteParser {
     Duration? duration;
     if (durationElement != null) {
       final durationValue = XmlHelper.getElementTextAsInt(durationElement);
-      
+
       if (durationValue != null && durationValue >= 0) {
         if (parentDivisions == null || parentDivisions <= 0) {
           warningSystem.addWarning(
@@ -70,7 +70,7 @@ class NoteParser {
           );
           parentDivisions = 1;
         }
-        
+
         duration = Duration(
           value: durationValue,
           divisions: parentDivisions,
@@ -85,9 +85,10 @@ class NoteParser {
             'line': line,
           },
         );
+        return null;
       }
     } else {
-      // Duration is required for most notes
+      // Duration is optional but recommended for most notes
       warningSystem.addWarning(
         'Note without duration',
         category: WarningCategories.duration,
@@ -97,7 +98,6 @@ class NoteParser {
           'line': line,
         },
       );
-      return null;
     }
 
     // Parse note type
@@ -112,7 +112,7 @@ class NoteParser {
     // Create and return the note
     return Note(
       pitch: pitch,
-      duration: duration!,
+      duration: duration,
       isRest: isRest,
       type: type,
       voice: voiceNum,
@@ -145,7 +145,9 @@ class NoteParser {
     final octave = octaveText != null ? int.tryParse(octaveText) : null;
 
     // Validate octave
-    if (octave == null || octave < ValidationUtils.minOctave || octave > ValidationUtils.maxOctave) {
+    if (octave == null ||
+        octave < ValidationUtils.minOctave ||
+        octave > ValidationUtils.maxOctave) {
       throw MusicXmlValidationException(
         'Invalid octave: $octaveText',
         context: {
@@ -162,8 +164,7 @@ class NoteParser {
     final alter = alterText != null ? int.tryParse(alterText) : null;
 
     // Validate alter if present
-    if (alterText != null &&
-        (alter == null || alter < -2 || alter > 2)) {
+    if (alterText != null && (alter == null || alter < -2 || alter > 2)) {
       throw MusicXmlValidationException(
         'Invalid alter value: $alterText',
         context: {

@@ -25,7 +25,8 @@ class PartParser {
     MeasureParser? measureParser,
     WarningSystem? warningSystem,
   })  : warningSystem = warningSystem ?? WarningSystem(),
-        _measureParser = measureParser ?? MeasureParser(warningSystem: warningSystem ?? WarningSystem());
+        _measureParser = measureParser ??
+            MeasureParser(warningSystem: warningSystem ?? WarningSystem());
 
   /// Parses a part element into a [Part] object.
   ///
@@ -50,14 +51,14 @@ class PartParser {
     if (partList != null) {
       final scorePartElements = partList.findElements('score-part');
       XmlElement? scorePart;
-      
+
       for (var element in scorePartElements) {
         if (element.getAttribute('id') == id) {
           scorePart = element;
           break;
         }
       }
-      
+
       if (scorePart == null) {
         throw MusicXmlValidationException(
           'Part ID $id not found in part-list',
