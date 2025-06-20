@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 
+import 'package:musicxml_parser/src/models/slur.dart'; // Added for Slur tests
 import 'package:musicxml_parser/src/models/time_modification.dart'; // Added for TimeModification tests
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
@@ -970,6 +971,124 @@ void main() {
 
       });
 
+    });
+
+    group('slur parsing (from <notations>)', () {
+      test('parses note with no <notations> element', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>480</duration>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.slurs, isNull);
+      });
+
+      test('parses note with <notations> but no <slur> elements', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>D</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <tied type="start"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.slurs, isNull); // Parser logic sets to null if foundSlurs is empty
+      });
+
+      test('parses note with a single slur (start)', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>E</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <slur type="start" number="1" placement="above"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.slurs, isNotNull);
+        expect(result.slurs, hasLength(1));
+        expect(result.slurs![0].type, equals('start'));
+        expect(result.slurs![0].number, equals(1));
+        expect(result.slurs![0].placement, equals('above'));
+      });
+
+      test('parses note with multiple slurs', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>F</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <slur type="start" number="1" placement="above"/>
+              <slur type="stop" number="2" placement="below"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.slurs, isNotNull);
+        expect(result.slurs, hasLength(2));
+
+        expect(result.slurs![0].type, equals('start'));
+        expect(result.slurs![0].number, equals(1));
+        expect(result.slurs![0].placement, equals('above'));
+
+        expect(result.slurs![1].type, equals('stop'));
+        expect(result.slurs![1].number, equals(2));
+        expect(result.slurs![1].placement, equals('below'));
+      });
+
+      test('parses slur with default number attribute', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>G</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <slur type="continue"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.slurs, isNotNull);
+        expect(result.slurs, hasLength(1));
+        expect(result.slurs![0].type, equals('continue'));
+        expect(result.slurs![0].number, equals(1)); // Default
+        expect(result.slurs![0].placement, isNull);
+      });
+
+      test('throws MusicXmlStructureException if slur is missing type attribute', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>A</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <slur number="1"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        expect(
+          () => noteParser.parse(element, 480, 'P1', '1'),
+          throwsA(isA<MusicXmlStructureException>().having(
+            (e) => e.message,
+            'message',
+            '<slur> element missing required "type" attribute',
+          )),
+        );
+      });
     });
   });
 }

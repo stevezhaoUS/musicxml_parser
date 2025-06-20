@@ -68,7 +68,7 @@ This document tracks the current implementation status of MusicXML features in t
 | Feature | Status | Notes |
 |---------|--------|-------|
 | `<tie>` | ✅ | Start and stop ties |
-| `<slur>` | ⏳ | Planned for v0.3.0 |
+| `<slur>` | 🚧 | Parses `type`, `number`, and `placement` attributes from `<slur>` elements within `<notations>`. |
 | `<dynamics>` | ❌ | Planned for v0.4.0 |
 | `<articulations>` | ❌ | Planned for v0.4.0 |
 | `<ornaments>` | ❌ | Planned for v0.5.0 |
@@ -195,7 +195,7 @@ This document tracks the current implementation status of MusicXML features in t
 - Enhanced error handling
 
 ### v0.3.0
-- Slurs and articulations
+- 🚧 Slurs (basic parsing) and ⏳ articulations
 - Repeat structures
 - 🚧 Backup/forward elements (basic parsing implemented, duration recognized; full timeline impact pending)
 - Part grouping
