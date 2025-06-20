@@ -17,6 +17,8 @@ export 'src/models/duration.dart';
 export 'src/models/key_signature.dart';
 export 'src/models/measure.dart';
 export 'src/models/note.dart';
+export 'src/models/page_layout.dart';
+export 'src/models/page_margins.dart';
 export 'src/models/part.dart';
 export 'src/models/pitch.dart';
 export 'src/models/score.dart';
