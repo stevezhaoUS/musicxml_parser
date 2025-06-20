@@ -3,6 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 
+import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart'; // Added for backup/forward tests
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/models/duration.dart';
 import 'package:musicxml_parser/src/models/key_signature.dart';
@@ -602,6 +603,160 @@ void main() {
           verify(mockAttributesParser.parse(any, 'P1', '42', 480)).called(1);
           verify(mockNoteParser.parse(any, 960, 'P1', '42')).called(2);
         });
+      });
+    });
+
+    group('backup and forward parsing', () {
+      setUp(() {
+        // Re-initialize warningSystem for each test in this group to isolate warnings
+        warningSystem = WarningSystem();
+        // Use a NoteParser that can actually parse notes if they are part of the test XML
+        // For these specific tests, we might not need complex note parsing, so a mock
+        // that returns a simple note or null would also work.
+        // Using a real NoteParser with its own warning system or passing the main one.
+        // For simplicity, and since backup/forward are side-effects, keeping existing mock setup.
+        mockNoteParser = MockNoteParser(); // Reset or use fresh mock if needed for specific interactions
+        mockAttributesParser = MockAttributesParser();
+
+        measureParser = MeasureParser(
+          noteParser: mockNoteParser,
+          attributesParser: mockAttributesParser,
+          warningSystem: warningSystem,
+        );
+
+        // Default behavior for mocks if notes/attributes are present in test XMLs
+        // to avoid NullPointerExceptions if they are accessed.
+        when(mockAttributesParser.parse(any, any, any, any)).thenReturn({
+          'divisions': 1 // Default divisions if attributes are parsed
+        });
+        when(mockNoteParser.parse(any, any, any, any)).thenAnswer((invocation) {
+          // Return a simple valid note if a note element is parsed
+          // This helps ensure the measure parsing doesn't fail due to note parsing in backup/forward tests
+          final argElement = invocation.positionalArguments[0] as XmlElement;
+          final pitchElement = argElement.findElements('pitch').firstOrNull;
+          if (pitchElement != null) {
+            final step = pitchElement.findElements('step').firstOrNull?.innerText;
+            final octave = int.tryParse(pitchElement.findElements('octave').firstOrNull?.innerText ?? "4");
+            return Note(
+              pitch: Pitch(step: step ?? 'C', octave: octave ?? 4),
+              duration: Duration(value: 1, divisions: 1), // Dummy duration
+              isRest: false);
+          } else if (argElement.findElements('rest').isNotEmpty) {
+             return Note(duration: Duration(value: 1, divisions: 1), isRest: true);
+          }
+          return null;
+        });
+      });
+
+      test('parses measure with <backup> element and logs warning', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <attributes><divisions>1</divisions></attributes>
+            <note><pitch><step>C</step><octave>4</octave></pitch><duration>4</duration></note>
+            <backup><duration>2</duration></backup>
+            <note><pitch><step>D</step><octave>4</octave></pitch><duration>2</duration></note>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+
+        final result = measureParser.parse(element, 'P1');
+
+        expect(result.notes, hasLength(2)); // C and D
+        expect(result.notes[0].pitch!.step, 'C');
+        expect(result.notes[1].pitch!.step, 'D');
+
+        final warnings = warningSystem.getWarningsByCategory('partial_processing');
+        expect(warnings, hasLength(1));
+        expect(warnings.first.message, contains('Encountered <backup> with duration 2'));
+        expect(warnings.first.context['element'], 'backup');
+        expect(warnings.first.context['duration'], 2);
+      });
+
+      test('parses measure with <forward> element and logs warning', () {
+        final xml = XmlDocument.parse('''
+          <measure number="2">
+            <attributes><divisions>1</divisions></attributes>
+            <note><pitch><step>E</step><octave>4</octave></pitch><duration>2</duration></note>
+            <forward><duration>2</duration></forward>
+            <note><pitch><step>F</step><octave>4</octave></pitch><duration>2</duration></note>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+
+        final result = measureParser.parse(element, 'P1');
+
+        expect(result.notes, hasLength(2)); // E and F
+        expect(result.notes[0].pitch!.step, 'E');
+        expect(result.notes[1].pitch!.step, 'F');
+
+        final warnings = warningSystem.getWarningsByCategory('partial_processing');
+        expect(warnings, hasLength(1));
+        expect(warnings.first.message, contains('Encountered <forward> with duration 2'));
+        expect(warnings.first.context['element'], 'forward');
+        expect(warnings.first.context['duration'], 2);
+      });
+
+      test('<backup> missing <duration> throws MusicXmlStructureException', () {
+        final xml = XmlDocument.parse('''
+          <measure number="3">
+            <attributes><divisions>1</divisions></attributes>
+            <backup></backup>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+
+        expect(
+            () => measureParser.parse(element, 'P1'),
+            throwsA(isA<MusicXmlStructureException>().having(
+                (e) => e.message, 'message', 'Backup element missing required <duration> child.')));
+      });
+
+      test('<forward> with invalid <duration> (non-integer) throws MusicXmlStructureException', () {
+        final xml = XmlDocument.parse('''
+          <measure number="4">
+            <attributes><divisions>1</divisions></attributes>
+            <forward><duration>abc</duration></forward>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+
+        expect(
+            () => measureParser.parse(element, 'P1'),
+            throwsA(isA<MusicXmlStructureException>().having(
+                (e) => e.message, 'message', 'Invalid or missing duration value for <forward>.')));
+      });
+
+      test('<backup> with negative <duration> throws MusicXmlStructureException', () {
+        final xml = XmlDocument.parse('''
+          <measure number="5">
+            <attributes><divisions>1</divisions></attributes>
+            <backup><duration>-1</duration></backup>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+
+        expect(
+            () => measureParser.parse(element, 'P1'),
+            throwsA(isA<MusicXmlStructureException>().having(
+                (e) => e.message, 'message', 'Invalid or missing duration value for <backup>.')));
+      });
+       test('<forward> with zero <duration> is allowed and logs warning', () {
+        final xml = XmlDocument.parse('''
+          <measure number="6">
+            <attributes><divisions>1</divisions></attributes>
+            <forward><duration>0</duration></forward>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+
+        final result = measureParser.parse(element, 'P1');
+        expect(result.notes, isEmpty);
+
+        final warnings = warningSystem.getWarningsByCategory('partial_processing');
+        expect(warnings, hasLength(1));
+        expect(warnings.first.message, contains('Encountered <forward> with duration 0'));
+        expect(warnings.first.context['element'], 'forward');
+        expect(warnings.first.context['duration'], 0);
       });
     });
   });
