@@ -1,7 +1,9 @@
 import 'package:meta/meta.dart';
+import 'package:collection/collection.dart'; // For DeepCollectionEquality
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/models/duration.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
+import 'package:musicxml_parser/src/models/slur.dart'; // Import for Slur
 import 'package:musicxml_parser/src/models/time_modification.dart';
 import 'package:musicxml_parser/src/utils/validation_utils.dart';
 
@@ -29,6 +31,9 @@ class Note {
   /// Time modification information, e.g. for tuplets.
   final TimeModification? timeModification;
 
+  /// A list of slurs associated with this note.
+  final List<Slur>? slurs;
+
   /// Creates a new [Note] instance.
   const Note({
     this.pitch,
@@ -38,6 +43,7 @@ class Note {
     this.type,
     this.dots,
     this.timeModification,
+    this.slurs,
   }) : assert(isRest ? pitch == null : pitch != null,
             'A rest must not have a pitch, and a note must have a pitch');
 
@@ -53,6 +59,7 @@ class Note {
     String? type,
     int? dots,
     TimeModification? timeModification,
+    List<Slur>? slurs,
     int? line,
     Map<String, dynamic>? context,
   }) {
@@ -133,6 +140,7 @@ class Note {
       type: type,
       dots: dots,
       timeModification: timeModification,
+      slurs: slurs,
     );
   }
 
@@ -147,7 +155,8 @@ class Note {
           voice == other.voice &&
           type == other.type &&
           dots == other.dots &&
-          timeModification == other.timeModification;
+          timeModification == other.timeModification &&
+          const DeepCollectionEquality().equals(slurs, other.slurs);
 
   @override
   int get hashCode =>
@@ -157,7 +166,8 @@ class Note {
       (voice?.hashCode ?? 0) ^
       (type?.hashCode ?? 0) ^
       (dots?.hashCode ?? 0) ^
-      (timeModification?.hashCode ?? 0);
+      (timeModification?.hashCode ?? 0) ^
+      (slurs != null ? const DeepCollectionEquality().hash(slurs!) : 0);
 
   @override
   String toString() {
@@ -172,6 +182,9 @@ class Note {
     }
     if (timeModification != null) {
       sb.write(', timeModification: $timeModification');
+    }
+    if (slurs != null && slurs!.isNotEmpty) {
+      sb.write(', slurs: $slurs');
     }
     sb.write('}');
     return sb.toString();

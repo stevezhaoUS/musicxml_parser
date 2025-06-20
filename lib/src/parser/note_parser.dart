@@ -1,8 +1,10 @@
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
+import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/models/duration.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
+import 'package:musicxml_parser/src/models/slur.dart'; // Import for Slur
 import 'package:musicxml_parser/src/models/time_modification.dart';
 import 'package:musicxml_parser/src/parser/xml_helper.dart';
 import 'package:musicxml_parser/src/utils/validation_utils.dart';
@@ -195,6 +197,34 @@ class NoteParser {
       }
     }
 
+    // Parse notations for slurs
+    List<Slur>? slursList;
+    final notationsElement = element.findElements('notations').firstOrNull;
+    if (notationsElement != null) {
+      List<Slur> foundSlurs = [];
+      for (final notationChild in notationsElement.childElements) {
+        if (notationChild.name.local == 'slur') {
+          final String? typeAttr = XmlHelper.getAttribute<String>(notationChild, 'type');
+          if (typeAttr == null) {
+            throw MusicXmlStructureException(
+              '<slur> element missing required "type" attribute',
+              parentElement: 'notations',
+              line: XmlHelper.getLineNumber(notationChild),
+              context: {'part': partId, 'measure': measureNumber, 'noteLine': line},
+            );
+          }
+          final int numberAttr = XmlHelper.getAttribute<int>(notationChild, 'number', defaultValue: 1) ?? 1;
+          final String? placementAttr = XmlHelper.getAttribute<String>(notationChild, 'placement');
+
+          foundSlurs.add(Slur(type: typeAttr, number: numberAttr, placement: placementAttr));
+        }
+        // TODO: Parse other notations like <tied>, <articulations> here
+      }
+      if (foundSlurs.isNotEmpty) {
+        slursList = foundSlurs;
+      }
+    }
+
     // Create and return the note
     return Note(
       pitch: pitch,
@@ -204,6 +234,7 @@ class NoteParser {
       voice: voiceNum,
       dots: dotsCount,
       timeModification: timeModification,
+      slurs: slursList,
     );
   }
 
