@@ -2,6 +2,7 @@ import 'package:meta/meta.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/models/duration.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
+import 'package:musicxml_parser/src/models/time_modification.dart';
 import 'package:musicxml_parser/src/utils/validation_utils.dart';
 
 /// Represents a musical note in a score.
@@ -22,6 +23,12 @@ class Note {
   /// The type of the note (e.g., "quarter", "eighth", etc.).
   final String? type;
 
+  /// The number of dots on the note.
+  final int? dots;
+
+  /// Time modification information, e.g. for tuplets.
+  final TimeModification? timeModification;
+
   /// Creates a new [Note] instance.
   const Note({
     this.pitch,
@@ -29,6 +36,8 @@ class Note {
     this.isRest = false,
     this.voice,
     this.type,
+    this.dots,
+    this.timeModification,
   }) : assert(isRest ? pitch == null : pitch != null,
             'A rest must not have a pitch, and a note must have a pitch');
 
@@ -42,6 +51,8 @@ class Note {
     bool isRest = false,
     int? voice,
     String? type,
+    int? dots,
+    TimeModification? timeModification,
     int? line,
     Map<String, dynamic>? context,
   }) {
@@ -67,6 +78,19 @@ class Note {
         context: {
           'voice': voice,
           'isRest': isRest,
+          ...?context,
+        },
+      );
+    }
+
+    // Validate dots (should be non-negative if specified)
+    if (dots != null && dots < 0) {
+      throw MusicXmlValidationException(
+        'Note dots must be non-negative, got $dots',
+        rule: 'note_dots_validation',
+        line: line,
+        context: {
+          'dots': dots,
           ...?context,
         },
       );
@@ -107,6 +131,8 @@ class Note {
       isRest: isRest,
       voice: voice,
       type: type,
+      dots: dots,
+      timeModification: timeModification,
     );
   }
 
@@ -119,7 +145,9 @@ class Note {
           duration == other.duration &&
           isRest == other.isRest &&
           voice == other.voice &&
-          type == other.type;
+          type == other.type &&
+          dots == other.dots &&
+          timeModification == other.timeModification;
 
   @override
   int get hashCode =>
@@ -127,10 +155,25 @@ class Note {
       (duration?.hashCode ?? 0) ^
       isRest.hashCode ^
       (voice?.hashCode ?? 0) ^
-      (type?.hashCode ?? 0);
+      (type?.hashCode ?? 0) ^
+      (dots?.hashCode ?? 0) ^
+      (timeModification?.hashCode ?? 0);
 
   @override
-  String toString() => isRest
-      ? 'Rest{duration: $duration}'
-      : 'Note{pitch: $pitch, duration: $duration}';
+  String toString() {
+    final StringBuffer sb = StringBuffer();
+    if (isRest) {
+      sb.write('Rest{duration: $duration');
+    } else {
+      sb.write('Note{pitch: $pitch, duration: $duration');
+    }
+    if (dots != null && dots! > 0) {
+      sb.write(', dots: $dots');
+    }
+    if (timeModification != null) {
+      sb.write(', timeModification: $timeModification');
+    }
+    sb.write('}');
+    return sb.toString();
+  }
 }
