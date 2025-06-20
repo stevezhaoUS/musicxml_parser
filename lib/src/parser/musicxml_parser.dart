@@ -62,25 +62,22 @@ class MusicXmlParser {
 
   /// Parses a MusicXML file into a [Score] object.
   ///
-  /// Throws [MusicXmlParseException] if the file doesn't exist or
-  /// contains invalid MusicXML.
+  /// This method handles both plain XML files (.xml, .musicxml) and
+  /// compressed MXL files (.mxl).
   Future<Score> parseFromFile(String path) async {
     try {
       final file = File(path);
       final xmlString = await file.readAsString();
       return parse(xmlString);
-    } on FileSystemException catch (e) {
+    } catch (e) {
       throw MusicXmlParseException(
-        'File error: ${e.message}',
-        context: {'filePath': path},
+        'Failed to parse file $path: ${e.toString()}',
       );
     }
   }
 
-  /// Parses a MusicXML file in a stream-based manner, which is more efficient for large files.
-  ///
-  /// Throws [MusicXmlParseException] if the file doesn't exist or
   /// contains invalid MusicXML.
+  @Deprecated('Use parseFile instead, which provides better error handling')
   Future<Score> parseFromFileStream(String path) async {
     final file = File(path);
 
@@ -169,6 +166,14 @@ class MusicXmlParser {
   }
 
   /// Synchronous version of [parseFile].
+  ///
+  /// This method handles both plain XML files (.xml, .musicxml) and
+  /// compressed MXL files (.mxl).
+  ///
+  /// Throws specific exception types based on the error:
+  /// - [MusicXmlParseException] for XML parsing or file access issues
+  /// - [MusicXmlStructureException] for structural problems
+  /// - [MusicXmlValidationException] for validation issues
   Score parseFileSync(String filePath) {
     try {
       final file = File(filePath);

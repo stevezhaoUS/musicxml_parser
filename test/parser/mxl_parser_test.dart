@@ -44,11 +44,11 @@ void main() {
 
     test('parseFileSync can parse MXL files', () {
       // Load a test MXL file
-      final filePath = 'test_app/test_files/mxl_test.mxl';
+      final filePath = 'test_app/test_files/Fur_Elise.mxl';
       final file = File(filePath);
       if (!file.existsSync()) {
         fail(
-            'Test MXL file not found. Please ensure test_app/test_files/mxl_test.mxl exists.');
+            'Test MXL file not found. Please ensure test_app/test_files/Fur_Elise.mxl exists.');
       }
 
       final parser = MusicXmlParser();

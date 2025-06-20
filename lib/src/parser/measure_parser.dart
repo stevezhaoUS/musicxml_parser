@@ -51,9 +51,10 @@ class MeasureParser {
     TimeSignature? inheritedTimeSignature,
   }) {
     final line = XmlHelper.getLineNumber(element);
-
+    final implicit = element.getAttribute('implicit');
     // Get measure number (required)
     final number = element.getAttribute('number');
+
     if (number == null || number.isEmpty) {
       throw MusicXmlValidationException(
         'Measure number is required',
@@ -66,7 +67,20 @@ class MeasureParser {
 
     // Validate measure number
     final measureNum = int.tryParse(number);
-    if (measureNum == null || measureNum < 1) {
+    if (measureNum == null || measureNum < 0) {
+      throw MusicXmlValidationException(
+        'Invalid measure number: $number',
+        context: {
+          'part': partId,
+          'measure': number,
+          'line': line,
+        },
+      );
+    }
+
+    // Check for measure "0" - only valid for pickup measures with implicit="yes"
+    final isPickup = (number == '0' && implicit == 'yes');
+    if (measureNum == 0 && !isPickup) {
       throw MusicXmlValidationException(
         'Invalid measure number: $number',
         context: {
@@ -138,6 +152,7 @@ class MeasureParser {
       timeSignature: timeSignature,
       width: width,
       beams: mergedBeams,
+      isPickup: isPickup,
     );
   }
 }

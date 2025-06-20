@@ -25,12 +25,16 @@ class Measure {
   /// The beams contained in the measure.
   final List<Beam> beams;
 
+  /// Whether the measure is a pickup measure.
+  final bool isPickup;
+
   /// Creates a new [Measure] instance.
   const Measure({
     required this.number,
     required this.notes,
     this.keySignature,
     this.timeSignature,
+    this.isPickup = false,
     this.width,
     this.beams = const [],
   });
