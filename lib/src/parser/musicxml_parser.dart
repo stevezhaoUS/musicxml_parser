@@ -76,37 +76,6 @@ class MusicXmlParser {
     }
   }
 
-  /// contains invalid MusicXML.
-  @Deprecated('Use parseFile instead, which provides better error handling')
-  Future<Score> parseFromFileStream(String path) async {
-    final file = File(path);
-
-    if (!await file.exists()) {
-      throw MusicXmlParseException(
-        'File not found: $path',
-        context: {'filePath': path},
-      );
-    }
-
-    try {
-      // This is a simplified implementation of stream parsing.
-      // For a complete implementation, you would need to handle events
-      // as they come in and build the score incrementally.
-      final events =
-          file.openRead().transform(utf8.decoder).transform(XmlEventDecoder());
-
-      // For now, collect the entire XML and parse it normally
-      final xmlString = await events.map((event) => event.toString()).join();
-
-      return parse(xmlString);
-    } catch (e) {
-      throw MusicXmlParseException(
-        'Stream parsing error: $e',
-        context: {'filePath': path},
-      );
-    }
-  }
-
   /// Parses a MusicXML string or compressed MXL data into a [Score] object.
   ///
   /// This method automatically detects whether the input is plain XML text or
@@ -134,7 +103,7 @@ class MusicXmlParser {
         rethrow;
       }
       throw MusicXmlParseException(
-        'Failed to parse MusicXML data: ${e.toString()}',
+        'Failed to parse MusicXML data: [${e.toString()}\u001b[0m',
       );
     }
   }
@@ -253,6 +222,34 @@ class MusicXmlParser {
       if (e is MusicXmlParseException) rethrow;
       throw MusicXmlParseException(
         'Failed to extract MusicXML from compressed MXL file: ${e.toString()}',
+      );
+    }
+  }
+
+  /// 新增：解析 ByteData 格式的 MXL 数据为 [Score] 对象。
+  ///
+  /// 该方法接收 [ByteData]，自动检测并解析压缩的 MXL 数据。
+  ///
+  /// 抛出特定异常类型：
+  /// - [MusicXmlParseException]：XML 解析或解压缩错误
+  /// - [MusicXmlStructureException]：结构性问题
+  /// - [MusicXmlValidationException]：校验问题
+  Score parseMxlBytes(ByteData data) {
+    try {
+      final bytes = data.buffer.asUint8List();
+      if (!_isCompressedMxl(bytes)) {
+        throw MusicXmlParseException('输入的 ByteData 不是有效的 MXL (ZIP) 文件');
+      }
+      final xmlString = _extractMusicXmlFromMxl(bytes);
+      return parse(xmlString);
+    } catch (e) {
+      if (e is MusicXmlParseException ||
+          e is MusicXmlStructureException ||
+          e is MusicXmlValidationException) {
+        rethrow;
+      }
+      throw MusicXmlParseException(
+        '解析 MXL ByteData 失败: [${e.toString()}\u001b[0m',
       );
     }
   }

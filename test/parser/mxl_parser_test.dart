@@ -28,6 +28,18 @@ void main() {
       expect(score.parts, isNotEmpty);
     });
 
+    test('parseMxlBytes can parse ByteData MXL', () {
+      final file = File(testFilePath);
+      final data = file.readAsBytesSync();
+      final byteData = data.buffer.asByteData();
+      final parser = MusicXmlParser();
+
+      final score = parser.parseMxlBytes(byteData);
+
+      expect(score, isNotNull);
+      expect(score.parts, isNotEmpty);
+    });
+
     test('parseFile can parse MXL files', () async {
       final parser = MusicXmlParser();
 
