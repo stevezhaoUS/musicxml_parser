@@ -47,9 +47,10 @@ void main(List<String> args) async {
       print('4. Time Signatures');
       print('5. Key Signatures');
       print('6. Clefs');
-      print('7. Parser Warnings');
-      print('8. MIDI Conversion');
-      print('9. Export Summary');
+      print('7. Beams');
+      print('8. Parser Warnings');
+      print('9. MIDI Conversion');
+      print('10. Export Summary');
       print('0. Exit');
       print(
           '\nPress a key to select an option. In submenus, press ESC to go back.');
@@ -82,12 +83,15 @@ void main(List<String> args) async {
           inspectClefs(score);
           break;
         case '7':
-          inspectParserWarnings(parser);
+          inspectBeams(score);
           break;
         case '8':
-          testMidiConversion(score);
+          inspectParserWarnings(parser);
           break;
         case '9':
+          testMidiConversion(score);
+          break;
+        case '10':
           exportSummary(score, filePath);
           break;
         case '0':
@@ -287,6 +291,7 @@ void inspectMeasures(Score score) {
     final measure = part.measures[measureIndex - 1];
     print('\nMeasure ${measure.number} Details:');
     print('Number of notes: ${measure.notes.length}');
+    print('Number of beams: ${measure.beams.length}');
 
     if (measure.timeSignature != null) {
       final ts = measure.timeSignature!;
@@ -301,6 +306,18 @@ void inspectMeasures(Score score) {
               ? '${-ks.fifths} flat(s)'
               : 'No accidentals';
       print('Key Signature: $fifthsText (${ks.mode ?? 'major'})');
+    }
+
+    // Ask user if they want to inspect beams
+    if (measure.beams.isNotEmpty) {
+      print('\nDo you want to inspect beams in this measure?');
+      print('1. Yes');
+      print('2. No');
+
+      final beamChoice = readSingleKey();
+      if (beamChoice == '1') {
+        inspectBeamsInMeasure(measure);
+      }
     }
 
     // Ask user if they want to continue
@@ -373,7 +390,7 @@ void inspectNotes(Score score) {
             ? 'Rest'
             : '${note.pitch?.step}${note.pitch?.alter != null ? (note.pitch!.alter! > 0 ? '#' : '♭') : ''}${note.pitch?.octave}';
 
-        final duration = note.duration.value.toString();
+        final duration = note.duration?.value.toString();
 
         print('${i + 1}. $noteInfo ($duration divisions)');
       }
@@ -431,7 +448,7 @@ void inspectNotes(Score score) {
         }
       }
 
-      print('Duration: ${note.duration.value} divisions');
+      print('Duration: ${note.duration?.value} divisions');
       if (note.type != null) {
         print('Note Type: ${note.type}');
       }
@@ -808,4 +825,105 @@ void exportSummary(Score score, String sourceFilePath) {
   if (choice == 'ESC') {
     return; // Go back to main menu
   }
+}
+
+/// Inspects the beams in a measure.
+void inspectBeamsInMeasure(Measure measure) {
+  print('\nBeams in Measure ${measure.number}:');
+
+  if (measure.beams.isEmpty) {
+    print('No beams in this measure.');
+    return;
+  }
+
+  // Group beams by beam number for better readability
+  final beamsByNumber = <int, List<Beam>>{};
+  for (final beam in measure.beams) {
+    beamsByNumber.putIfAbsent(beam.number, () => []).add(beam);
+  }
+
+  // Display beams by number
+  beamsByNumber.forEach((number, beams) {
+    print('\nBeam #$number:');
+    for (int i = 0; i < beams.length; i++) {
+      final beam = beams[i];
+      print('${i + 1}. Type: ${beam.type}');
+      print('   Notes: ${beam.noteIndices.map((idx) => idx + 1).join(', ')}');
+
+      // Show note information for this beam
+      print('   Connected notes:');
+      for (final noteIdx in beam.noteIndices) {
+        if (noteIdx < measure.notes.length) {
+          final note = measure.notes[noteIdx];
+          final noteInfo = note.isRest
+              ? 'Rest'
+              : '${note.pitch?.step}${note.pitch?.alter != null ? (note.pitch!.alter! > 0 ? '#' : '♭') : ''}${note.pitch?.octave}';
+          print('     - Note ${noteIdx + 1}: $noteInfo (${note.type})');
+        }
+      }
+    }
+  });
+
+  // Wait for user input to continue
+  print('\nPress any key to continue...');
+  readSingleKey();
+}
+
+/// Inspects all beams in the score.
+void inspectBeams(Score score) {
+  print('\nEnter part number (or press ESC to go back, default: 1):');
+  final partInput = readNumberInput();
+  int partIndex;
+
+  if (partInput.isEmpty) {
+    // Default to part 1 if no input provided
+    partIndex = 1;
+    print('Using default: 1');
+  } else if (partInput == 'ESC') {
+    return; // Go back to main menu
+  } else {
+    partIndex = int.tryParse(partInput) ?? 0;
+  }
+
+  if (partIndex < 1 || partIndex > score.parts.length) {
+    print('Invalid part number. Going back...');
+    return;
+  }
+
+  final part = score.parts[partIndex - 1];
+
+  // Find measures with beams
+  final measuresWithBeams = <Measure>[];
+  for (final measure in part.measures) {
+    if (measure.beams.isNotEmpty) {
+      measuresWithBeams.add(measure);
+    }
+  }
+
+  if (measuresWithBeams.isEmpty) {
+    print('\nNo beams found in this part.');
+    return;
+  }
+
+  print('\nMeasures with beams in ${part.name ?? 'Part $partIndex'}:');
+  for (int i = 0; i < measuresWithBeams.length; i++) {
+    print(
+        '${i + 1}. Measure ${measuresWithBeams[i].number} (${measuresWithBeams[i].beams.length} beams)');
+  }
+
+  print('\nEnter measure number to inspect (or press ESC to go back):');
+  final measureInput = readNumberInput();
+
+  if (measureInput == 'ESC') {
+    return; // Go back to main menu
+  }
+
+  final measureIndex = int.tryParse(measureInput) ?? 0;
+  if (measureIndex < 1 || measureIndex > measuresWithBeams.length) {
+    print('Invalid measure number. Going back...');
+    return;
+  }
+
+  // Inspect the selected measure's beams
+  inspectBeamsInMeasure(measuresWithBeams[measureIndex - 1]);
 }

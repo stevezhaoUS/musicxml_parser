@@ -1,9 +1,11 @@
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
+import 'package:musicxml_parser/src/models/beam.dart';
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/measure.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
 import 'package:musicxml_parser/src/parser/attributes_parser.dart';
+import 'package:musicxml_parser/src/parser/beam_parser.dart';
 import 'package:musicxml_parser/src/parser/note_parser.dart';
 import 'package:musicxml_parser/src/parser/xml_helper.dart';
 import 'package:musicxml_parser/src/utils/warning_system.dart';
@@ -84,6 +86,7 @@ class MeasureParser {
     var keySignature = inheritedKeySignature;
     var timeSignature = inheritedTimeSignature;
     final notes = <Note>[];
+    final beams = <Beam>[]; // beams 列表
 
     // Process measure content
     for (final child in element.childElements) {
@@ -111,22 +114,30 @@ class MeasureParser {
           timeSignature = attributes['timeSignature'];
         }
       } else if (child.name.local == 'note') {
-        // Parse note
         final note = _noteParser.parse(child, divisions, partId, number);
         if (note != null) {
+          final noteIndex = notes.length;
           notes.add(note);
+
+          // 调用 BeamParser 解析 beams
+          final noteBeams = BeamParser.parse(child, noteIndex, number);
+          beams.addAll(noteBeams);
         }
       }
       // Other elements like backup, forward, direction, etc. can be added here
     }
 
-    // Create and return the measure
+    // 合并 beams 为连续的 beam 组
+    final mergedBeams = BeamParser.mergeBeams(beams, number);
+
+    // 创建并返回 Measure
     return Measure(
       number: number,
       notes: notes,
       keySignature: keySignature,
       timeSignature: timeSignature,
       width: width,
+      beams: mergedBeams,
     );
   }
 }
