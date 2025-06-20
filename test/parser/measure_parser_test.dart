@@ -9,6 +9,9 @@ import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
+import 'package:musicxml_parser/src/models/barline.dart';
+import 'package:musicxml_parser/src/models/repeat.dart';
+import 'package:musicxml_parser/src/models/ending.dart';
 import 'package:musicxml_parser/src/parser/attributes_parser.dart';
 import 'package:musicxml_parser/src/parser/measure_parser.dart';
 import 'package:musicxml_parser/src/parser/note_parser.dart';
@@ -112,7 +115,6 @@ void main() {
       test('inherits values from parameters', () {
         final xml = XmlDocument.parse('<measure number="1"></measure>');
         final element = xml.rootElement;
-
         final keySignature = const KeySignature(fifths: 2);
         final timeSignature = const TimeSignature(beats: 4, beatType: 4);
 
@@ -594,6 +596,7 @@ void main() {
           expect(result.number, equals('42'));
           expect(result.width, equals(150.0));
           expect(result.notes, hasLength(2));
+
           expect(
               result.keySignature, equals(newKey)); // Updated from attributes
           expect(
@@ -601,6 +604,103 @@ void main() {
 
           verify(mockAttributesParser.parse(any, 'P1', '42', 480)).called(1);
           verify(mockNoteParser.parse(any, 960, 'P1', '42')).called(2);
+        });
+      });
+
+      group('barline processing', () {
+        test('processes barlines and adds them to measure', () {
+          final xml = XmlDocument.parse('''
+            <measure number="1">
+              <barline location="right">
+                <bar-style>regular</bar-style>
+              </barline>
+            </measure>
+          ''');
+          final element = xml.rootElement;
+
+          final result = measureParser.parse(element, 'P1');
+
+          expect(result.barlines, hasLength(1));
+          expect(result.barlines.first.location, equals(BarlineLocation.right));
+          expect(result.barlines.first.style, equals(BarlineStyle.regular));
+        });
+
+        test('processes multiple barlines', () {
+          final xml = XmlDocument.parse('''
+            <measure number="1">
+              <barline location="left">
+                <bar-style>heavy-light</bar-style>
+                <repeat direction="forward"/>
+              </barline>
+              <barline location="right">
+                <bar-style>light-heavy</bar-style>
+                <repeat direction="backward"/>
+              </barline>
+            </measure>
+          ''');
+          final element = xml.rootElement;
+
+          final result = measureParser.parse(element, 'P1');
+
+          expect(result.barlines, hasLength(2));
+          
+          final leftBarline = result.barlines[0];
+          expect(leftBarline.location, equals(BarlineLocation.left));
+          expect(leftBarline.style, equals(BarlineStyle.heavyLight));
+          expect(leftBarline.repeat?.direction, equals(RepeatDirection.forward));
+          
+          final rightBarline = result.barlines[1];
+          expect(rightBarline.location, equals(BarlineLocation.right));
+          expect(rightBarline.style, equals(BarlineStyle.lightHeavy));
+          expect(rightBarline.repeat?.direction, equals(RepeatDirection.backward));
+        });
+
+        test('processes barline with ending', () {
+          final xml = XmlDocument.parse('''
+            <measure number="1">
+              <barline location="right">
+                <ending number="1" type="start">1.</ending>
+              </barline>
+            </measure>
+          ''');
+          final element = xml.rootElement;
+
+          final result = measureParser.parse(element, 'P1');
+
+          expect(result.barlines, hasLength(1));
+          final barline = result.barlines.first;
+          expect(barline.ending?.number, equals('1'));
+          expect(barline.ending?.type, equals(EndingType.start));
+          expect(barline.ending?.text, equals('1.'));
+        });
+
+        test('handles mixed content with notes and barlines', () {
+          final xml = XmlDocument.parse('''
+            <measure number="1">
+              <note>
+                <pitch>
+                  <step>C</step>
+                  <octave>4</octave>
+                </pitch>
+                <duration>480</duration>
+              </note>
+              <barline location="right">
+                <bar-style>regular</bar-style>
+              </barline>
+            </measure>
+          ''');
+          final element = xml.rootElement;
+
+          when(mockNoteParser.parse(any, any, any, any))
+              .thenReturn(const Note(
+                  pitch: Pitch(step: 'C', octave: 4),
+                  duration: Duration(value: 480, divisions: 480)));
+
+          final result = measureParser.parse(element, 'P1');
+
+          expect(result.notes, hasLength(1));
+          expect(result.barlines, hasLength(1));
+          expect(result.barlines.first.style, equals(BarlineStyle.regular));
         });
       });
     });

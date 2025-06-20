@@ -4,9 +4,11 @@ import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/measure.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
+import 'package:musicxml_parser/src/models/barline.dart';
 import 'package:musicxml_parser/src/parser/attributes_parser.dart';
 import 'package:musicxml_parser/src/parser/beam_parser.dart';
 import 'package:musicxml_parser/src/parser/note_parser.dart';
+import 'package:musicxml_parser/src/parser/barline_parser.dart';
 import 'package:musicxml_parser/src/parser/xml_helper.dart';
 import 'package:musicxml_parser/src/utils/warning_system.dart';
 import 'package:xml/xml.dart';
@@ -19,6 +21,9 @@ class MeasureParser {
   /// The parser for attributes elements.
   final AttributesParser _attributesParser;
 
+  /// The parser for barline elements.
+  final BarlineParser _barlineParser;
+
   /// The warning system for collecting non-critical issues.
   final WarningSystem warningSystem;
 
@@ -26,15 +31,18 @@ class MeasureParser {
   ///
   /// [noteParser] - Optional note parser. If not provided, a new one will be created.
   /// [attributesParser] - Optional attributes parser. If not provided, a new one will be created.
+  /// [barlineParser] - Optional barline parser. If not provided, a new one will be created.
   /// [warningSystem] - Optional warning system. If not provided, a new one will be created.
   MeasureParser({
     NoteParser? noteParser,
     AttributesParser? attributesParser,
+    BarlineParser? barlineParser,
     WarningSystem? warningSystem,
   })  : warningSystem = warningSystem ?? WarningSystem(),
         _noteParser = noteParser ??
             NoteParser(warningSystem: warningSystem ?? WarningSystem()),
-        _attributesParser = attributesParser ?? const AttributesParser();
+        _attributesParser = attributesParser ?? const AttributesParser(),
+        _barlineParser = barlineParser ?? const BarlineParser();
 
   /// Parses a measure element into a [Measure] object.
   ///
@@ -87,6 +95,7 @@ class MeasureParser {
     var timeSignature = inheritedTimeSignature;
     final notes = <Note>[];
     final beams = <Beam>[]; // beams 列表
+    final barlines = <Barline>[]; // barlines 列表
 
     // Process measure content
     for (final child in element.childElements) {
@@ -123,6 +132,10 @@ class MeasureParser {
           final noteBeams = BeamParser.parse(child, noteIndex, number);
           beams.addAll(noteBeams);
         }
+      } else if (child.name.local == 'barline') {
+        // Parse barline
+        final barline = _barlineParser.parse(child, partId, number);
+        barlines.add(barline);
       }
       // Other elements like backup, forward, direction, etc. can be added here
     }
@@ -138,6 +151,7 @@ class MeasureParser {
       timeSignature: timeSignature,
       width: width,
       beams: mergedBeams,
+      barlines: barlines,
     );
   }
 }
