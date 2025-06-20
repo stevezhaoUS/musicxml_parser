@@ -29,6 +29,12 @@ class Score {
   /// Appearance settings.
   final Appearance? appearance;
 
+  /// The title of the score.
+  final String? title;
+
+  /// The composer of the score.
+  final String? composer;
+
   /// Creates a new [Score] instance.
   const Score({
     required this.version,
@@ -38,6 +44,8 @@ class Score {
     this.pageLayout,
     this.scaling,
     this.appearance,
+    this.title,
+    this.composer,
   });
 
   @override
@@ -51,7 +59,9 @@ class Score {
           parts == other.parts &&
           pageLayout == other.pageLayout &&
           scaling == other.scaling &&
-          appearance == other.appearance;
+          appearance == other.appearance &&
+          title == other.title &&
+          composer == other.composer;
 
   @override
   int get hashCode =>
@@ -61,9 +71,26 @@ class Score {
       parts.hashCode ^
       (pageLayout?.hashCode ?? 0) ^
       (scaling?.hashCode ?? 0) ^
-      (appearance?.hashCode ?? 0);
+      (appearance?.hashCode ?? 0) ^
+      (title?.hashCode ?? 0) ^
+      (composer?.hashCode ?? 0);
 
   @override
-  String toString() =>
-      'Score{version: $version, work: $work, identification: $identification, parts: ${parts.length}}';
+  String toString() {
+    final buffer = StringBuffer('Score{version: $version');
+    if (title != null) {
+      buffer.write(', title: $title');
+    }
+    if (composer != null) {
+      buffer.write(', composer: $composer');
+    }
+    if (work != null) {
+      buffer.write(', work: $work');
+    }
+    if (identification != null) {
+      buffer.write(', identification: $identification');
+    }
+    buffer.write(', parts: ${parts.length}}');
+    return buffer.toString();
+  }
 }

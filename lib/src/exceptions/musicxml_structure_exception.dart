@@ -25,6 +25,9 @@ class MusicXmlStructureException extends InvalidMusicXmlException {
   /// Additional context information about the structural problem.
   final Map<String, dynamic>? context;
 
+  /// An optional rule identifier associated with this structural error.
+  final String? rule;
+
   /// Creates a new [MusicXmlStructureException] with the given [message].
   ///
   /// [message] - A descriptive error message
@@ -40,6 +43,7 @@ class MusicXmlStructureException extends InvalidMusicXmlException {
     int? line,
     String? node,
     this.context,
+    this.rule,
   }) : super(message, line: line, node: node);
 
   @override
@@ -66,6 +70,10 @@ class MusicXmlStructureException extends InvalidMusicXmlException {
 
     if (context != null && context!.isNotEmpty) {
       buffer.write(' [context: $context]');
+    }
+
+    if (rule != null) {
+      buffer.write(' [rule: $rule]');
     }
 
     return buffer.toString();

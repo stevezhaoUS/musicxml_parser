@@ -668,8 +668,8 @@ void main() {
         final warnings = warningSystem.getWarningsByCategory('partial_processing');
         expect(warnings, hasLength(1));
         expect(warnings.first.message, contains('Encountered <backup> with duration 2'));
-        expect(warnings.first.context['element'], 'backup');
-        expect(warnings.first.context['duration'], 2);
+        expect(warnings.first.context?['element'], 'backup');
+        expect(warnings.first.context?['duration'], 2);
       });
 
       test('parses measure with <forward> element and logs warning', () {
@@ -692,8 +692,8 @@ void main() {
         final warnings = warningSystem.getWarningsByCategory('partial_processing');
         expect(warnings, hasLength(1));
         expect(warnings.first.message, contains('Encountered <forward> with duration 2'));
-        expect(warnings.first.context['element'], 'forward');
-        expect(warnings.first.context['duration'], 2);
+        expect(warnings.first.context?['element'], 'forward');
+        expect(warnings.first.context?['duration'], 2);
       });
 
       test('<backup> missing <duration> throws MusicXmlStructureException', () {
@@ -755,8 +755,8 @@ void main() {
         final warnings = warningSystem.getWarningsByCategory('partial_processing');
         expect(warnings, hasLength(1));
         expect(warnings.first.message, contains('Encountered <forward> with duration 0'));
-        expect(warnings.first.context['element'], 'forward');
-        expect(warnings.first.context['duration'], 0);
+        expect(warnings.first.context?['element'], 'forward');
+        expect(warnings.first.context?['duration'], 0);
       });
     });
   });
