@@ -70,7 +70,7 @@ This document tracks the current implementation status of MusicXML features in t
 | `<tie>` | ✅ | Start and stop ties |
 | `<slur>` | 🚧 | Parses `type`, `number`, and `placement` attributes from `<slur>` elements within `<notations>`. |
 | `<dynamics>` | ❌ | Planned for v0.4.0 |
-| `<articulations>` | ❌ | Planned for v0.4.0 |
+| `<articulations>` | 🚧 | Parses common articulation types (e.g., accent, staccato, tenuto) and their `placement` attribute from children of an `<articulations>` container within `<notations>`. |
 | `<ornaments>` | ❌ | Planned for v0.5.0 |
 
 ### Text and Lyrics
@@ -195,7 +195,7 @@ This document tracks the current implementation status of MusicXML features in t
 - Enhanced error handling
 
 ### v0.3.0
-- 🚧 Slurs (basic parsing) and ⏳ articulations
+- 🚧 Slurs (basic parsing) and 🚧 Articulations (basic parsing of common types)
 - Repeat structures
 - 🚧 Backup/forward elements (basic parsing implemented, duration recognized; full timeline impact pending)
 - Part grouping
