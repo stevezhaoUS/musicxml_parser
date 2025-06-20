@@ -204,7 +204,7 @@ class NoteParser {
       List<Slur> foundSlurs = [];
       for (final notationChild in notationsElement.childElements) {
         if (notationChild.name.local == 'slur') {
-          final String? typeAttr = XmlHelper.getAttribute<String>(notationChild, 'type');
+          final String? typeAttr = notationChild.getAttribute('type');
           if (typeAttr == null) {
             throw MusicXmlStructureException(
               '<slur> element missing required "type" attribute',
@@ -213,8 +213,11 @@ class NoteParser {
               context: {'part': partId, 'measure': measureNumber, 'noteLine': line},
             );
           }
-          final int numberAttr = XmlHelper.getAttribute<int>(notationChild, 'number', defaultValue: 1) ?? 1;
-          final String? placementAttr = XmlHelper.getAttribute<String>(notationChild, 'placement');
+
+          final String? numberStr = notationChild.getAttribute('number');
+          final int numberAttr = (numberStr != null && numberStr.isNotEmpty ? int.tryParse(numberStr) : null) ?? 1;
+
+          final String? placementAttr = notationChild.getAttribute('placement');
 
           foundSlurs.add(Slur(type: typeAttr, number: numberAttr, placement: placementAttr));
         }
