@@ -21,6 +21,9 @@ class MusicXmlParseException extends InvalidMusicXmlException {
   /// Additional context information about where the error occurred.
   final Map<String, dynamic>? context;
 
+  /// An optional rule identifier associated with this parsing error.
+  final String? rule;
+
   /// Creates a new [MusicXmlParseException] with the given [message].
   ///
   /// [message] - A descriptive error message
@@ -32,6 +35,7 @@ class MusicXmlParseException extends InvalidMusicXmlException {
     int? line,
     this.element,
     this.context,
+    this.rule,
   }) : super(message, line: line, node: element);
 
   @override
@@ -50,6 +54,10 @@ class MusicXmlParseException extends InvalidMusicXmlException {
 
     if (context != null && context!.isNotEmpty) {
       buffer.write(' [context: $context]');
+    }
+
+    if (rule != null) {
+      buffer.write(' [rule: $rule]');
     }
 
     return buffer.toString();

@@ -85,9 +85,9 @@ This document tracks the current implementation status of MusicXML features in t
 ### Rhythm and Timing
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<time-modification>` (tuplets) | ❌ | Planned for v0.3.0 |
-| `<backup>` | ❌ | Planned for v0.3.0 |
-| `<forward>` | ❌ | Planned for v0.3.0 |
+| `<time-modification>` (tuplets) | 🚧 | Parses `<actual-notes>`, `<normal-notes>`, `<normal-type>`, and `<normal-dot>`. |
+| `<backup>` | 🚧 | Recognized and duration parsed; full timeline impact pending. |
+| `<forward>` | 🚧 | Recognized and duration parsed; full timeline impact pending. |
 | Dotted notes | ✅ | Full support for single and multiple dots. |
 | Tremolo | ❌ | Planned for v0.5.0 |
 
@@ -190,14 +190,14 @@ This document tracks the current implementation status of MusicXML features in t
 ## Development Roadmap
 
 ### v0.2.0 (Current)
-- Basic tuplet support
+- ✅ Basic tuplet support (parses `<time-modification>`)
 - Compressed file (.mxl) support
 - Enhanced error handling
 
 ### v0.3.0
 - Slurs and articulations
 - Repeat structures
-- Backup/forward elements
+- 🚧 Backup/forward elements (basic parsing implemented, duration recognized; full timeline impact pending)
 - Part grouping
 
 ### v0.4.0

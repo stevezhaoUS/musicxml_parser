@@ -1,3 +1,4 @@
+import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart'; // Added for backup/forward
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/models/beam.dart';
 import 'package:musicxml_parser/src/models/key_signature.dart';
@@ -137,8 +138,70 @@ class MeasureParser {
           final noteBeams = BeamParser.parse(child, noteIndex, number);
           beams.addAll(noteBeams);
         }
+      } else if (child.name.local == 'backup') {
+        final durationElement = child.findElements('duration').firstOrNull;
+        if (durationElement == null) {
+          throw MusicXmlStructureException(
+            "Backup element missing required <duration> child.",
+            parentElement: 'backup',
+            line: XmlHelper.getLineNumber(child),
+            context: {'part': partId, 'measure': number},
+          );
+        }
+        final int? duration = XmlHelper.getElementTextAsInt(durationElement);
+        if (duration == null || duration < 0) {
+          throw MusicXmlStructureException(
+            "Invalid or missing duration value for <backup>.",
+            parentElement: 'backup',
+            line: XmlHelper.getLineNumber(durationElement),
+            context: {'part': partId, 'measure': number, 'parsedDuration': duration},
+          );
+        }
+        warningSystem.addWarning(
+          "Encountered <backup> with duration $duration. Full timeline impact not yet implemented.",
+          category: 'partial_processing',
+          rule: 'backup_partially_processed',
+          context: {
+            'element': 'backup',
+            'part': partId,
+            'measure': number,
+            'duration': duration,
+            'line': XmlHelper.getLineNumber(child)
+          },
+        );
+      } else if (child.name.local == 'forward') {
+        final durationElement = child.findElements('duration').firstOrNull;
+        if (durationElement == null) {
+          throw MusicXmlStructureException(
+            "Forward element missing required <duration> child.",
+            parentElement: 'forward',
+            line: XmlHelper.getLineNumber(child),
+            context: {'part': partId, 'measure': number},
+          );
+        }
+        final int? duration = XmlHelper.getElementTextAsInt(durationElement);
+        if (duration == null || duration < 0) {
+          throw MusicXmlStructureException(
+            "Invalid or missing duration value for <forward>.",
+            parentElement: 'forward',
+            line: XmlHelper.getLineNumber(durationElement),
+            context: {'part': partId, 'measure': number, 'parsedDuration': duration},
+          );
+        }
+        warningSystem.addWarning(
+          "Encountered <forward> with duration $duration. Full timeline impact not yet implemented.",
+          category: 'partial_processing',
+          rule: 'forward_partially_processed',
+          context: {
+            'element': 'forward',
+            'part': partId,
+            'measure': number,
+            'duration': duration,
+            'line': XmlHelper.getLineNumber(child)
+          },
+        );
       }
-      // Other elements like backup, forward, direction, etc. can be added here
+      // Other elements like direction, etc. can be added here
     }
 
     // 合并 beams 为连续的 beam 组

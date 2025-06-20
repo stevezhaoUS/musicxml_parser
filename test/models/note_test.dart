@@ -117,12 +117,12 @@ void main() {
 
       test('toString for rest with dots', () {
         final rest = Note(duration: durationQuarter, isRest: true, dots: 1);
-        expect(rest.toString(), contains('Rest{duration: Duration(value: 480, divisions: 480), dots: 1}'));
+        expect(rest.toString(), contains('Rest{duration: Duration{value: 480, divisions: 480}, dots: 1}'));
       });
 
        test('toString for rest with no dots', () {
         final rest = Note(duration: durationQuarter, isRest: true, dots: null);
-        expect(rest.toString(), equals('Rest{duration: Duration(value: 480, divisions: 480)}'));
+        expect(rest.toString(), equals('Rest{duration: Duration{value: 480, divisions: 480}}'));
       });
     });
 
