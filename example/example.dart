@@ -101,13 +101,13 @@ void main() {
         // Process each note
         for (final note in measure.notes) {
           if (note.isRest) {
-            print('Rest (${note.duration.value})');
+            print('Rest (${note.duration?.value})');
           } else {
             final pitch = note.pitch!;
             final alterText =
                 pitch.alter != null ? (pitch.alter! > 0 ? '#' : 'b') : '';
             print(
-                'Note: ${pitch.step}$alterText${pitch.octave} (${note.duration.value})');
+                'Note: ${pitch.step}$alterText${pitch.octave} (${note.duration?.value})');
           }
         }
       }
