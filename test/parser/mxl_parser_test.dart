@@ -4,14 +4,19 @@ import 'package:musicxml_parser/musicxml_parser.dart';
 
 void main() {
   group('MusicXmlParser MXL Support', () {
-    test('parseData can detect and parse compressed MXL data', () async {
-      // Load a test MXL file
-      final file = File('test_app/test_files/mxl_test.mxl');
-      if (!file.existsSync()) {
-        fail(
-            'Test MXL file not found. Please ensure test_app/test_files/mxl_test.mxl exists.');
-      }
+    // Setup a consistent test file path
+    const testFilePath = 'test_app/test_files/mxl_test.mxl';
 
+    setUp(() {
+      // Check if the test file exists before running any tests
+      final file = File(testFilePath);
+      if (!file.existsSync()) {
+        fail('Test MXL file not found. Please ensure $testFilePath exists.');
+      }
+    });
+
+    test('parseData can detect and parse compressed MXL data', () {
+      final file = File(testFilePath);
       final data = file.readAsBytesSync();
       final parser = MusicXmlParser();
 
@@ -24,18 +29,10 @@ void main() {
     });
 
     test('parseFile can parse MXL files', () async {
-      // Load a test MXL file
-      final filePath = 'test_app/test_files/mxl_test.mxl';
-      final file = File(filePath);
-      if (!file.existsSync()) {
-        fail(
-            'Test MXL file not found. Please ensure test_app/test_files/mxl_test.mxl exists.');
-      }
-
       final parser = MusicXmlParser();
 
       // Parse the MXL file
-      final score = await parser.parseFile(filePath);
+      final score = await parser.parseFile(testFilePath);
 
       // Verify the score was parsed correctly
       expect(score, isNotNull);
@@ -43,18 +40,10 @@ void main() {
     });
 
     test('parseFileSync can parse MXL files', () {
-      // Load a test MXL file
-      final filePath = 'test_app/test_files/Fur_Elise.mxl';
-      final file = File(filePath);
-      if (!file.existsSync()) {
-        fail(
-            'Test MXL file not found. Please ensure test_app/test_files/Fur_Elise.mxl exists.');
-      }
-
       final parser = MusicXmlParser();
 
       // Parse the MXL file
-      final score = parser.parseFileSync(filePath);
+      final score = parser.parseFileSync(testFilePath);
 
       // Verify the score was parsed correctly
       expect(score, isNotNull);

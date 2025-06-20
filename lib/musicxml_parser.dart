@@ -12,11 +12,13 @@ export 'src/exceptions/musicxml_parse_exception.dart';
 export 'src/exceptions/musicxml_structure_exception.dart';
 export 'src/exceptions/musicxml_validation_exception.dart';
 // Export models
+export 'src/models/appearance.dart';
 export 'src/models/beam.dart';
 export 'src/models/duration.dart';
 export 'src/models/key_signature.dart';
 export 'src/models/measure.dart';
 export 'src/models/note.dart';
+export 'src/models/page_layout.dart';
 export 'src/models/part.dart';
 export 'src/models/pitch.dart';
 export 'src/models/score.dart';

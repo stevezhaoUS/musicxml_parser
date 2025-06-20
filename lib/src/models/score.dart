@@ -1,31 +1,43 @@
 import 'package:meta/meta.dart';
+import 'package:musicxml_parser/src/models/appearance.dart';
+import 'package:musicxml_parser/src/models/identification.dart';
+import 'package:musicxml_parser/src/models/page_layout.dart';
 import 'package:musicxml_parser/src/models/part.dart';
+import 'package:musicxml_parser/src/models/work.dart';
 
-/// Represents a complete musical score.
+/// Represents a MusicXML score document.
 @immutable
 class Score {
-  /// The title of the score.
-  final String? title;
+  /// The version of MusicXML used.
+  final String version;
 
-  /// The composer of the score.
-  final String? composer;
+  /// Information about the musical work.
+  final Work? work;
 
-  /// The parts contained in the score.
+  /// Metadata about the score.
+  final Identification? identification;
+
+  /// List of parts in the score.
   final List<Part> parts;
 
-  /// The version of MusicXML used.
-  final String? version;
+  /// Page layout information.
+  final PageLayout? pageLayout;
 
-  /// The number of divisions per quarter note.
-  final int? divisions;
+  /// Scaling information.
+  final Scaling? scaling;
+
+  /// Appearance settings.
+  final Appearance? appearance;
 
   /// Creates a new [Score] instance.
   const Score({
-    this.title,
-    this.composer,
+    required this.version,
+    this.work,
+    this.identification,
     required this.parts,
-    this.version,
-    this.divisions,
+    this.pageLayout,
+    this.scaling,
+    this.appearance,
   });
 
   @override
@@ -33,21 +45,25 @@ class Score {
       identical(this, other) ||
       other is Score &&
           runtimeType == other.runtimeType &&
-          title == other.title &&
-          composer == other.composer &&
-          parts == other.parts &&
           version == other.version &&
-          divisions == other.divisions;
+          work == other.work &&
+          identification == other.identification &&
+          parts == other.parts &&
+          pageLayout == other.pageLayout &&
+          scaling == other.scaling &&
+          appearance == other.appearance;
 
   @override
   int get hashCode =>
-      (title?.hashCode ?? 0) ^
-      (composer?.hashCode ?? 0) ^
+      version.hashCode ^
+      (work?.hashCode ?? 0) ^
+      (identification?.hashCode ?? 0) ^
       parts.hashCode ^
-      (version?.hashCode ?? 0) ^
-      (divisions?.hashCode ?? 0);
+      (pageLayout?.hashCode ?? 0) ^
+      (scaling?.hashCode ?? 0) ^
+      (appearance?.hashCode ?? 0);
 
   @override
   String toString() =>
-      'Score{title: $title, composer: $composer, parts: ${parts.length}}';
+      'Score{version: $version, work: $work, identification: $identification, parts: ${parts.length}}';
 }
