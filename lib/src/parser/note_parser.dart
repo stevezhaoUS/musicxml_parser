@@ -3,6 +3,7 @@ import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dar
 import 'package:musicxml_parser/src/models/duration.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
+import 'package:musicxml_parser/src/models/time_modification.dart';
 import 'package:musicxml_parser/src/parser/xml_helper.dart';
 import 'package:musicxml_parser/src/utils/validation_utils.dart';
 import 'package:musicxml_parser/src/utils/warning_system.dart';
@@ -113,6 +114,87 @@ class NoteParser {
     final dotElements = element.findElements('dot');
     final int? dotsCount = dotElements.isNotEmpty ? dotElements.length : null;
 
+    // Parse time modification
+    TimeModification? timeModification;
+    final timeModificationElement = element.findElements('time-modification').firstOrNull;
+
+    if (timeModificationElement != null) {
+      final tmLine = XmlHelper.getLineNumber(timeModificationElement);
+      final actualNotesElement = timeModificationElement.findElements('actual-notes').firstOrNull;
+      final normalNotesElement = timeModificationElement.findElements('normal-notes').firstOrNull;
+
+      if (actualNotesElement == null) {
+        throw MusicXmlStructureException(
+          '<time-modification> is missing <actual-notes> element',
+          requiredElement: 'actual-notes',
+          parentElement: 'time-modification',
+          line: tmLine,
+          context: {'part': partId, 'measure': measureNumber},
+        );
+      }
+      if (normalNotesElement == null) {
+        throw MusicXmlStructureException(
+          '<time-modification> is missing <normal-notes> element',
+          requiredElement: 'normal-notes',
+          parentElement: 'time-modification',
+          line: tmLine,
+          context: {'part': partId, 'measure': measureNumber},
+        );
+      }
+
+      final actualNotes = XmlHelper.getElementTextAsInt(actualNotesElement);
+      final normalNotes = XmlHelper.getElementTextAsInt(normalNotesElement);
+
+      if (actualNotes == null) {
+        throw MusicXmlStructureException(
+          '<actual-notes> must contain an integer value',
+          parentElement: 'time-modification',
+          line: XmlHelper.getLineNumber(actualNotesElement),
+          context: {'part': partId, 'measure': measureNumber},
+        );
+      }
+      if (normalNotes == null) {
+        throw MusicXmlStructureException(
+          '<normal-notes> must contain an integer value',
+          parentElement: 'time-modification',
+          line: XmlHelper.getLineNumber(normalNotesElement),
+          context: {'part': partId, 'measure': measureNumber},
+        );
+      }
+
+      final normalTypeElement = timeModificationElement.findElements('normal-type').firstOrNull;
+      final normalType = normalTypeElement?.innerText.trim();
+
+      final normalDotElements = timeModificationElement.findElements('normal-dot');
+      final int? normalDotCount = normalDotElements.isNotEmpty ? normalDotElements.length : null;
+
+      try {
+        timeModification = TimeModification.validated(
+          actualNotes: actualNotes,
+          normalNotes: normalNotes,
+          normalType: normalType,
+          normalDotCount: normalDotCount,
+          line: tmLine,
+          context: {'part': partId, 'measure': measureNumber, 'noteLine': line},
+        );
+      } on MusicXmlValidationException catch (e) {
+        // Add more context or re-throw if needed, or log to warningSystem
+        warningSystem.addWarning(
+          'Invalid time-modification: ${e.message}',
+          category: 'time_modification_validation',
+          rule: e.rule,
+          line: tmLine,
+          context: {
+            'part': partId,
+            'measure': measureNumber,
+            'noteLine': line,
+            ...?e.context
+          },
+        );
+        // Depending on severity, you might choose to nullify timeModification or rethrow
+      }
+    }
+
     // Create and return the note
     return Note(
       pitch: pitch,
@@ -121,6 +203,7 @@ class NoteParser {
       type: type,
       voice: voiceNum,
       dots: dotsCount,
+      timeModification: timeModification,
     );
   }
 

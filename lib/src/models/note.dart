@@ -2,6 +2,7 @@ import 'package:meta/meta.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/models/duration.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
+import 'package:musicxml_parser/src/models/time_modification.dart';
 import 'package:musicxml_parser/src/utils/validation_utils.dart';
 
 /// Represents a musical note in a score.
@@ -25,6 +26,9 @@ class Note {
   /// The number of dots on the note.
   final int? dots;
 
+  /// Time modification information, e.g. for tuplets.
+  final TimeModification? timeModification;
+
   /// Creates a new [Note] instance.
   const Note({
     this.pitch,
@@ -33,6 +37,7 @@ class Note {
     this.voice,
     this.type,
     this.dots,
+    this.timeModification,
   }) : assert(isRest ? pitch == null : pitch != null,
             'A rest must not have a pitch, and a note must have a pitch');
 
@@ -47,6 +52,7 @@ class Note {
     int? voice,
     String? type,
     int? dots,
+    TimeModification? timeModification,
     int? line,
     Map<String, dynamic>? context,
   }) {
@@ -126,6 +132,7 @@ class Note {
       voice: voice,
       type: type,
       dots: dots,
+      timeModification: timeModification,
     );
   }
 
@@ -139,7 +146,8 @@ class Note {
           isRest == other.isRest &&
           voice == other.voice &&
           type == other.type &&
-          dots == other.dots;
+          dots == other.dots &&
+          timeModification == other.timeModification;
 
   @override
   int get hashCode =>
@@ -148,7 +156,8 @@ class Note {
       isRest.hashCode ^
       (voice?.hashCode ?? 0) ^
       (type?.hashCode ?? 0) ^
-      (dots?.hashCode ?? 0);
+      (dots?.hashCode ?? 0) ^
+      (timeModification?.hashCode ?? 0);
 
   @override
   String toString() {
@@ -160,6 +169,9 @@ class Note {
     }
     if (dots != null && dots! > 0) {
       sb.write(', dots: $dots');
+    }
+    if (timeModification != null) {
+      sb.write(', timeModification: $timeModification');
     }
     sb.write('}');
     return sb.toString();

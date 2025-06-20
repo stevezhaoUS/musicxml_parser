@@ -85,7 +85,7 @@ This document tracks the current implementation status of MusicXML features in t
 ### Rhythm and Timing
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<time-modification>` (tuplets) | ❌ | Planned for v0.3.0 |
+| `<time-modification>` (tuplets) | 🚧 | Parses `<actual-notes>`, `<normal-notes>`, `<normal-type>`, and `<normal-dot>`. |
 | `<backup>` | ❌ | Planned for v0.3.0 |
 | `<forward>` | ❌ | Planned for v0.3.0 |
 | Dotted notes | ✅ | Full support for single and multiple dots. |
@@ -190,7 +190,7 @@ This document tracks the current implementation status of MusicXML features in t
 ## Development Roadmap
 
 ### v0.2.0 (Current)
-- Basic tuplet support
+- ✅ Basic tuplet support (parses `<time-modification>`)
 - Compressed file (.mxl) support
 - Enhanced error handling
 
