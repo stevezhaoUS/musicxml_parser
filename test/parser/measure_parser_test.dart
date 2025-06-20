@@ -117,7 +117,6 @@ void main() {
 
         final result = measureParser.parse(
           element,
-          element,
           'P1',
           inheritedDivisions: 480,
           inheritedKeySignature: keySignature,
