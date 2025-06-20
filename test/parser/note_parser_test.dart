@@ -1,6 +1,7 @@
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 
+import 'package:musicxml_parser/src/models/articulation.dart'; // Added for Articulation tests
 import 'package:musicxml_parser/src/models/slur.dart'; // Added for Slur tests
 import 'package:musicxml_parser/src/models/time_modification.dart'; // Added for TimeModification tests
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
@@ -1088,6 +1089,121 @@ void main() {
             '<slur> element missing required "type" attribute',
           )),
         );
+      });
+    });
+
+    group('articulation parsing (from <notations><articulations>)', () {
+      test('parses note with no <notations> element for articulations', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>480</duration>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.articulations, isNull);
+      });
+
+      test('parses note with <notations> but no <articulations> container', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>D</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <slur type="start"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.articulations, isNull);
+      });
+
+      test('parses note with an empty <articulations> container', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>D</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <articulations/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.articulations, isNull); // Parser logic sets to null if found list is empty
+      });
+
+      test('parses note with a single articulation (accent)', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>E</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <articulations>
+                <accent/>
+              </articulations>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.articulations, isNotNull);
+        expect(result.articulations, hasLength(1));
+        expect(result.articulations![0].type, equals('accent'));
+        expect(result.articulations![0].placement, isNull);
+      });
+
+      test('parses note with multiple articulations, one with placement', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>F</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <articulations>
+                <staccato/>
+                <tenuto placement="above"/>
+              </articulations>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.articulations, isNotNull);
+        expect(result.articulations, hasLength(2));
+
+        expect(result.articulations![0].type, equals('staccato'));
+        expect(result.articulations![0].placement, isNull);
+
+        expect(result.articulations![1].type, equals('tenuto'));
+        expect(result.articulations![1].placement, equals('above'));
+      });
+
+      test('parses articulation with different placement', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>G</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <articulations>
+                <marcato placement="below"/>
+              </articulations>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.articulations, isNotNull);
+        expect(result.articulations, hasLength(1));
+        expect(result.articulations![0].type, equals('marcato'));
+        expect(result.articulations![0].placement, equals('below'));
       });
     });
   });

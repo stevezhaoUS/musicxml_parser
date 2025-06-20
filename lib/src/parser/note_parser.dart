@@ -1,6 +1,7 @@
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
-import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
+// Removed duplicate import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
+import 'package:musicxml_parser/src/models/articulation.dart'; // Import for Articulation
 import 'package:musicxml_parser/src/models/duration.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
@@ -197,11 +198,16 @@ class NoteParser {
       }
     }
 
-    // Parse notations for slurs
+    // Parse notations for slurs and articulations
     List<Slur>? slursList;
+    List<Articulation>? articulationsList; // Declare articulationsList here
     final notationsElement = element.findElements('notations').firstOrNull;
     if (notationsElement != null) {
-      List<Slur> foundSlurs = [];
+      List<Slur> foundSlurs = []; // Keep this local to slur processing within the loop if multiple <slurs> tags were possible
+                                 // but since we process all children of <notations> once, it's fine.
+      // For articulations, we need to find the <articulations> container first
+      // List<Articulation> foundArticulations = []; // This would be inside the 'if articulationsContainerElement != null'
+
       for (final notationChild in notationsElement.childElements) {
         if (notationChild.name.local == 'slur') {
           final String? typeAttr = notationChild.getAttribute('type');
@@ -220,12 +226,30 @@ class NoteParser {
           final String? placementAttr = notationChild.getAttribute('placement');
 
           foundSlurs.add(Slur(type: typeAttr, number: numberAttr, placement: placementAttr));
+        } else if (notationChild.name.local == 'articulations') {
+          // Found an <articulations> container element
+          List<Articulation> currentGroupArticulations = [];
+          for (final specificArtElement in notationChild.childElements) {
+            final String artType = specificArtElement.name.local;
+            // MusicXML schema lists specific elements like <accent>, <staccato> etc.
+            // We'll use the element name as the articulation type.
+            if (artType.isNotEmpty) {
+              final String? placementAttr = specificArtElement.getAttribute('placement');
+              currentGroupArticulations.add(Articulation(type: artType, placement: placementAttr));
+            }
+          }
+          if (currentGroupArticulations.isNotEmpty) {
+            // If multiple <articulations> tags were allowed, we'd use addAll.
+            // Assuming only one <articulations> container per <notations>.
+            articulationsList = currentGroupArticulations;
+          }
         }
-        // TODO: Parse other notations like <tied>, <articulations> here
+        // TODO: Parse other notations like <tied> here
       }
       if (foundSlurs.isNotEmpty) {
         slursList = foundSlurs;
       }
+      // articulationsList is already populated if an <articulations> group was found and had items
     }
 
     // Create and return the note
@@ -238,6 +262,7 @@ class NoteParser {
       dots: dotsCount,
       timeModification: timeModification,
       slurs: slursList,
+      articulations: articulationsList,
     );
   }
 
