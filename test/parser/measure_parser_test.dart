@@ -116,7 +116,7 @@ void main() {
         final timeSignature = const TimeSignature(beats: 4, beatType: 4);
 
         final result = measureParser.parse(
-          element, 
+          element,
           element,
           'P1',
           inheritedDivisions: 480,
@@ -160,9 +160,11 @@ void main() {
           expect(
             () => measureParser.parse(element, 'P1'),
             throwsA(isA<MusicXmlValidationException>()
-                .having((e) => e.message, 'message', 'Invalid measure number: abc')
+                .having(
+                    (e) => e.message, 'message', 'Invalid measure number: abc')
                 .having((e) => e.context?['part'], 'part context', 'P1')
-                .having((e) => e.context?['measure'], 'measure context', 'abc')),
+                .having(
+                    (e) => e.context?['measure'], 'measure context', 'abc')),
           );
         });
 
@@ -172,8 +174,8 @@ void main() {
 
           expect(
             () => measureParser.parse(element, 'P1'),
-            throwsA(isA<MusicXmlValidationException>()
-                .having((e) => e.message, 'message', 'Invalid measure number: 0')),
+            throwsA(isA<MusicXmlValidationException>().having(
+                (e) => e.message, 'message', 'Invalid measure number: 0')),
           );
         });
 
@@ -296,9 +298,7 @@ void main() {
           ''');
           final element = xml.rootElement;
 
-          when(mockAttributesParser.parse(any, any, any, any))
-              .thenReturn({});
-
+          when(mockAttributesParser.parse(any, any, any, any)).thenReturn({});
 
           measureParser.parse(element, 'P1', inheritedDivisions: 240);
 
@@ -478,9 +478,9 @@ void main() {
           // Should not throw any exceptions
         });
 
-
-        test('handles mixed content with attributes, notes, and unknown elements', () {
-
+        test(
+            'handles mixed content with attributes, notes, and unknown elements',
+            () {
           final xml = XmlDocument.parse('''
             <measure number="1">
               <unknown-element/>
@@ -595,9 +595,10 @@ void main() {
           expect(result.width, equals(150.0));
           expect(result.notes, hasLength(2));
 
-          expect(result.keySignature, equals(newKey)); // Updated from attributes
-          expect(result.timeSignature, equals(newTime)); // Updated from attributes
-          
+          expect(
+              result.keySignature, equals(newKey)); // Updated from attributes
+          expect(
+              result.timeSignature, equals(newTime)); // Updated from attributes
 
           verify(mockAttributesParser.parse(any, 'P1', '42', 480)).called(1);
           verify(mockNoteParser.parse(any, 960, 'P1', '42')).called(2);
@@ -606,4 +607,3 @@ void main() {
     });
   });
 }
-
