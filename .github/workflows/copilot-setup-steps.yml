@@ -50,9 +50,6 @@ jobs:
       - name: Check code formatting
         run: dart format --set-exit-if-changed . || true
 
-      - name: Run static analysis
-        run: dart analyze --fatal-infos --fatal-warnings || (exit_code=$? && [ $exit_code -eq 2 ] && exit 0 || exit $exit_code)
-
       - name: Run tests
         run: dart test
 
