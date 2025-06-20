@@ -38,7 +38,7 @@ This document tracks the current implementation status of MusicXML features in t
 | `<rest>` | ✅ | Rest notes |
 | `<duration>` | ✅ | Duration in divisions |
 | `<type>` | ✅ | Note types (whole, half, quarter, etc.) |
-| `<dot>` | 🚧 | Single dots supported, multiple dots planned |
+| `<dot>` | ✅ | Full support for single and multiple dots. |
 | `<chord>` | 🚧 | Basic chord parsing |
 | `<voice>` | ✅ | Voice assignment |
 | Grace notes | ❌ | Planned for v0.4.0 |
@@ -88,7 +88,7 @@ This document tracks the current implementation status of MusicXML features in t
 | `<time-modification>` (tuplets) | ❌ | Planned for v0.3.0 |
 | `<backup>` | ❌ | Planned for v0.3.0 |
 | `<forward>` | ❌ | Planned for v0.3.0 |
-| Dotted notes | 🚧 | Single dots, multiple dots planned |
+| Dotted notes | ✅ | Full support for single and multiple dots. |
 | Tremolo | ❌ | Planned for v0.5.0 |
 
 ## Structure Elements
@@ -190,7 +190,6 @@ This document tracks the current implementation status of MusicXML features in t
 ## Development Roadmap
 
 ### v0.2.0 (Current)
-- Improve dotted notes support
 - Basic tuplet support
 - Compressed file (.mxl) support
 - Enhanced error handling

@@ -633,5 +633,94 @@ void main() {
         }
       });
     });
+
+    group('dotted note parsing', () {
+      test('parses note with no dots', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>480</duration>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.dots, isNull);
+      });
+
+      test('parses note with a single dot', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <dot/>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.dots, equals(1));
+      });
+
+      test('parses note with double dots', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <dot/>
+            <dot/>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.dots, equals(2));
+      });
+
+      test('parses note with triple dots', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <dot/>
+            <dot/>
+            <dot/>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.dots, equals(3));
+      });
+
+      test('parses rest with a single dot', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <rest/>
+            <duration>480</duration>
+            <dot/>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.isRest, isTrue);
+        expect(result.dots, equals(1));
+      });
+
+      test('parses rest with no dots', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <rest/>
+            <duration>480</duration>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.isRest, isTrue);
+        expect(result.dots, isNull);
+      });
+    });
   });
 }
