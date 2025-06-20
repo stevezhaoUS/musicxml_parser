@@ -109,6 +109,10 @@ class NoteParser {
     final voice = voiceElement?.innerText.trim();
     final voiceNum = voice != null ? int.tryParse(voice) : null;
 
+    // Parse dots
+    final dotElements = element.findElements('dot');
+    final int? dotsCount = dotElements.isNotEmpty ? dotElements.length : null;
+
     // Create and return the note
     return Note(
       pitch: pitch,
@@ -116,6 +120,7 @@ class NoteParser {
       isRest: isRest,
       type: type,
       voice: voiceNum,
+      dots: dotsCount,
     );
   }
 
