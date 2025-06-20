@@ -1,5 +1,6 @@
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 import 'package:musicxml_parser/src/models/score.dart';
+import 'package:musicxml_parser/src/parser/appearance_parser.dart';
 import 'package:musicxml_parser/src/parser/part_parser.dart';
 import 'package:musicxml_parser/src/parser/xml_helper.dart';
 import 'package:musicxml_parser/src/utils/warning_system.dart';
@@ -10,19 +11,26 @@ class ScoreParser {
   /// The parser for part elements.
   final PartParser _partParser;
 
+  /// The parser for appearance elements.
+  final AppearanceParser _appearanceParser;
+
   /// The warning system for collecting non-critical issues.
   final WarningSystem warningSystem;
 
   /// Creates a new [ScoreParser].
   ///
   /// [partParser] - Optional part parser. If not provided, a new one will be created.
+  /// [appearanceParser] - Optional appearance parser. If not provided, a new one will be created.
   /// [warningSystem] - Optional warning system. If not provided, a new one will be created.
   ScoreParser({
     PartParser? partParser,
+    AppearanceParser? appearanceParser,
     WarningSystem? warningSystem,
   })  : warningSystem = warningSystem ?? WarningSystem(),
         _partParser = partParser ??
-            PartParser(warningSystem: warningSystem ?? WarningSystem());
+            PartParser(warningSystem: warningSystem ?? WarningSystem()),
+        _appearanceParser = appearanceParser ??
+            AppearanceParser(warningSystem: warningSystem ?? WarningSystem());
 
   /// Parses a MusicXML document into a [Score] object.
   ///
@@ -84,11 +92,18 @@ class ScoreParser {
         )
         .toList();
 
+    // Parse appearance (if present)
+    final appearanceElement = element.findElements('appearance').firstOrNull;
+    final appearance = appearanceElement != null 
+        ? _appearanceParser.parse(appearanceElement)
+        : null;
+
     return Score(
       title: title,
       composer: composer,
       parts: parts,
       version: version,
+      appearance: appearance,
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:musicxml_parser/src/models/appearance.dart';
 import 'package:musicxml_parser/src/models/part.dart';
 
 /// Represents a complete musical score.
@@ -19,6 +20,9 @@ class Score {
   /// The number of divisions per quarter note.
   final int? divisions;
 
+  /// The appearance settings for the score.
+  final Appearance? appearance;
+
   /// Creates a new [Score] instance.
   const Score({
     this.title,
@@ -26,6 +30,7 @@ class Score {
     required this.parts,
     this.version,
     this.divisions,
+    this.appearance,
   });
 
   @override
@@ -37,7 +42,8 @@ class Score {
           composer == other.composer &&
           parts == other.parts &&
           version == other.version &&
-          divisions == other.divisions;
+          divisions == other.divisions &&
+          appearance == other.appearance;
 
   @override
   int get hashCode =>
@@ -45,7 +51,8 @@ class Score {
       (composer?.hashCode ?? 0) ^
       parts.hashCode ^
       (version?.hashCode ?? 0) ^
-      (divisions?.hashCode ?? 0);
+      (divisions?.hashCode ?? 0) ^
+      (appearance?.hashCode ?? 0);
 
   @override
   String toString() =>

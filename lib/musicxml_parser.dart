@@ -12,11 +12,14 @@ export 'src/exceptions/musicxml_parse_exception.dart';
 export 'src/exceptions/musicxml_structure_exception.dart';
 export 'src/exceptions/musicxml_validation_exception.dart';
 // Export models
+export 'src/models/appearance.dart';
 export 'src/models/beam.dart';
 export 'src/models/duration.dart';
 export 'src/models/key_signature.dart';
+export 'src/models/line_width.dart';
 export 'src/models/measure.dart';
 export 'src/models/note.dart';
+export 'src/models/note_size.dart';
 export 'src/models/part.dart';
 export 'src/models/pitch.dart';
 export 'src/models/score.dart';
@@ -24,6 +27,7 @@ export 'src/models/time_signature.dart';
 // Export main parser
 export 'src/parser/musicxml_parser.dart';
 // Export specialized parsers (for advanced usage)
+export 'src/parser/appearance_parser.dart';
 export 'src/parser/attributes_parser.dart';
 export 'src/parser/measure_parser.dart';
 export 'src/parser/note_parser.dart';
