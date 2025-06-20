@@ -160,6 +160,7 @@ class MeasureParser {
         warningSystem.addWarning(
           "Encountered <backup> with duration $duration. Full timeline impact not yet implemented.",
           category: 'partial_processing',
+          rule: 'backup_partially_processed',
           context: {
             'element': 'backup',
             'part': partId,
@@ -190,6 +191,7 @@ class MeasureParser {
         warningSystem.addWarning(
           "Encountered <forward> with duration $duration. Full timeline impact not yet implemented.",
           category: 'partial_processing',
+          rule: 'forward_partially_processed',
           context: {
             'element': 'forward',
             'part': partId,

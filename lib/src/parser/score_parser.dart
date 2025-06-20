@@ -120,6 +120,8 @@ class ScoreParser {
       pageLayout: pageLayout,
       scaling: scaling,
       appearance: appearance,
+      title: title,       // Pass the parsed title directly
+      composer: composer, // Pass the parsed composer directly
     );
   }
 

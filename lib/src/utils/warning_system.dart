@@ -21,6 +21,9 @@ class MusicXmlWarning {
   /// The severity level of the warning.
   final WarningSeverity severity;
 
+  /// An optional rule identifier associated with this warning.
+  final String? rule;
+
   /// Creates a new [MusicXmlWarning].
   const MusicXmlWarning({
     required this.message,
@@ -29,6 +32,7 @@ class MusicXmlWarning {
     this.element,
     this.context,
     this.severity = WarningSeverity.info,
+    this.rule,
   });
 
   @override
@@ -50,6 +54,10 @@ class MusicXmlWarning {
       buffer.write(' [context: $context]');
     }
 
+    if (rule != null) {
+      buffer.write(' [rule: $rule]');
+    }
+
     return buffer.toString();
   }
 
@@ -62,7 +70,8 @@ class MusicXmlWarning {
           category == other.category &&
           line == other.line &&
           element == other.element &&
-          severity == other.severity;
+          severity == other.severity &&
+          rule == other.rule;
 
   @override
   int get hashCode =>
@@ -70,7 +79,8 @@ class MusicXmlWarning {
       category.hashCode ^
       (line?.hashCode ?? 0) ^
       (element?.hashCode ?? 0) ^
-      severity.hashCode;
+      severity.hashCode ^
+      (rule?.hashCode ?? 0);
 }
 
 /// Severity levels for warnings.
@@ -143,6 +153,7 @@ class WarningSystem {
     String? element,
     Map<String, dynamic>? context,
     WarningSeverity severity = WarningSeverity.info,
+    String? rule, // New parameter for rule
   }) {
     if (!enabled) return;
 
@@ -153,6 +164,7 @@ class WarningSystem {
       element: element,
       context: context,
       severity: severity,
+      rule: rule, // Pass rule to MusicXmlWarning
     );
 
     _warnings.add(warning);
