@@ -1,5 +1,4 @@
 import 'package:musicxml_parser/src/exceptions/invalid_musicxml_exception.dart';
-import 'package:musicxml_parser/src/models/credit.dart'; // Added for Credit tests
 import 'package:musicxml_parser/src/models/score.dart';
 import 'package:musicxml_parser/src/parser/musicxml_parser.dart';
 import 'package:test/test.dart';

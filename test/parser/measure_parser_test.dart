@@ -5,9 +5,7 @@ import 'package:xml/xml.dart';
 
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart'; // Added for backup/forward tests
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
-import 'package:musicxml_parser/src/models/barline.dart'; // Added for Barline tests
 import 'package:musicxml_parser/src/models/duration.dart';
-import 'package:musicxml_parser/src/models/ending.dart'; // Added for Ending tests
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
