@@ -220,7 +220,7 @@ class WarningSystem {
   }
 
   /// Clears all warnings.
-  void clear() => _warnings.clear();
+  void clearWarnings() => _warnings.clear();
 
   /// Checks if there are any warnings.
   bool get hasWarnings => _warnings.isNotEmpty;

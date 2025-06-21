@@ -118,243 +118,229 @@ class NoteParser {
     final int? dotsCount = dotElements.isNotEmpty ? dotElements.length : null;
 
     // Parse time modification
-    TimeModification? timeModification;
-    final timeModificationElement = element.findElements('time-modification').firstOrNull;
+    final timeModification = _parseTimeModification(
+        element.findElements('time-modification').firstOrNull,
+        partId,
+        measureNumber,
+        line);
 
-    if (timeModificationElement != null) {
-      final tmLine = XmlHelper.getLineNumber(timeModificationElement);
-      final actualNotesElement = timeModificationElement.findElements('actual-notes').firstOrNull;
-      final normalNotesElement = timeModificationElement.findElements('normal-notes').firstOrNull;
+    // Parse notations
+    final notations = _parseNotations(
+        element.findElements('notations').firstOrNull,
+        partId,
+        measureNumber,
+        line);
 
-      if (actualNotesElement == null) {
-        throw MusicXmlStructureException(
-          '<time-modification> is missing <actual-notes> element',
-          requiredElement: 'actual-notes',
-          parentElement: 'time-modification',
-          line: tmLine,
-          context: {'part': partId, 'measure': measureNumber},
-        );
-      }
-      if (normalNotesElement == null) {
-        throw MusicXmlStructureException(
-          '<time-modification> is missing <normal-notes> element',
-          requiredElement: 'normal-notes',
-          parentElement: 'time-modification',
-          line: tmLine,
-          context: {'part': partId, 'measure': measureNumber},
-        );
-      }
+    // Check for <chord/> element
+    final bool isChord = element.findElements('chord').isNotEmpty;
 
-      final actualNotes = XmlHelper.getElementTextAsInt(actualNotesElement);
-      final normalNotes = XmlHelper.getElementTextAsInt(normalNotesElement);
+    // Use NoteBuilder to construct the note
+    final noteBuilder = NoteBuilder(line: line, context: {
+      'part': partId,
+      'measure': measureNumber,
+    });
 
-      if (actualNotes == null) {
-        throw MusicXmlStructureException(
-          '<actual-notes> must contain an integer value',
-          parentElement: 'time-modification',
-          line: XmlHelper.getLineNumber(actualNotesElement),
-          context: {'part': partId, 'measure': measureNumber},
-        );
-      }
-      if (normalNotes == null) {
-        throw MusicXmlStructureException(
-          '<normal-notes> must contain an integer value',
-          parentElement: 'time-modification',
-          line: XmlHelper.getLineNumber(normalNotesElement),
-          context: {'part': partId, 'measure': measureNumber},
-        );
-      }
+    noteBuilder
+        .setIsRest(isRest)
+        .setPitch(pitch) // Will be null if isRest is true
+        .setDuration(duration)
+        .setType(type)
+        .setVoice(voiceNum)
+        .setDots(dotsCount)
+        .setTimeModification(timeModification)
+        .setSlurs(notations.slurs)
+        .setArticulations(notations.articulations)
+        .setTies(notations.ties)
+        .setIsChordElementPresent(isChord);
 
-      final normalTypeElement = timeModificationElement.findElements('normal-type').firstOrNull;
-      final normalType = normalTypeElement?.innerText.trim();
+    try {
+      return noteBuilder.build();
+    } on MusicXmlValidationException catch (e) {
+      // It's possible the builder.build() (which calls Note.validated)
+      // could throw a validation exception if some combination is invalid
+      // that wasn't caught by individual component parsing.
+      warningSystem.addWarning(
+        'Invalid note constructed: ${e.message}',
+        category: 'note_validation',
+        rule: e.rule,
+        line: line,
+        context: {
+          'part': partId,
+          'measure': measureNumber,
+          ...?e.context,
+        },
+      );
+      return null; // Or rethrow, depending on desired strictness
+    }
+  }
 
-      final normalDotElements = timeModificationElement.findElements('normal-dot');
-      final int? normalDotCount = normalDotElements.isNotEmpty ? normalDotElements.length : null;
+  /// Parses a <time-modification> element.
+  TimeModification? _parseTimeModification(
+    XmlElement? timeModificationElement,
+    String partId,
+    String measureNumber,
+    int noteLine,
+  ) {
+    if (timeModificationElement == null) return null;
 
-      try {
-        timeModification = TimeModification.validated(
-          actualNotes: actualNotes,
-          normalNotes: normalNotes,
-          normalType: normalType,
-          normalDotCount: normalDotCount,
-          line: tmLine,
-          context: {'part': partId, 'measure': measureNumber, 'noteLine': line},
-        );
-      } on MusicXmlValidationException catch (e) {
-        // Add more context or re-throw if needed, or log to warningSystem
-        warningSystem.addWarning(
-          'Invalid time-modification: ${e.message}',
-          category: 'time_modification_validation',
-          rule: e.rule,
-          line: tmLine,
-          context: {
-            'part': partId,
-            'measure': measureNumber,
-            'noteLine': line,
-            ...?e.context
-          },
-        );
-        // Depending on severity, you might choose to nullify timeModification or rethrow
-      }
+    final tmLine = XmlHelper.getLineNumber(timeModificationElement);
+    final actualNotesElement = timeModificationElement.findElements('actual-notes').firstOrNull;
+    final normalNotesElement = timeModificationElement.findElements('normal-notes').firstOrNull;
+
+    if (actualNotesElement == null) {
+      throw MusicXmlStructureException(
+        '<time-modification> is missing <actual-notes> element',
+        requiredElement: 'actual-notes',
+        parentElement: 'time-modification',
+        line: tmLine,
+        context: {'part': partId, 'measure': measureNumber},
+      );
+    }
+    if (normalNotesElement == null) {
+      throw MusicXmlStructureException(
+        '<time-modification> is missing <normal-notes> element',
+        requiredElement: 'normal-notes',
+        parentElement: 'time-modification',
+        line: tmLine,
+        context: {'part': partId, 'measure': measureNumber},
+      );
     }
 
-    // Parse notations for slurs, articulations, and ties
-    List<Slur>? slursList;
-    List<Articulation>? articulationsList;
-    List<Tie>? tiesList; // New list for ties
-    final notationsElement = element.findElements('notations').firstOrNull;
-    if (notationsElement != null) {
-      List<Slur> foundSlurs = [];
-      List<Tie> foundTies = []; // Initialize list for found ties
+    final actualNotes = XmlHelper.getElementTextAsInt(actualNotesElement);
+    final normalNotes = XmlHelper.getElementTextAsInt(normalNotesElement);
 
-      for (final notationChild in notationsElement.childElements) {
-        if (notationChild.name.local == 'slur') {
+    if (actualNotes == null) {
+      throw MusicXmlStructureException(
+        '<actual-notes> must contain an integer value',
+        parentElement: 'time-modification',
+        line: XmlHelper.getLineNumber(actualNotesElement),
+        context: {'part': partId, 'measure': measureNumber},
+      );
+    }
+    if (normalNotes == null) {
+      throw MusicXmlStructureException(
+        '<normal-notes> must contain an integer value',
+        parentElement: 'time-modification',
+        line: XmlHelper.getLineNumber(normalNotesElement),
+        context: {'part': partId, 'measure': measureNumber},
+      );
+    }
+
+    final normalTypeElement = timeModificationElement.findElements('normal-type').firstOrNull;
+    final normalType = normalTypeElement?.innerText.trim();
+
+    final normalDotElements = timeModificationElement.findElements('normal-dot');
+    final int? normalDotCount = normalDotElements.isNotEmpty ? normalDotElements.length : null;
+
+    try {
+      return TimeModification.validated(
+        actualNotes: actualNotes,
+        normalNotes: normalNotes,
+        normalType: normalType,
+        normalDotCount: normalDotCount,
+        line: tmLine,
+        context: {'part': partId, 'measure': measureNumber, 'noteLine': noteLine},
+      );
+    } on MusicXmlValidationException catch (e) {
+      warningSystem.addWarning(
+        'Invalid time-modification: ${e.message}',
+        category: 'time_modification_validation',
+        rule: e.rule,
+        line: tmLine,
+        context: {
+          'part': partId,
+          'measure': measureNumber,
+          'noteLine': noteLine,
+          ...?e.context
+        },
+      );
+      return null;
+    }
+  }
+
+  /// Parses a <notations> element.
+  _NotationsData _parseNotations(
+    XmlElement? notationsElement,
+    String partId,
+    String measureNumber,
+    int noteLine,
+  ) {
+    if (notationsElement == null) return _NotationsData();
+
+    List<Slur> slurs = [];
+    List<Articulation> articulations = [];
+    List<Tie> ties = [];
+
+    for (final notationChild in notationsElement.childElements) {
+      switch (notationChild.name.local) {
+        case 'slur':
           final String? typeAttr = notationChild.getAttribute('type');
           if (typeAttr == null) {
             throw MusicXmlStructureException(
               '<slur> element missing required "type" attribute',
               parentElement: 'notations',
               line: XmlHelper.getLineNumber(notationChild),
-              context: {'part': partId, 'measure': measureNumber, 'noteLine': line},
+              context: {'part': partId, 'measure': measureNumber, 'noteLine': noteLine},
             );
           }
-
           final String? numberStr = notationChild.getAttribute('number');
           final int numberAttr = (numberStr != null && numberStr.isNotEmpty ? int.tryParse(numberStr) : null) ?? 1;
-
           final String? placementAttr = notationChild.getAttribute('placement');
-
-          foundSlurs.add(Slur(type: typeAttr, number: numberAttr, placement: placementAttr));
-        } else if (notationChild.name.local == 'articulations') {
-          // Found an <articulations> container element
-          List<Articulation> currentGroupArticulations = [];
+          slurs.add(Slur(type: typeAttr, number: numberAttr, placement: placementAttr));
+          break;
+        case 'articulations':
           for (final specificArtElement in notationChild.childElements) {
             final String artType = specificArtElement.name.local;
-            // MusicXML schema lists specific elements like <accent>, <staccato> etc.
-            // We'll use the element name as the articulation type.
             if (artType.isNotEmpty) {
               final String? placementAttr = specificArtElement.getAttribute('placement');
-              currentGroupArticulations.add(Articulation(type: artType, placement: placementAttr));
+              articulations.add(Articulation(type: artType, placement: placementAttr));
             }
           }
-          if (currentGroupArticulations.isNotEmpty) {
-            // If multiple <articulations> tags were allowed, we'd use addAll.
-            // Assuming only one <articulations> container per <notations>.
-            articulationsList = currentGroupArticulations;
-          }
-        } else if (notationChild.name.local == 'tied') {
+          break;
+        case 'tied':
           final String? typeAttr = notationChild.getAttribute('type');
           if (typeAttr == null || (typeAttr != 'start' && typeAttr != 'stop' && typeAttr != 'continue')) {
-             // MusicXML spec allows 'continue' for ties, but for simplicity, we might only fully support start/stop initially.
-             // For now, let's accept 'continue' but be aware it might need special handling later.
-             // If type is missing or not one of these, it's an issue.
             warningSystem.addWarning(
               '<tied> element has invalid or missing "type" attribute. Found: "$typeAttr". Skipping tie.',
               category: WarningCategories.structure,
               line: XmlHelper.getLineNumber(notationChild),
-              context: {'part': partId, 'measure': measureNumber, 'noteLine': line},
+              context: {'part': partId, 'measure': measureNumber, 'noteLine': noteLine},
             );
-            // Or throw:
-            // throw MusicXmlStructureException(
-            //   '<tied> element requires a "type" attribute of "start", "stop", or "continue". Found: "$typeAttr"',
-            //   parentElement: 'notations',
-            //   line: XmlHelper.getLineNumber(notationChild),
-            //   context: {'part': partId, 'measure': measureNumber, 'noteLine': line},
-            // );
           } else {
             final String? placementAttr = notationChild.getAttribute('placement');
-            foundTies.add(Tie(type: typeAttr, placement: placementAttr));
+            ties.add(Tie(type: typeAttr, placement: placementAttr));
           }
-        }
+          break;
       }
-      if (foundSlurs.isNotEmpty) {
-        slursList = foundSlurs;
-      }
-      if (foundTies.isNotEmpty) {
-        tiesList = foundTies;
-      }
-      // articulationsList is already populated if an <articulations> group was found and had items
     }
-
-    // Check for <chord/> element
-    final bool isChord = element.findElements('chord').isNotEmpty;
-
-    // Create and return the note
-    return Note(
-      pitch: pitch,
-      duration: duration,
-      isRest: isRest,
-      type: type,
-      voice: voiceNum,
-      dots: dotsCount,
-      timeModification: timeModification,
-      slurs: slursList,
-      articulations: articulationsList,
-      ties: tiesList,
-      isChordElementPresent: isChord,
-    );
+    return _NotationsData(
+        slurs: slurs.isNotEmpty ? slurs : null,
+        articulations: articulations.isNotEmpty ? articulations : null,
+        ties: ties.isNotEmpty ? ties : null);
   }
 
-  /// Parses a pitch element into a [Pitch] object.
+  /// Parses a pitch element into a [Pitch] object using the Pitch.fromXmlElement factory.
   Pitch _parsePitch(XmlElement element, String partId, String measureNumber) {
-    final line = XmlHelper.getLineNumber(element);
-
-    // Parse step (required)
-    final stepElement = element.findElements('step').firstOrNull;
-    final step = stepElement?.innerText.trim();
-
-    // Validate step
-    if (step == null || !ValidationUtils.validPitchSteps.contains(step)) {
-      throw MusicXmlValidationException(
-        'Invalid pitch step: $step',
-        context: {
-          'part': partId,
-          'measure': measureNumber,
-          'line': line,
-        },
-      );
+    try {
+      return Pitch.fromXmlElement(element, partId, measureNumber);
+    } on MusicXmlStructureException catch (e) {
+      // Re-throw with more specific context if needed, or let it propagate
+      // For now, just rethrowing as the factory method should provide good context.
+      rethrow;
+    } on MusicXmlValidationException catch (e) {
+      // Similarly, re-throw or handle/log
+      rethrow;
     }
-
-    // Parse octave (required)
-    final octaveElement = element.findElements('octave').firstOrNull;
-    final octaveText = octaveElement?.innerText.trim();
-    final octave = octaveText != null ? int.tryParse(octaveText) : null;
-
-    // Validate octave
-    if (octave == null ||
-        octave < ValidationUtils.minOctave ||
-        octave > ValidationUtils.maxOctave) {
-      throw MusicXmlValidationException(
-        'Invalid octave: $octaveText',
-        context: {
-          'part': partId,
-          'measure': measureNumber,
-          'line': line,
-        },
-      );
-    }
-
-    // Parse alter (optional)
-    final alterElement = element.findElements('alter').firstOrNull;
-    final alterText = alterElement?.innerText.trim();
-    final alter = alterText != null ? int.tryParse(alterText) : null;
-
-    // Validate alter if present
-    if (alterText != null && (alter == null || alter < -2 || alter > 2)) {
-      throw MusicXmlValidationException(
-        'Invalid alter value: $alterText',
-        context: {
-          'part': partId,
-          'measure': measureNumber,
-          'line': line,
-        },
-      );
-    }
-
-    return Pitch(
-      step: step,
-      octave: octave,
-      alter: alter,
-    );
+    // Add a general catch if other unexpected errors could occur from Pitch.fromXmlElement
+    // though it's designed to throw specific MusicXML exceptions.
   }
+}
+
+/// Helper class to store parsed data from the <notations> element.
+class _NotationsData {
+  final List<Slur>? slurs;
+  final List<Articulation>? articulations;
+  final List<Tie>? ties;
+
+  _NotationsData({this.slurs, this.articulations, this.ties});
 }

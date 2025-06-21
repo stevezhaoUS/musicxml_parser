@@ -98,11 +98,47 @@ class PartParser {
       measures.add(measure);
     }
 
-    // Create and return the part
-    return Part(
-      id: id,
-      name: name,
-      measures: measures,
-    );
+    // Use PartBuilder
+    final partBuilder = PartBuilder(id, line: line)..setName(name);
+
+    // These variables will hold the *active* attributes to be inherited by subsequent measures.
+    int? activeDivisions = currentDivisions; // Initialize with potentially inherited divisions from score defaults or previous part context
+    KeySignature? activeKeySignature = currentKeySignature; // Initialize similarly
+    TimeSignature? activeTimeSignature = currentTimeSignature; // Initialize similarly
+
+    for (final measureElement in element.findElements('measure')) {
+      final measure = _measureParser.parse(
+        measureElement,
+        id, // partId for context
+        inheritedDivisions: activeDivisions,
+        inheritedKeySignature: activeKeySignature,
+        inheritedTimeSignature: activeTimeSignature,
+      );
+
+      partBuilder.addMeasure(measure);
+
+      // Update active attributes for the next measure based on what was
+      // defined *within* the measure just parsed.
+      final attributesInMeasure = measureElement.findElements('attributes').firstOrNull;
+      if (attributesInMeasure != null) {
+        final divisionsElement = attributesInMeasure.findElements('divisions').firstOrNull;
+        if (divisionsElement != null) {
+          final newDivisions = int.tryParse(divisionsElement.innerText.trim());
+          if (newDivisions != null && newDivisions > 0) {
+            activeDivisions = newDivisions;
+          }
+        }
+        // The measure object itself now holds the key/time signature that applies to it.
+        // So, if the parsed measure has a key/time signature, that's the new active one.
+        // If it's null, the previously active one (from a prior measure or defaults) continues.
+        if (measure.keySignature != null) {
+          activeKeySignature = measure.keySignature;
+        }
+        if (measure.timeSignature != null) {
+          activeTimeSignature = measure.timeSignature;
+        }
+      }
+    }
+    return partBuilder.build();
   }
 }

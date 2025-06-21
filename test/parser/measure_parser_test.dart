@@ -708,7 +708,7 @@ void main() {
         expect(
             () => measureParser.parse(element, 'P1'),
             throwsA(isA<MusicXmlStructureException>().having(
-                (e) => e.message, 'message', 'Backup element missing required <duration> child.')));
+                (e) => e.message, 'message', contains('<backup> element missing required <duration> child.'))));
       });
 
       test('<forward> with invalid <duration> (non-integer) throws MusicXmlStructureException', () {

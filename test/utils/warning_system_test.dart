@@ -274,7 +274,7 @@ void main() {
 
       expect(warningSystem.hasWarnings, isTrue);
 
-      warningSystem.clear();
+      warningSystem.clearWarnings(); // Corrected method name
 
       expect(warningSystem.hasWarnings, isFalse);
       expect(warningSystem.warningCount, equals(0));

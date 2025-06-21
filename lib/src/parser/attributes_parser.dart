@@ -1,4 +1,5 @@
 import 'package:musicxml_parser/src/exceptions/musicxml_parse_exception.dart';
+import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
@@ -82,95 +83,37 @@ class AttributesParser {
     };
   }
 
-  /// Parses a key element into a [KeySignature] object.
+  /// Parses a key element into a [KeySignature] object using the KeySignature.fromXmlElement factory.
   KeySignature _parseKeySignature(
     XmlElement element,
     String partId,
     String measureNumber,
   ) {
-    final line = XmlHelper.getLineNumber(element);
-
-    // Parse fifths
-    final fifthsElement = element.findElements('fifths').firstOrNull;
-    final fifthsText = fifthsElement?.innerText.trim();
-    final fifths = fifthsText != null ? int.tryParse(fifthsText) : null;
-
-    if (fifths == null) {
-      throw MusicXmlValidationException(
-        'Invalid key signature fifths value: $fifthsText',
-        context: {
-          'part': partId,
-          'measure': measureNumber,
-          'line': line,
-        },
-      );
+    try {
+      return KeySignature.fromXmlElement(element, partId, measureNumber);
+    } on MusicXmlStructureException catch (e) {
+      // Re-throw, or add more context if needed
+      rethrow;
+    } on MusicXmlValidationException catch (e) {
+      // Re-throw, or add more context if needed
+      rethrow;
     }
-
-    // Parse mode (optional)
-    final modeElement = element.findElements('mode').firstOrNull;
-    final mode = modeElement?.innerText.trim();
-
-    return KeySignature.validated(
-      fifths: fifths,
-      mode: mode,
-      line: line,
-      context: {
-        'part': partId,
-        'measure': measureNumber,
-      },
-    );
   }
 
-  /// Parses a time element into a [TimeSignature] object.
+  /// Parses a time element into a [TimeSignature] object using the TimeSignature.fromXmlElement factory.
   TimeSignature _parseTimeSignature(
     XmlElement element,
     String partId,
     String measureNumber,
   ) {
-    final line = XmlHelper.getLineNumber(element);
-
-    // Parse beats (numerator)
-    final beatsElement = element.findElements('beats').firstOrNull;
-    final beatsText = beatsElement?.innerText.trim();
-    final beats = beatsText != null ? int.tryParse(beatsText) : null;
-
-    if (beats == null || beats <= 0) {
-      throw MusicXmlValidationException(
-        'Invalid time signature beats (numerator) value: $beatsText',
-        context: {
-          'part': partId,
-          'measure': measureNumber,
-          'line': line,
-        },
-      );
+    try {
+      return TimeSignature.fromXmlElement(element, partId, measureNumber);
+    } on MusicXmlStructureException catch (e) {
+      // Re-throw, or add more context if needed
+      rethrow;
+    } on MusicXmlValidationException catch (e) {
+      // Re-throw, or add more context if needed
+      rethrow;
     }
-
-    // Parse beat-type (denominator)
-    final beatTypeElement = element.findElements('beat-type').firstOrNull;
-    final beatTypeText = beatTypeElement?.innerText.trim();
-    final beatType = beatTypeText != null ? int.tryParse(beatTypeText) : null;
-
-    if (beatType == null || beatType <= 0) {
-      throw MusicXmlValidationException(
-        'Invalid time signature beat-type (denominator) value: $beatTypeText',
-        context: {
-          'part': partId,
-          'measure': measureNumber,
-          'line': line,
-        },
-      );
-    }
-
-    // Note: We could use symbol attribute for special time signatures in the future
-
-    return TimeSignature.validated(
-      beats: beats,
-      beatType: beatType,
-      line: line,
-      context: {
-        'part': partId,
-        'measure': measureNumber,
-      },
-    );
   }
 }
