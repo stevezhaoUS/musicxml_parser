@@ -103,7 +103,8 @@ void main() {
         expect(score.credits, isNull);
       });
 
-      test('parses score with a single, simple <credit> (credit-words only)', () {
+      test('parses score with a single, simple <credit> (credit-words only)',
+          () {
         const xmlString = '''
           <score-partwise version="3.1">
             <credit><credit-words>Copyright 2023</credit-words></credit>
@@ -183,7 +184,9 @@ void main() {
         expect(credit2.creditWords, equals(['The Composer']));
       });
 
-      test('parses score with an "empty" <credit> (no type or words, no page) - should be skipped', () {
+      test(
+          'parses score with an "empty" <credit> (no type or words, no page) - should be skipped',
+          () {
         const xmlString = '''
           <score-partwise version="3.1">
             <credit></credit>
@@ -195,7 +198,9 @@ void main() {
         expect(score.credits, isNull);
       });
 
-      test('parses score with <credit> having only empty <credit-type> - should be skipped', () {
+      test(
+          'parses score with <credit> having only empty <credit-type> - should be skipped',
+          () {
         const xmlString = '''
           <score-partwise version="3.1">
             <credit><credit-type></credit-type></credit>
@@ -207,7 +212,9 @@ void main() {
         expect(score.credits, isNull);
       });
 
-      test('parses score with <credit> having only page number - should be included', () {
+      test(
+          'parses score with <credit> having only page number - should be included',
+          () {
         const xmlString = '''
           <score-partwise version="3.1">
             <credit page="3"></credit>

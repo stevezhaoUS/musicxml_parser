@@ -12,8 +12,10 @@ class SystemLayoutParser {
     final marginsElement = element.findElements('system-margins').firstOrNull;
     if (marginsElement != null) {
       margins = SystemMargins(
-        leftMargin: XmlHelper.getElementTextAsDouble(marginsElement.findElements('left-margin').firstOrNull),
-        rightMargin: XmlHelper.getElementTextAsDouble(marginsElement.findElements('right-margin').firstOrNull),
+        leftMargin: XmlHelper.getElementTextAsDouble(
+            marginsElement.findElements('left-margin').firstOrNull),
+        rightMargin: XmlHelper.getElementTextAsDouble(
+            marginsElement.findElements('right-margin').firstOrNull),
       );
     }
 
@@ -21,15 +23,19 @@ class SystemLayoutParser {
     final dividersElement = element.findElements('system-dividers').firstOrNull;
     if (dividersElement != null) {
       dividers = SystemDividers(
-        leftDivider: XmlHelper.getElementTextAsBool(dividersElement.findElements('left-divider').firstOrNull),
-        rightDivider: XmlHelper.getElementTextAsBool(dividersElement.findElements('right-divider').firstOrNull),
+        leftDivider: XmlHelper.getElementTextAsBool(
+            dividersElement.findElements('left-divider').firstOrNull),
+        rightDivider: XmlHelper.getElementTextAsBool(
+            dividersElement.findElements('right-divider').firstOrNull),
       );
     }
 
     return SystemLayout(
       systemMargins: margins,
-      systemDistance: XmlHelper.getElementTextAsDouble(element.findElements('system-distance').firstOrNull),
-      topSystemDistance: XmlHelper.getElementTextAsDouble(element.findElements('top-system-distance').firstOrNull),
+      systemDistance: XmlHelper.getElementTextAsDouble(
+          element.findElements('system-distance').firstOrNull),
+      topSystemDistance: XmlHelper.getElementTextAsDouble(
+          element.findElements('top-system-distance').firstOrNull),
       systemDividers: dividers,
     );
   }

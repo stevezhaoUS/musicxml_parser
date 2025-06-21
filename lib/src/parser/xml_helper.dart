@@ -56,7 +56,8 @@ class XmlHelper {
         }
       } else {
         // Element selection with optional predicate
-        currentContextNode = _findElementFromSegment(currentContextNode, segment);
+        currentContextNode =
+            _findElementFromSegment(currentContextNode, segment);
       }
     }
 
@@ -69,7 +70,8 @@ class XmlHelper {
   /// with an attribute predicate (e.g., 'creator[@type="composer"]').
   ///
   /// Returns the first matching [XmlElement], or `null` if not found.
-  static XmlElement? _findElementFromSegment(XmlElement parent, String segment) {
+  static XmlElement? _findElementFromSegment(
+      XmlElement parent, String segment) {
     final predicateMatch = RegExp(r'(.+?)\[(.+?)\]').firstMatch(segment);
 
     if (predicateMatch != null) {
@@ -82,19 +84,19 @@ class XmlHelper {
       }
 
       // Handle @attribute="value" predicate
-      final attributePredicateMatch = RegExp(r'@(.+?)="(.+?)"').firstMatch(predicate);
+      final attributePredicateMatch =
+          RegExp(r'@(.+?)="(.+?)"').firstMatch(predicate);
       if (attributePredicateMatch != null) {
         final attributeName = attributePredicateMatch.group(1);
         final attributeValue = attributePredicateMatch.group(2);
 
         if (attributeName != null && attributeValue != null) {
           try {
-            return parent
-                .findElements(elementName)
-                .firstWhere(
+            return parent.findElements(elementName).firstWhere(
                   (el) => el.getAttribute(attributeName) == attributeValue,
                 );
-          } catch (e) { // firstWhere throws StateError if no element is found
+          } catch (e) {
+            // firstWhere throws StateError if no element is found
             return null;
           }
         }
@@ -162,7 +164,8 @@ class XmlHelper {
   /// Recognizes "yes" (case-insensitive) as `true` and "no" (case-insensitive)
   /// as `false`. For any other text, or if the element is `null` or its text is empty,
   /// returns the [defaultValue] (which is `false` if not specified).
-  static bool getElementTextAsBool(XmlElement? element, {bool defaultValue = false}) {
+  static bool getElementTextAsBool(XmlElement? element,
+      {bool defaultValue = false}) {
     if (element == null) return defaultValue;
     final text = element.innerText.trim().toLowerCase();
     if (text == 'yes') return true;

@@ -34,9 +34,7 @@ class Slur {
 
   @override
   int get hashCode =>
-      type.hashCode ^
-      number.hashCode ^
-      (placement?.hashCode ?? 0);
+      type.hashCode ^ number.hashCode ^ (placement?.hashCode ?? 0);
 
   @override
   String toString() {

@@ -85,7 +85,8 @@ class Measure {
           const DeepCollectionEquality().equals(beams, other.beams) &&
           const DeepCollectionEquality().equals(barlines, other.barlines) &&
           ending == other.ending &&
-          const DeepCollectionEquality().equals(wordsDirections, other.wordsDirections) &&
+          const DeepCollectionEquality()
+              .equals(wordsDirections, other.wordsDirections) &&
           printObject == other.printObject;
 
   @override
@@ -151,6 +152,7 @@ class MeasureBuilder {
 
   /// Line number in the XML for error reporting context.
   final int? _line;
+
   /// Additional context for error reporting.
   final Map<String, dynamic>? _context;
 
@@ -265,9 +267,9 @@ class MeasureBuilder {
     // MusicXML allows non-integer measure numbers (e.g., "X1" for pickup, "1a").
     // For simplicity, this example just checks for empty or obviously invalid.
     if (_number.isEmpty) {
-        // This might be an appropriate place to throw MusicXmlValidationException
-        // or log a warning, depending on desired strictness.
-        // For now, relying on parser to ensure number is present.
+      // This might be an appropriate place to throw MusicXmlValidationException
+      // or log a warning, depending on desired strictness.
+      // For now, relying on parser to ensure number is present.
     }
 
     return Measure(

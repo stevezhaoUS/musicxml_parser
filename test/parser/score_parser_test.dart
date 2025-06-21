@@ -110,7 +110,7 @@ void main() {
     });
 
     test('parses score without defaults element', () {
-        final xmlString = '''
+      final xmlString = '''
         <score-partwise version="3.0">
           <part-list>
             <score-part id="P1"><part-name>Music</part-name></score-part>
@@ -123,13 +123,13 @@ void main() {
           </part>
         </score-partwise>
       ''';
-        final document = XmlDocument.parse(xmlString);
-        final score = scoreParser.parse(document);
+      final document = XmlDocument.parse(xmlString);
+      final score = scoreParser.parse(document);
 
-        expect(score.scaling, isNull);
-        expect(score.pageLayout, isNull);
-        expect(score.defaultSystemLayout, isNull);
-        expect(score.defaultStaffLayouts, isEmpty);
+      expect(score.scaling, isNull);
+      expect(score.pageLayout, isNull);
+      expect(score.defaultSystemLayout, isNull);
+      expect(score.defaultStaffLayouts, isEmpty);
     });
 
     // TODO: Add more tests for variations in page-margins (odd, even), missing sub-elements etc.

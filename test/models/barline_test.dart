@@ -27,12 +27,36 @@ void main() {
     });
 
     group('equality and hashCode', () {
-      const b1 = Barline(location: 'right', barStyle: 'light-heavy', repeatDirection: 'backward', times: 2);
-      const b2 = Barline(location: 'right', barStyle: 'light-heavy', repeatDirection: 'backward', times: 2);
-      const b3 = Barline(location: 'left', barStyle: 'light-heavy', repeatDirection: 'backward', times: 2); // diff location
-      const b4 = Barline(location: 'right', barStyle: 'light-light', repeatDirection: 'backward', times: 2); // diff barStyle
-      const b5 = Barline(location: 'right', barStyle: 'light-heavy', repeatDirection: 'forward', times: 2); // diff repeatDirection
-      const b6 = Barline(location: 'right', barStyle: 'light-heavy', repeatDirection: 'backward', times: 3); // diff times
+      const b1 = Barline(
+          location: 'right',
+          barStyle: 'light-heavy',
+          repeatDirection: 'backward',
+          times: 2);
+      const b2 = Barline(
+          location: 'right',
+          barStyle: 'light-heavy',
+          repeatDirection: 'backward',
+          times: 2);
+      const b3 = Barline(
+          location: 'left',
+          barStyle: 'light-heavy',
+          repeatDirection: 'backward',
+          times: 2); // diff location
+      const b4 = Barline(
+          location: 'right',
+          barStyle: 'light-light',
+          repeatDirection: 'backward',
+          times: 2); // diff barStyle
+      const b5 = Barline(
+          location: 'right',
+          barStyle: 'light-heavy',
+          repeatDirection: 'forward',
+          times: 2); // diff repeatDirection
+      const b6 = Barline(
+          location: 'right',
+          barStyle: 'light-heavy',
+          repeatDirection: 'backward',
+          times: 3); // diff times
       const b7 = Barline(); // all null
 
       test('instances with same values are equal and have same hashCode', () {
@@ -70,8 +94,15 @@ void main() {
 
     group('toString representation', () {
       test('includes all fields when present', () {
-        const barline = Barline(location: 'right', barStyle: 'light-heavy', repeatDirection: 'backward', times: 2);
-        expect(barline.toString(), equals('Barline{location: right, barStyle: light-heavy, repeatDirection: backward, times: 2}'));
+        const barline = Barline(
+            location: 'right',
+            barStyle: 'light-heavy',
+            repeatDirection: 'backward',
+            times: 2);
+        expect(
+            barline.toString(),
+            equals(
+                'Barline{location: right, barStyle: light-heavy, repeatDirection: backward, times: 2}'));
       });
 
       test('omits fields when null', () {

@@ -90,7 +90,8 @@ class Score {
           const DeepCollectionEquality().equals(parts, other.parts) &&
           pageLayout == other.pageLayout &&
           defaultSystemLayout == other.defaultSystemLayout &&
-          const DeepCollectionEquality().equals(defaultStaffLayouts, other.defaultStaffLayouts) &&
+          const DeepCollectionEquality()
+              .equals(defaultStaffLayouts, other.defaultStaffLayouts) &&
           scaling == other.scaling &&
           appearance == other.appearance &&
           title == other.title &&
@@ -182,6 +183,7 @@ class ScoreBuilder {
 
   /// Line number in the XML for error reporting context.
   final int? _line;
+
   /// Additional context for error reporting.
   final Map<String, dynamic>? _context;
 

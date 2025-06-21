@@ -15,7 +15,9 @@ void main() {
         expect(credit.creditWords, equals(['John Doe']));
       });
 
-      test('properties can be null (except creditWords which defaults to empty)', () {
+      test(
+          'properties can be null (except creditWords which defaults to empty)',
+          () {
         const credit = Credit();
         expect(credit.page, isNull);
         expect(credit.creditType, isNull);
@@ -29,12 +31,24 @@ void main() {
     });
 
     group('equality and hashCode', () {
-      const c1 = Credit(page: 1, creditType: 'title', creditWords: ['My Score']);
-      const c2 = Credit(page: 1, creditType: 'title', creditWords: ['My Score']);
-      const c3 = Credit(page: 2, creditType: 'title', creditWords: ['My Score']); // diff page
-      const c4 = Credit(page: 1, creditType: 'subtitle', creditWords: ['My Score']); // diff type
-      const c5 = Credit(page: 1, creditType: 'title', creditWords: ['Another Score']); // diff words
-      const c6 = Credit(page: 1, creditType: 'title', creditWords: ['My', 'Score']); // diff words list structure
+      const c1 =
+          Credit(page: 1, creditType: 'title', creditWords: ['My Score']);
+      const c2 =
+          Credit(page: 1, creditType: 'title', creditWords: ['My Score']);
+      const c3 = Credit(
+          page: 2, creditType: 'title', creditWords: ['My Score']); // diff page
+      const c4 = Credit(
+          page: 1,
+          creditType: 'subtitle',
+          creditWords: ['My Score']); // diff type
+      const c5 = Credit(
+          page: 1,
+          creditType: 'title',
+          creditWords: ['Another Score']); // diff words
+      const c6 = Credit(
+          page: 1,
+          creditType: 'title',
+          creditWords: ['My', 'Score']); // diff words list structure
       const c7 = Credit(); // all optional null, words empty
 
       test('instances with same values are equal and have same hashCode', () {
@@ -59,13 +73,14 @@ void main() {
 
       test('instances with different creditWords are not equal', () {
         expect(c1, isNot(equals(c5)));
-        expect(c1, isNot(equals(c6))); // c1 has ['My Score'], c6 has ['My', 'Score']
+        expect(c1,
+            isNot(equals(c6))); // c1 has ['My Score'], c6 has ['My', 'Score']
       });
 
       test('instance with values vs all default/empty is not equal', () {
         expect(c1, isNot(equals(c7)));
       });
-       test('instances with different numbers of creditWords are not equal', () {
+      test('instances with different numbers of creditWords are not equal', () {
         const credit_multi_words = Credit(creditWords: ['Word1', 'Word2']);
         const credit_single_word = Credit(creditWords: ['Word1']);
         expect(credit_multi_words, isNot(equals(credit_single_word)));
@@ -74,18 +89,27 @@ void main() {
 
     group('toString representation', () {
       test('includes all fields when present', () {
-        const credit = Credit(page: 1, creditType: 'arranger', creditWords: ['Arr. By Me']);
+        const credit = Credit(
+            page: 1, creditType: 'arranger', creditWords: ['Arr. By Me']);
         // Based on Credit model's toString: Credit{page: 1, creditType: "arranger", creditWords: "Arr. By Me"}
-        expect(credit.toString(), equals('Credit{page: 1, creditType: "arranger", creditWords: "Arr. By Me"}'));
+        expect(
+            credit.toString(),
+            equals(
+                'Credit{page: 1, creditType: "arranger", creditWords: "Arr. By Me"}'));
       });
 
       test('handles multiple creditWords', () {
-        const credit = Credit(creditType: 'title', creditWords: ['Main Title', 'Subtitle']);
-        expect(credit.toString(), equals('Credit{creditType: "title", creditWords: "Main Title", "Subtitle"}'));
+        const credit = Credit(
+            creditType: 'title', creditWords: ['Main Title', 'Subtitle']);
+        expect(
+            credit.toString(),
+            equals(
+                'Credit{creditType: "title", creditWords: "Main Title", "Subtitle"}'));
       });
 
       test('omits fields when null/empty', () {
-        const credit = Credit(creditType: 'dedication'); // page null, creditWords empty
+        const credit =
+            Credit(creditType: 'dedication'); // page null, creditWords empty
         expect(credit.toString(), equals('Credit{creditType: "dedication"}'));
       });
 

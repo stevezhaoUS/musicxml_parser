@@ -112,7 +112,6 @@ class KeySignature {
     );
   }
 
-
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

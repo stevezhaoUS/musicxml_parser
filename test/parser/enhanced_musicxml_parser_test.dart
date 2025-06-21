@@ -309,13 +309,16 @@ void main() {
       warningSystem.clearWarnings(); // Ensure clean state
       parser.parse(minimalXml);
 
-      final warnings = warningSystem.getWarningsByCategory(WarningCategories.duration);
+      final warnings =
+          warningSystem.getWarningsByCategory(WarningCategories.duration);
       // Using print for manual inspection in test logs for this debug step
       // In a real scenario, you might log this or use more sophisticated debugging.
       for (var warning in warnings) {
         print('Debug warning: ${warning.message} Context: ${warning.context}');
       }
-      expect(warnings, hasLength(1), reason: "Expected exactly one 'Note without duration' warning for the minimal case.");
+      expect(warnings, hasLength(1),
+          reason:
+              "Expected exactly one 'Note without duration' warning for the minimal case.");
     });
 
     test('parses rest note correctly', () {

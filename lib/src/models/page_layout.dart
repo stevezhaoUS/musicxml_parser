@@ -46,7 +46,8 @@ class PageMargins {
 class PageLayout {
   final double? pageHeight;
   final double? pageWidth;
-  final List<PageMargins> pageMargins; // Can have up to 2 (odd/even) or one for "both"
+  final List<PageMargins>
+      pageMargins; // Can have up to 2 (odd/even) or one for "both"
 
   const PageLayout({
     this.pageHeight,
@@ -54,7 +55,7 @@ class PageLayout {
     this.pageMargins = const [],
   });
 
-   @override
+  @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is PageLayout &&

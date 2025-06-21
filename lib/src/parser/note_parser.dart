@@ -8,7 +8,6 @@ import 'package:musicxml_parser/src/models/slur.dart'; // Import for Slur
 import 'package:musicxml_parser/src/models/tie.dart'; // Import for Tie
 import 'package:musicxml_parser/src/models/time_modification.dart';
 import 'package:musicxml_parser/src/parser/xml_helper.dart';
-import 'package:musicxml_parser/src/utils/validation_utils.dart';
 import 'package:musicxml_parser/src/utils/warning_system.dart';
 import 'package:xml/xml.dart';
 
@@ -359,11 +358,11 @@ class NoteParser {
   Pitch _parsePitch(XmlElement element, String partId, String measureNumber) {
     try {
       return Pitch.fromXmlElement(element, partId, measureNumber);
-    } on MusicXmlStructureException catch (e) {
+    } on MusicXmlStructureException {
       // Re-throw with more specific context if needed, or let it propagate
       // For now, just rethrowing as the factory method should provide good context.
       rethrow;
-    } on MusicXmlValidationException catch (e) {
+    } on MusicXmlValidationException {
       // Similarly, re-throw or handle/log
       rethrow;
     }

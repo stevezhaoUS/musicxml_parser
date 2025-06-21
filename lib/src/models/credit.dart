@@ -42,7 +42,8 @@ class Credit {
     final parts = <String>[];
     if (page != null) parts.add('page: $page');
     if (creditType != null) parts.add('creditType: "$creditType"');
-    if (creditWords.isNotEmpty) parts.add('creditWords: ${creditWords.map((w) => '"$w"').join(', ')}');
+    if (creditWords.isNotEmpty)
+      parts.add('creditWords: ${creditWords.map((w) => '"$w"').join(', ')}');
 
     return 'Credit{${parts.join(', ')}}';
   }

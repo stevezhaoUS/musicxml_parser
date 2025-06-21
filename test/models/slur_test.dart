@@ -29,9 +29,12 @@ void main() {
     group('equality and hashCode', () {
       const slur1 = Slur(type: 'start', number: 1, placement: 'above');
       const slur2 = Slur(type: 'start', number: 1, placement: 'above');
-      const slur3 = Slur(type: 'stop', number: 1, placement: 'above'); // Different type
-      const slur4 = Slur(type: 'start', number: 2, placement: 'above'); // Different number
-      const slur5 = Slur(type: 'start', number: 1, placement: 'below'); // Different placement
+      const slur3 =
+          Slur(type: 'stop', number: 1, placement: 'above'); // Different type
+      const slur4 = Slur(
+          type: 'start', number: 2, placement: 'above'); // Different number
+      const slur5 = Slur(
+          type: 'start', number: 1, placement: 'below'); // Different placement
       const slur6 = Slur(type: 'start', number: 1); // Null placement
 
       test('instances with same values are equal and have same hashCode', () {
@@ -54,7 +57,7 @@ void main() {
       test('instances with null vs non-null placement are not equal', () {
         expect(slur1, isNot(equals(slur6)));
       });
-       test('instances with different null placements are equal', () {
+      test('instances with different null placements are equal', () {
         const s1 = Slur(type: 'start', number: 1);
         const s2 = Slur(type: 'start', number: 1);
         expect(s1, equals(s2));
@@ -65,14 +68,15 @@ void main() {
     group('toString representation', () {
       test('includes all fields when present', () {
         const slur = Slur(type: 'start', number: 1, placement: 'above');
-        expect(slur.toString(), equals('Slur{type: start, number: 1, placement: above}'));
+        expect(slur.toString(),
+            equals('Slur{type: start, number: 1, placement: above}'));
       });
 
       test('omits placement when null', () {
         const slur = Slur(type: 'start', number: 2);
         expect(slur.toString(), equals('Slur{type: start, number: 2}'));
       });
-       test('handles default number correctly in toString', () {
+      test('handles default number correctly in toString', () {
         const slur = Slur(type: 'stop');
         expect(slur.toString(), equals('Slur{type: stop, number: 1}'));
       });

@@ -103,7 +103,11 @@ class Pitch {
         'Invalid octave: "$octaveText". Must be an integer between ${ValidationUtils.minOctave} and ${ValidationUtils.maxOctave}.',
         rule: 'pitch_octave_invalid',
         line: line,
-        context: {'part': partId, 'measure': measureNumber, 'parsedOctave': octaveText},
+        context: {
+          'part': partId,
+          'measure': measureNumber,
+          'parsedOctave': octaveText
+        },
       );
     }
 
@@ -112,7 +116,11 @@ class Pitch {
         'Invalid alter value: "$alterText". If present, must be an integer between -2 and 2.',
         rule: 'pitch_alter_invalid',
         line: line,
-        context: {'part': partId, 'measure': measureNumber, 'parsedAlter': alterText},
+        context: {
+          'part': partId,
+          'measure': measureNumber,
+          'parsedAlter': alterText
+        },
       );
     }
 
