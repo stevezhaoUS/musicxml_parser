@@ -58,30 +58,33 @@ class NoteParser {
     // Parse duration
     final durationElement = element.findElements('duration').firstOrNull;
     Duration? duration;
+    int? effectiveParentDivisions = parentDivisions;
+
     if (durationElement != null) {
       final durationValue = XmlHelper.getElementTextAsInt(durationElement);
 
+      // Only validate/use parentDivisions if a duration value is present
       if (durationValue != null && durationValue >= 0) {
-        if (parentDivisions == null || parentDivisions <= 0) {
+        if (effectiveParentDivisions == null || effectiveParentDivisions <= 0) {
           warningSystem.addWarning(
-            'No valid divisions specified for note. Using default value 1.',
+            'No valid divisions specified for note with duration. Using default divisions value 1.',
             category: 'note_divisions',
             context: {
               'part': partId,
               'measure': measureNumber,
               'line': line,
+              'original_divisions': parentDivisions
             },
           );
-          parentDivisions = 1;
+          effectiveParentDivisions = 1;
         }
-
         duration = Duration(
           value: durationValue,
-          divisions: parentDivisions,
+          divisions: effectiveParentDivisions,
         );
       } else {
         warningSystem.addWarning(
-          'Invalid duration value: $durationValue',
+          'Invalid duration value: $durationValue for note.',
           category: 'note_duration',
           context: {
             'part': partId,
@@ -89,12 +92,17 @@ class NoteParser {
             'line': line,
           },
         );
+        // Consider if returning null is the best strategy, or if a Note
+        // without a valid duration (but other properties) is permissible.
+        // For now, if duration is present but invalid, skip the note.
         return null;
       }
     } else {
-      // Duration is optional but recommended for most notes
+      // Duration element is not present. This is a valid state for some MusicXML notes (e.g. grace notes, cue notes)
+      // or if duration is implied. The Note model allows null duration.
+      // The existing warning for "Note without duration" is kept as it might be informative.
       warningSystem.addWarning(
-        'Note without duration',
+        'Note without duration element present.', // Clarified message
         category: WarningCategories.duration,
         context: {
           'part': partId,
@@ -102,6 +110,7 @@ class NoteParser {
           'line': line,
         },
       );
+      // `duration` remains null, which is acceptable for the Note object.
     }
 
     // Parse note type
