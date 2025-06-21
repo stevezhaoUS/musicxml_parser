@@ -6,11 +6,14 @@ import 'package:musicxml_parser/src/models/ending.dart'; // Import for Ending
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/measure.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
+import 'package:musicxml_parser/src/models/direction.dart';
 import 'package:musicxml_parser/src/models/direction_words.dart';
+import 'package:musicxml_parser/src/models/direction_type_elements.dart';
 import 'package:musicxml_parser/src/models/print_object.dart'; // New import
 import 'package:musicxml_parser/src/models/page_layout.dart'; // For PageLayout in PrintObject
 import 'package:musicxml_parser/src/models/system_layout.dart'; // For SystemLayout in PrintObject
 import 'package:musicxml_parser/src/models/staff_layout.dart'; // For StaffLayout in PrintObject
+import 'package:musicxml_parser/src/models/measure_layout_info.dart'; // For MeasureLayout and MeasureNumbering
 import 'package:musicxml_parser/src/parser/attributes_parser.dart';
 import 'package:musicxml_parser/src/parser/page_layout_parser.dart'; // New import
 import 'package:musicxml_parser/src/parser/system_layout_parser.dart'; // New import
@@ -160,10 +163,9 @@ class MeasureParser {
           measureBuilder.setEnding(_parseEnding(child, partId, number));
           break;
         case 'direction':
-          // Assuming _parseDirection returns a list and builder has addAll or set method
-          final directions = _parseDirection(child, partId, number);
-          for (final dir in directions) {
-            measureBuilder.addWordsDirection(dir);
+          final direction = _parseDirection(child, partId, number);
+          if (direction != null) {
+            measureBuilder.addDirection(direction);
           }
           break;
         case 'print':
@@ -274,29 +276,223 @@ class MeasureParser {
     }
   }
 
-  /// Parses a <direction> element for <words>.
-  List<WordsDirection> _parseDirection(
+  /// Parses a <direction> element.
+  Direction? _parseDirection(
       XmlElement directionElement, String partId, String measureNumber) {
-    final wordsDirections = <WordsDirection>[];
-    for (final directionTypeElement
+    final directionTypeElements = <DirectionTypeElement>[];
+    Offset? parsedOffset;
+    Staff? parsedStaff;
+    Sound? parsedSound;
+
+    // Parse <direction-type> elements first
+    for (final directionTypeElementXml
         in directionElement.findElements('direction-type')) {
-      for (final wordsElement in directionTypeElement.findElements('words')) {
-        final text = wordsElement.innerText.trim();
-        if (text.isNotEmpty) {
-          wordsDirections.add(WordsDirection(text: text));
-        } else {
-          warningSystem.addWarning(
-            'Empty <words> element found in direction.',
-            category: WarningCategories.structure,
-            line: XmlHelper.getLineNumber(wordsElement),
-            context: {'part': partId, 'measure': measureNumber},
-          );
+      for (final childElement in directionTypeElementXml.childElements) {
+        switch (childElement.name.local) {
+          case 'words':
+            final text = childElement.innerText.trim();
+            if (text.isNotEmpty) {
+              directionTypeElements.add(WordsDirection(
+                text: text,
+                color: XmlHelper.getAttribute(childElement, 'color'),
+                defaultX:
+                    XmlHelper.getAttributeAsDouble(childElement, 'default-x'),
+                defaultY:
+                    XmlHelper.getAttributeAsDouble(childElement, 'default-y'),
+                dir: XmlHelper.getAttribute(childElement, 'dir'),
+                enclosure: XmlHelper.getAttribute(childElement, 'enclosure'),
+                fontFamily:
+                    XmlHelper.getAttribute(childElement, 'font-family'),
+                fontSize: XmlHelper.getAttribute(childElement, 'font-size'),
+                fontStyle: XmlHelper.getAttribute(childElement, 'font-style'),
+                fontWeight:
+                    XmlHelper.getAttribute(childElement, 'font-weight'),
+                halign: XmlHelper.getAttribute(childElement, 'halign'),
+                id: XmlHelper.getAttribute(childElement, 'id'),
+                justify: XmlHelper.getAttribute(childElement, 'justify'),
+                letterSpacing:
+                    XmlHelper.getAttribute(childElement, 'letter-spacing'),
+                lineHeight:
+                    XmlHelper.getAttribute(childElement, 'line-height'),
+                lineThrough:
+                    XmlHelper.getAttributeAsInt(childElement, 'line-through'),
+                overline: XmlHelper.getAttributeAsInt(childElement, 'overline'),
+                relativeX:
+                    XmlHelper.getAttributeAsDouble(childElement, 'relative-x'),
+                relativeY:
+                    XmlHelper.getAttributeAsDouble(childElement, 'relative-y'),
+                rotation:
+                    XmlHelper.getAttributeAsDouble(childElement, 'rotation'),
+                underline:
+                    XmlHelper.getAttributeAsInt(childElement, 'underline'),
+                valign: XmlHelper.getAttribute(childElement, 'valign'),
+                xmlLang: XmlHelper.getAttribute(childElement, 'xml:lang'),
+                xmlSpace: XmlHelper.getAttribute(childElement, 'xml:space'),
+              ));
+            } else {
+              warningSystem.addWarning(
+                'Empty <words> element found in direction.',
+                category: WarningCategories.structure,
+                line: XmlHelper.getLineNumber(childElement),
+                context: {'part': partId, 'measure': measureNumber},
+              );
+            }
+            break;
+          case 'segno':
+            directionTypeElements.add(Segno(
+              color: XmlHelper.getAttribute(childElement, 'color'),
+              defaultX:
+                  XmlHelper.getAttributeAsDouble(childElement, 'default-x'),
+              defaultY:
+                  XmlHelper.getAttributeAsDouble(childElement, 'default-y'),
+              fontFamily: XmlHelper.getAttribute(childElement, 'font-family'),
+              fontSize: XmlHelper.getAttribute(childElement, 'font-size'),
+              fontStyle: XmlHelper.getAttribute(childElement, 'font-style'),
+              fontWeight: XmlHelper.getAttribute(childElement, 'font-weight'),
+              halign: XmlHelper.getAttribute(childElement, 'halign'),
+              id: XmlHelper.getAttribute(childElement, 'id'),
+              relativeX:
+                  XmlHelper.getAttributeAsDouble(childElement, 'relative-x'),
+              relativeY:
+                  XmlHelper.getAttributeAsDouble(childElement, 'relative-y'),
+              smufl: XmlHelper.getAttribute(childElement, 'smufl'),
+              valign: XmlHelper.getAttribute(childElement, 'valign'),
+            ));
+            break;
+          case 'coda':
+            directionTypeElements.add(Coda(
+              color: XmlHelper.getAttribute(childElement, 'color'),
+              defaultX:
+                  XmlHelper.getAttributeAsDouble(childElement, 'default-x'),
+              defaultY:
+                  XmlHelper.getAttributeAsDouble(childElement, 'default-y'),
+              fontFamily: XmlHelper.getAttribute(childElement, 'font-family'),
+              fontSize: XmlHelper.getAttribute(childElement, 'font-size'),
+              fontStyle: XmlHelper.getAttribute(childElement, 'font-style'),
+              fontWeight: XmlHelper.getAttribute(childElement, 'font-weight'),
+              halign: XmlHelper.getAttribute(childElement, 'halign'),
+              id: XmlHelper.getAttribute(childElement, 'id'),
+              relativeX:
+                  XmlHelper.getAttributeAsDouble(childElement, 'relative-x'),
+              relativeY:
+                  XmlHelper.getAttributeAsDouble(childElement, 'relative-y'),
+              smufl: XmlHelper.getAttribute(childElement, 'smufl'),
+              valign: XmlHelper.getAttribute(childElement, 'valign'),
+            ));
+            break;
+          case 'dynamics':
+            final dynamicValues = <String>[];
+            for (final dynamicChild in childElement.childElements) {
+              if (dynamicChild.name.local == 'other-dynamics') {
+                final text = dynamicChild.innerText.trim();
+                if (text.isNotEmpty) {
+                  dynamicValues.add(text);
+                }
+              } else {
+                dynamicValues.add(dynamicChild.name.local);
+              }
+            }
+            directionTypeElements.add(Dynamics(
+              values: dynamicValues,
+              color: XmlHelper.getAttribute(childElement, 'color'),
+              defaultX:
+                  XmlHelper.getAttributeAsDouble(childElement, 'default-x'),
+              defaultY:
+                  XmlHelper.getAttributeAsDouble(childElement, 'default-y'),
+              enclosure: XmlHelper.getAttribute(childElement, 'enclosure'),
+              fontFamily:
+                  XmlHelper.getAttribute(childElement, 'font-family'),
+              fontSize: XmlHelper.getAttribute(childElement, 'font-size'),
+              fontStyle: XmlHelper.getAttribute(childElement, 'font-style'),
+              fontWeight:
+                  XmlHelper.getAttribute(childElement, 'font-weight'),
+              halign: XmlHelper.getAttribute(childElement, 'halign'),
+              id: XmlHelper.getAttribute(childElement, 'id'),
+              lineThrough:
+                  XmlHelper.getAttributeAsInt(childElement, 'line-through'),
+              overline: XmlHelper.getAttributeAsInt(childElement, 'overline'),
+              placement: XmlHelper.getAttribute(childElement, 'placement'),
+              relativeX:
+                  XmlHelper.getAttributeAsDouble(childElement, 'relative-x'),
+              relativeY:
+                  XmlHelper.getAttributeAsDouble(childElement, 'relative-y'),
+              underline:
+                  XmlHelper.getAttributeAsInt(childElement, 'underline'),
+              valign: XmlHelper.getAttribute(childElement, 'valign'),
+            ));
+            break;
         }
       }
-      // TODO: Handle other direction-type children like <segno>, <coda>, <dynamics> etc. if needed in the future
     }
-    // TODO: Handle other <direction> children like <offset>, <staff>, <sound> if needed
-    return wordsDirections;
+
+    // Parse other direct children of <direction>
+    final offsetElement = directionElement.findElements('offset').firstOrNull;
+    if (offsetElement != null) {
+      final value = XmlHelper.getElementTextAsDouble(offsetElement);
+      if (value != null) {
+        parsedOffset = Offset(
+          value: value,
+          sound: XmlHelper.getAttribute(offsetElement, 'sound') == 'yes',
+        );
+      }
+    }
+
+    final staffElement = directionElement.findElements('staff').firstOrNull;
+    if (staffElement != null) {
+      final value = XmlHelper.getElementTextAsInt(staffElement);
+      if (value != null) {
+        parsedStaff = Staff(value: value);
+      }
+    }
+
+    final soundElement = directionElement.findElements('sound').firstOrNull;
+    if (soundElement != null) {
+      // Basic sound parsing, can be expanded
+      parsedSound = Sound(
+        tempo: XmlHelper.getAttributeAsDouble(soundElement, 'tempo'),
+        dynamics: XmlHelper.getAttributeAsDouble(soundElement, 'dynamics'),
+        dacapo: XmlHelper.getAttribute(soundElement, 'dacapo') == 'yes',
+        segno: XmlHelper.getAttribute(soundElement, 'segno'),
+        coda: XmlHelper.getAttribute(soundElement, 'coda'),
+        fine: XmlHelper.getAttribute(soundElement, 'fine'),
+        timeOnly: XmlHelper.getAttribute(soundElement, 'time-only'),
+        pizzicato: XmlHelper.getAttribute(soundElement, 'pizzicato') == 'yes',
+        pan: XmlHelper.getAttributeAsDouble(soundElement, 'pan'),
+        elevation: XmlHelper.getAttributeAsDouble(soundElement, 'elevation'),
+        // TODO: Parse <offset> child of <sound> if needed
+      );
+    }
+
+    if (directionTypeElements.isEmpty &&
+        parsedOffset == null &&
+        parsedStaff == null &&
+        parsedSound == null) {
+      // If no meaningful content was found within <direction>, return null
+      // or log a warning, depending on strictness.
+      // For now, let's return null if there are no direction types,
+      // as <direction> must contain at least one <direction-type>.
+      // The other elements (<offset>, <staff>, <sound>) are optional.
+      if (directionTypeElements.isEmpty) {
+        warningSystem.addWarning(
+          'Direction element without any direction-type children.',
+          category: WarningCategories.structure,
+          line: XmlHelper.getLineNumber(directionElement),
+          context: {'part': partId, 'measure': measureNumber},
+        );
+        return null;
+      }
+    }
+
+    return Direction(
+      directionTypes: directionTypeElements,
+      offset: parsedOffset,
+      staff: parsedStaff,
+      sound: parsedSound,
+      placement: XmlHelper.getAttribute(directionElement, 'placement'),
+      directive: XmlHelper.getAttribute(directionElement, 'directive'),
+      system: XmlHelper.getAttribute(directionElement, 'system'),
+      id: XmlHelper.getAttribute(directionElement, 'id'),
+    );
   }
 
   /// Parses a <print> element.
@@ -330,7 +526,56 @@ class MeasureParser {
       localStaffLayouts.add(StaffLayoutParser().parse(staffLayoutElement));
     }
 
-    // TODO: Parse <measure-layout> and <measure-numbering> if needed in the future
+    MeasureLayout? measureLayout;
+    final measureLayoutElement =
+        printElement.findElements('measure-layout').firstOrNull;
+    if (measureLayoutElement != null) {
+      final measureDistanceElement =
+          measureLayoutElement.findElements('measure-distance').firstOrNull;
+      if (measureDistanceElement != null) {
+        measureLayout = MeasureLayout(
+            measureDistance:
+                XmlHelper.getElementTextAsDouble(measureDistanceElement));
+      } else {
+        measureLayout = const MeasureLayout(); // Element present but empty
+      }
+    }
+
+    MeasureNumbering? measureNumbering;
+    final measureNumberingElement =
+        printElement.findElements('measure-numbering').firstOrNull;
+    if (measureNumberingElement != null) {
+      measureNumbering = MeasureNumbering(
+        value: MeasureNumbering.parseValue(
+            measureNumberingElement.innerText.trim()),
+        color: XmlHelper.getAttribute(measureNumberingElement, 'color'),
+        defaultX:
+            XmlHelper.getAttributeAsDouble(measureNumberingElement, 'default-x'),
+        defaultY:
+            XmlHelper.getAttributeAsDouble(measureNumberingElement, 'default-y'),
+        fontFamily:
+            XmlHelper.getAttribute(measureNumberingElement, 'font-family'),
+        fontSize: XmlHelper.getAttribute(measureNumberingElement, 'font-size'),
+        fontStyle:
+            XmlHelper.getAttribute(measureNumberingElement, 'font-style'),
+        fontWeight:
+            XmlHelper.getAttribute(measureNumberingElement, 'font-weight'),
+        halign: XmlHelper.getAttribute(measureNumberingElement, 'halign'),
+        multipleRestAlways:
+            XmlHelper.getAttribute(measureNumberingElement, 'multiple-rest-always') ==
+                'yes',
+        multipleRestRange:
+            XmlHelper.getAttribute(measureNumberingElement, 'multiple-rest-range') ==
+                'yes',
+        relativeX: XmlHelper.getAttributeAsDouble(
+            measureNumberingElement, 'relative-x'),
+        relativeY: XmlHelper.getAttributeAsDouble(
+            measureNumberingElement, 'relative-y'),
+        staff: XmlHelper.getAttributeAsInt(measureNumberingElement, 'staff'),
+        system: XmlHelper.getAttribute(measureNumberingElement, 'system'),
+        valign: XmlHelper.getAttribute(measureNumberingElement, 'valign'),
+      );
+    }
 
     return PrintObject(
       newPage: newPage,
@@ -340,6 +585,8 @@ class MeasureParser {
       localPageLayout: localPageLayout,
       localSystemLayout: localSystemLayout,
       localStaffLayouts: localStaffLayouts,
+      measureLayout: measureLayout,
+      measureNumbering: measureNumbering,
     );
   }
 }
