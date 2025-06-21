@@ -39,7 +39,7 @@ This document tracks the current implementation status of MusicXML features in t
 | `<duration>` | ✅ | Duration in divisions |
 | `<type>` | ✅ | Note types (whole, half, quarter, etc.) |
 | `<dot>` | ✅ | Full support for single and multiple dots. |
-| `<chord>` | 🚧 | Basic chord parsing |
+| `<chord>` | 🚧 | Parses the presence of the `<chord/>` element, setting an `isChordElementPresent` flag on the `Note` object. |
 | `<voice>` | ✅ | Voice assignment |
 | Grace notes | ❌ | Planned for v0.4.0 |
 | Cue notes | ❌ | Planned for v0.4.0 |

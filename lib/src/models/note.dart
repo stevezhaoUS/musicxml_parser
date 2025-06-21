@@ -42,6 +42,9 @@ class Note {
   /// A list of ties associated with this note.
   final List<Tie>? ties;
 
+  /// Indicates if the MusicXML <chord/> element was present for this note.
+  final bool isChordElementPresent;
+
   /// Creates a new [Note] instance.
   const Note({
     this.pitch,
@@ -54,6 +57,7 @@ class Note {
     this.slurs,
     this.articulations,
     this.ties,
+    this.isChordElementPresent = false,
   }) : assert(isRest ? pitch == null : pitch != null,
             'A rest must not have a pitch, and a note must have a pitch');
 
@@ -72,6 +76,7 @@ class Note {
     List<Slur>? slurs,
     List<Articulation>? articulations,
     List<Tie>? ties,
+    bool isChordElementPresent = false,
     int? line,
     Map<String, dynamic>? context,
   }) {
@@ -155,6 +160,7 @@ class Note {
       slurs: slurs,
       articulations: articulations,
       ties: ties,
+      isChordElementPresent: isChordElementPresent,
     );
   }
 
@@ -172,7 +178,8 @@ class Note {
           timeModification == other.timeModification &&
           const DeepCollectionEquality().equals(slurs, other.slurs) &&
           const DeepCollectionEquality().equals(articulations, other.articulations) &&
-          const DeepCollectionEquality().equals(ties, other.ties);
+          const DeepCollectionEquality().equals(ties, other.ties) &&
+          isChordElementPresent == other.isChordElementPresent;
 
   @override
   int get hashCode =>
@@ -185,7 +192,8 @@ class Note {
       (timeModification?.hashCode ?? 0) ^
       (slurs != null ? const DeepCollectionEquality().hash(slurs!) : 0) ^
       (articulations != null ? const DeepCollectionEquality().hash(articulations!) : 0) ^
-      (ties != null ? const DeepCollectionEquality().hash(ties!) : 0);
+      (ties != null ? const DeepCollectionEquality().hash(ties!) : 0) ^
+      isChordElementPresent.hashCode;
 
   @override
   String toString() {
@@ -209,6 +217,9 @@ class Note {
     }
     if (ties != null && ties!.isNotEmpty) {
       sb.write(', ties: $ties');
+    }
+    if (isChordElementPresent) {
+      sb.write(', isChordNote: true');
     }
     sb.write('}');
     return sb.toString();
