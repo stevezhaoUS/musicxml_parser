@@ -5,6 +5,7 @@ import 'package:musicxml_parser/src/models/articulation.dart'; // Import for Art
 import 'package:musicxml_parser/src/models/duration.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
 import 'package:musicxml_parser/src/models/slur.dart'; // Import for Slur
+import 'package:musicxml_parser/src/models/tie.dart'; // Import for Tie
 import 'package:musicxml_parser/src/models/time_modification.dart';
 import 'package:musicxml_parser/src/utils/validation_utils.dart';
 
@@ -38,6 +39,9 @@ class Note {
   /// A list of articulations associated with this note.
   final List<Articulation>? articulations;
 
+  /// A list of ties associated with this note.
+  final List<Tie>? ties;
+
   /// Creates a new [Note] instance.
   const Note({
     this.pitch,
@@ -49,6 +53,7 @@ class Note {
     this.timeModification,
     this.slurs,
     this.articulations,
+    this.ties,
   }) : assert(isRest ? pitch == null : pitch != null,
             'A rest must not have a pitch, and a note must have a pitch');
 
@@ -66,6 +71,7 @@ class Note {
     TimeModification? timeModification,
     List<Slur>? slurs,
     List<Articulation>? articulations,
+    List<Tie>? ties,
     int? line,
     Map<String, dynamic>? context,
   }) {
@@ -148,6 +154,7 @@ class Note {
       timeModification: timeModification,
       slurs: slurs,
       articulations: articulations,
+      ties: ties,
     );
   }
 
@@ -164,7 +171,8 @@ class Note {
           dots == other.dots &&
           timeModification == other.timeModification &&
           const DeepCollectionEquality().equals(slurs, other.slurs) &&
-          const DeepCollectionEquality().equals(articulations, other.articulations);
+          const DeepCollectionEquality().equals(articulations, other.articulations) &&
+          const DeepCollectionEquality().equals(ties, other.ties);
 
   @override
   int get hashCode =>
@@ -176,7 +184,8 @@ class Note {
       (dots?.hashCode ?? 0) ^
       (timeModification?.hashCode ?? 0) ^
       (slurs != null ? const DeepCollectionEquality().hash(slurs!) : 0) ^
-      (articulations != null ? const DeepCollectionEquality().hash(articulations!) : 0);
+      (articulations != null ? const DeepCollectionEquality().hash(articulations!) : 0) ^
+      (ties != null ? const DeepCollectionEquality().hash(ties!) : 0);
 
   @override
   String toString() {
@@ -197,6 +206,9 @@ class Note {
     }
     if (articulations != null && articulations!.isNotEmpty) {
       sb.write(', articulations: $articulations');
+    }
+    if (ties != null && ties!.isNotEmpty) {
+      sb.write(', ties: $ties');
     }
     sb.write('}');
     return sb.toString();

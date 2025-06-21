@@ -67,7 +67,7 @@ This document tracks the current implementation status of MusicXML features in t
 ### Articulations and Dynamics
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<tie>` | ✅ | Start and stop ties |
+| `<tied>` | ✅ | Parses `type` ('start', 'stop', 'continue') and optional `placement` attributes from `<tied>` elements within `<notations>`. |
 | `<slur>` | 🚧 | Parses `type`, `number`, and `placement` attributes from `<slur>` elements within `<notations>`. |
 | `<dynamics>` | ❌ | Planned for v0.4.0 |
 | `<articulations>` | 🚧 | Parses common articulation types (e.g., accent, staccato, tenuto) and their `placement` attribute from children of an `<articulations>` container within `<notations>`. |
