@@ -1,11 +1,15 @@
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 // Removed duplicate import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
+import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
+// Removed duplicate import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
+import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/models/articulation.dart'; // Import for Articulation
 import 'package:musicxml_parser/src/models/duration.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
 import 'package:musicxml_parser/src/models/slur.dart'; // Import for Slur
+import 'package:musicxml_parser/src/models/tie.dart'; // Import for Tie
 import 'package:musicxml_parser/src/models/time_modification.dart';
 import 'package:musicxml_parser/src/parser/xml_helper.dart';
 import 'package:musicxml_parser/src/utils/validation_utils.dart';
@@ -198,15 +202,14 @@ class NoteParser {
       }
     }
 
-    // Parse notations for slurs and articulations
+    // Parse notations for slurs, articulations, and ties
     List<Slur>? slursList;
-    List<Articulation>? articulationsList; // Declare articulationsList here
+    List<Articulation>? articulationsList;
+    List<Tie>? tiesList; // New list for ties
     final notationsElement = element.findElements('notations').firstOrNull;
     if (notationsElement != null) {
-      List<Slur> foundSlurs = []; // Keep this local to slur processing within the loop if multiple <slurs> tags were possible
-                                 // but since we process all children of <notations> once, it's fine.
-      // For articulations, we need to find the <articulations> container first
-      // List<Articulation> foundArticulations = []; // This would be inside the 'if articulationsContainerElement != null'
+      List<Slur> foundSlurs = [];
+      List<Tie> foundTies = []; // Initialize list for found ties
 
       for (final notationChild in notationsElement.childElements) {
         if (notationChild.name.local == 'slur') {
@@ -243,11 +246,36 @@ class NoteParser {
             // Assuming only one <articulations> container per <notations>.
             articulationsList = currentGroupArticulations;
           }
+        } else if (notationChild.name.local == 'tied') {
+          final String? typeAttr = notationChild.getAttribute('type');
+          if (typeAttr == null || (typeAttr != 'start' && typeAttr != 'stop' && typeAttr != 'continue')) {
+             // MusicXML spec allows 'continue' for ties, but for simplicity, we might only fully support start/stop initially.
+             // For now, let's accept 'continue' but be aware it might need special handling later.
+             // If type is missing or not one of these, it's an issue.
+            warningSystem.addWarning(
+              '<tied> element has invalid or missing "type" attribute. Found: "$typeAttr". Skipping tie.',
+              category: WarningCategories.structure,
+              line: XmlHelper.getLineNumber(notationChild),
+              context: {'part': partId, 'measure': measureNumber, 'noteLine': line},
+            );
+            // Or throw:
+            // throw MusicXmlStructureException(
+            //   '<tied> element requires a "type" attribute of "start", "stop", or "continue". Found: "$typeAttr"',
+            //   parentElement: 'notations',
+            //   line: XmlHelper.getLineNumber(notationChild),
+            //   context: {'part': partId, 'measure': measureNumber, 'noteLine': line},
+            // );
+          } else {
+            final String? placementAttr = notationChild.getAttribute('placement');
+            foundTies.add(Tie(type: typeAttr, placement: placementAttr));
+          }
         }
-        // TODO: Parse other notations like <tied> here
       }
       if (foundSlurs.isNotEmpty) {
         slursList = foundSlurs;
+      }
+      if (foundTies.isNotEmpty) {
+        tiesList = foundTies;
       }
       // articulationsList is already populated if an <articulations> group was found and had items
     }
@@ -263,6 +291,7 @@ class NoteParser {
       timeModification: timeModification,
       slurs: slursList,
       articulations: articulationsList,
+      ties: tiesList,
     );
   }
 

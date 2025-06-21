@@ -3,6 +3,7 @@ import 'package:xml/xml.dart';
 
 import 'package:musicxml_parser/src/models/articulation.dart'; // Added for Articulation tests
 import 'package:musicxml_parser/src/models/slur.dart'; // Added for Slur tests
+import 'package:musicxml_parser/src/models/tie.dart'; // Added for Tie tests
 import 'package:musicxml_parser/src/models/time_modification.dart'; // Added for TimeModification tests
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
@@ -1204,6 +1205,162 @@ void main() {
         expect(result.articulations, hasLength(1));
         expect(result.articulations![0].type, equals('marcato'));
         expect(result.articulations![0].placement, equals('below'));
+      });
+    });
+
+    group('tie parsing (<tied> from <notations>)', () {
+      setUp(() {
+        // Ensure a fresh WarningSystem for each test if checking warnings.
+        warningSystem = WarningSystem();
+        noteParser = NoteParser(warningSystem: warningSystem);
+      });
+
+      test('parses note with no <notations> element for ties', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>480</duration>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.ties, isNull);
+      });
+
+      test('parses note with <notations> but no <tied> elements', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>D</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <slur type="start"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.ties, isNull);
+      });
+
+      test('parses note with a <tied type="start"/> element', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <tied type="start"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.ties, isNotNull);
+        expect(result.ties, hasLength(1));
+        expect(result.ties![0].type, equals('start'));
+        expect(result.ties![0].placement, isNull);
+      });
+
+      test('parses note with a <tied type="stop" placement="above"/> element', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>D</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <tied type="stop" placement="above"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.ties, isNotNull);
+        expect(result.ties, hasLength(1));
+        expect(result.ties![0].type, equals('stop'));
+        expect(result.ties![0].placement, equals('above'));
+      });
+
+      test('parses note with multiple <tied> elements', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>E</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <tied type="stop"/>
+              <tied type="start" placement="below"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.ties, isNotNull);
+        expect(result.ties, hasLength(2));
+        expect(result.ties![0].type, equals('stop'));
+        expect(result.ties![0].placement, isNull);
+        expect(result.ties![1].type, equals('start'));
+        expect(result.ties![1].placement, equals('below'));
+      });
+
+      test('parses note with <tied type="continue"/>', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>A</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <tied type="continue"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.ties, isNotNull);
+        expect(result.ties, hasLength(1));
+        expect(result.ties![0].type, equals('continue'));
+      });
+
+      test('<tied> missing type attribute logs warning and note has no ties', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>F</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <tied placement="above"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.ties, isNull); // Or isEmpty, depending on parser strictness with warnings
+
+        final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+        expect(warnings, hasLength(1));
+        expect(warnings.first.message, contains('<tied> element has invalid or missing "type" attribute'));
+      });
+
+      test('<tied> with invalid type attribute logs warning and note has no ties', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>G</step><octave>4</octave></pitch>
+            <duration>480</duration>
+            <notations>
+              <tied type="invalid-type"/>
+            </notations>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.ties, isNull); // Or isEmpty
+
+        final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+        expect(warnings, hasLength(1));
+        expect(warnings.first.message, contains('<tied> element has invalid or missing "type" attribute'));
+        expect(warnings.first.message, contains('Found: "invalid-type"'));
       });
     });
   });
