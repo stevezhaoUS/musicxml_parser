@@ -18,7 +18,7 @@ This document tracks the current implementation status of MusicXML features in t
 | `<score-partwise>` | ✅ | Primary format support |
 | `<score-timewise>` | 🚧 | Basic parsing, needs more testing |
 | Version detection (3.0/3.1/4.0) | ✅ | Automatic detection |
-| Compressed (.mxl) files | ❌ | Planned for v0.2.0 |
+| Compressed (.mxl) files | ⏳ | Planned for v0.2.0, High Priority |
 
 ### Parts and Measures
 | Feature | Status | Notes |
@@ -28,7 +28,7 @@ This document tracks the current implementation status of MusicXML features in t
 | `<part>` | ✅ | Full support |
 | `<measure>` | ✅ | Including measure numbers |
 | Multiple parts | ✅ | Full support |
-| Part groups | ⏳ | Planned for v0.3.0 |
+| Part groups | ⏳ | Planned for v0.4.0 (was v0.3.0) |
 
 ### Notes and Pitches
 | Feature | Status | Notes |
@@ -41,8 +41,8 @@ This document tracks the current implementation status of MusicXML features in t
 | `<dot>` | ✅ | Full support for single and multiple dots. |
 | `<chord>` | 🚧 | Parses the presence of the `<chord/>` element, setting an `isChordElementPresent` flag on the `Note` object. |
 | `<voice>` | ✅ | Voice assignment |
-| Grace notes | ❌ | Planned for v0.4.0 |
-| Cue notes | ❌ | Planned for v0.4.0 |
+| Grace notes | ⏳ | Planned for v0.3.0 (was v0.4.0), High Priority |
+| Cue notes | ❌ | Planned for v0.5.0 (was v0.4.0) |
 
 ### Time and Key Signatures
 | Feature | Status | Notes |
@@ -50,15 +50,15 @@ This document tracks the current implementation status of MusicXML features in t
 | `<time>` | ✅ | Simple time signatures (4/4, 3/4, etc.) |
 | `<key>` | ✅ | Fifths and mode |
 | `<divisions>` | ✅ | Full support |
-| Complex time signatures | ⏳ | Mixed meters planned |
-| Key signature changes | 🚧 | Basic support, needs refinement |
-| Time signature changes | 🚧 | Basic support, needs refinement |
+| Complex time signatures | ⏳ | Planned for v0.3.0, High Priority (was Mixed meters planned) |
+| Key signature changes | 🚧 | Basic support, needs refinement. High Priority to complete for v0.3.0. |
+| Time signature changes | 🚧 | Basic support, needs refinement. High Priority to complete for v0.3.0. |
 
 ### Clefs
 | Feature | Status | Notes |
 |---------|--------|-------|
 | `<clef>` | ✅ | Treble, bass, alto clefs |
-| Clef changes | 🚧 | Basic support |
+| Clef changes | 🚧 | Basic support. High Priority to complete for v0.3.0. |
 | Percussion clef | ❌ | Planned for v0.5.0 |
 | Tab clef | ❌ | Low priority |
 
@@ -68,19 +68,19 @@ This document tracks the current implementation status of MusicXML features in t
 | Feature | Status | Notes |
 |---------|--------|-------|
 | `<tied>` | ✅ | Parses `type` ('start', 'stop', 'continue') and optional `placement` attributes from `<tied>` elements within `<notations>`. |
-| `<slur>` | 🚧 | Parses `type`, `number`, and `placement` attributes from `<slur>` elements within `<notations>`. |
-| `<dynamics>` | ❌ | Planned for v0.4.0 |
-| `<articulations>` | 🚧 | Parses common articulation types (e.g., accent, staccato, tenuto) and their `placement` attribute from children of an `<articulations>` container within `<notations>`. |
-| `<ornaments>` | ❌ | Planned for v0.5.0 |
+| `<slur>` | 🚧 | Parses `type`, `number`, and `placement` attributes from `<slur>` elements within `<notations>`. Needs refinement for v0.3.0. |
+| `<dynamics>` | ⏳ | Planned for v0.3.0 (was v0.4.0), High Priority |
+| `<articulations>` | 🚧 | Parses common articulation types (e.g., accent, staccato, tenuto) and their `placement` attribute. Needs refinement and broader coverage for v0.3.0. |
+| `<ornaments>` | ⏳ | Planned for v0.4.0 (was v0.5.0), High Priority |
 
 ### Text and Lyrics
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<lyric>` | ❌ | Planned for future version |
-| Syllabic types | ❌ | Planned for future version |
-| Multiple verses | ❌ | Planned for future version |
-| `<words>` (directions) | ❌ | Planned for v0.4.0 |
-| `<rehearsal>` marks | ❌ | Planned for v0.4.0 |
+| `<lyric>` | ⏳ | Planned for v0.2.0, High Priority (was future version) |
+| Syllabic types | ⏳ | Planned for v0.2.0 (with Lyrics), High Priority |
+| Multiple verses | ⏳ | Planned for v0.2.0 (with Lyrics), High Priority |
+| `<words>` (directions) | ⏳ | Planned for v0.2.0 (was v0.4.0), e.g., Allegro, Andante. High Priority. |
+| `<rehearsal>` marks | ⏳ | Planned for v0.3.0 (was v0.4.0), High Priority |
 
 ### Rhythm and Timing
 | Feature | Status | Notes |
@@ -96,11 +96,11 @@ This document tracks the current implementation status of MusicXML features in t
 ### Repeats and Navigation
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<repeat>` | 🚧 | Parsed via `<barline>`: `direction` and `times` attributes of `<repeat>` child element are supported. |
+| `<repeat>` | 🚧 | Parsed via `<barline>`: `direction` and `times` attributes of `<repeat>` child element are supported. High Priority to complete for v0.3.0. |
 | `<ending>` | ✅ | Parses `number` (attribute or text), `type`, and `print-object` attributes. |
-| `<segno>` | ❌ | Planned for v0.4.0 |
-| `<coda>` | ❌ | Planned for v0.4.0 |
-| `<barline>` | 🚧 | Basic barline types. Now includes parsing of `location`, `<bar-style>` child, and `<repeat>` child (for direction and times). |
+| `<segno>` | ⏳ | Planned for v0.3.0 (was v0.4.0), High Priority |
+| `<coda>` | ⏳ | Planned for v0.3.0 (was v0.4.0), High Priority |
+| `<barline>` | 🚧 | Basic barline types. Now includes parsing of `location`, `<bar-style>` child, and `<repeat>` child (for direction and times). Needs refinement for v0.3.0. |
 
 ### Page Layout
 | Feature | Status | Notes |
@@ -142,14 +142,14 @@ This document tracks the current implementation status of MusicXML features in t
 | Feature | Status | Notes |
 |---------|--------|-------|
 | `<score-instrument>` | ✅ | Instrument name |
-| `<midi-instrument>` | 🚧 | Channel, program, volume |
-| `<midi-device>` | 🚧 | Basic device information |
-| `<midi-bank>` | ❌ | Planned for v0.4.0 |
+| `<midi-instrument>` | 🚧 | Channel, program, volume. Lower priority for full implementation. |
+| `<midi-device>` | 🚧 | Basic device information. Lower priority. |
+| `<midi-bank>` | ❌ | Planned for v0.5.0 (was v0.4.0) |
 
 ### Sound and Playback
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<sound>` | ❌ | Planned for v0.4.0 |
+| `<sound>` | ❌ | Planned for v0.5.0 (was v0.4.0) |
 | `<play>` | ❌ | Planned for v0.5.0 |
 | Virtual instruments | ❌ | Low priority |
 
@@ -158,8 +158,8 @@ This document tracks the current implementation status of MusicXML features in t
 ### Multi-staff Parts
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<staff>` | ❌ | Planned for v0.4.0 |
-| Piano grand staff | ❌ | Planned for v0.4.0 |
+| `<staff>` | ⏳ | Planned for v0.3.0 (was v0.4.0), High Priority (e.g. for Piano) |
+| Piano grand staff | ⏳ | Planned for v0.3.0 (with `<staff>`), High Priority |
 | Organ systems | ❌ | Planned for v0.5.0 |
 
 ### Percussion
@@ -189,28 +189,42 @@ This document tracks the current implementation status of MusicXML features in t
 
 ## Development Roadmap
 
-### v0.2.0 (Current)
+### v0.2.0 (Current Focus - High Priority Basic Features)
+- **Compressed file (.mxl) support (High Priority)**
+- **`<lyric>`, Syllabic types, Multiple verses (High Priority)**
+- **`<words>` (directions, e.g., Allegro, Andante) (High Priority)**
 - ✅ Basic tuplet support (parses `<time-modification>`)
-- Compressed file (.mxl) support
 - Enhanced error handling
 
-### v0.3.0
-- 🚧 Slurs (basic parsing) and 🚧 Articulations (basic parsing of common types)
-- ✅ Repeat structures (<barline> repeats, <ending> elements)
-- 🚧 Backup/forward elements (basic parsing implemented, duration recognized; full timeline impact pending)
-- Part grouping
+### v0.3.0 (Core Musical Elements Enhancement)
+- **Grace notes (High Priority)**
+- **Complex time signatures (High Priority)**
+- **Refine Key signature changes (High Priority)**
+- **Refine Time signature changes (High Priority)**
+- **Refine Clef changes (High Priority)**
+- **`<dynamics>` (High Priority)**
+- **Refine `<articulations>` and broader coverage (High Priority)**
+- **`<rehearsal>` marks (High Priority)**
+- **Refine `<repeat>` structures, `<segno>`, `<coda>` (High Priority)**
+- **`<staff>` (multi-staff parts, e.g., Piano grand staff) (High Priority)**
+- 🚧 Slurs (refine parsing)
+- 🚧 Backup/forward elements (refine timeline impact)
 - ✅ Credits (`<credit>`, `<credit-words>`, `<credit-type>` basic parsing)
 
-### v0.4.0
-- Grace notes and ornaments
-- Multi-staff parts
-- Dynamics and directions
-- Enhanced MIDI support
+### v0.4.0 (Further Enhancements & Broader Coverage)
+- **`<ornaments>` (High Priority)**
+- Part grouping (was v0.3.0)
+- Enhanced MIDI support (basic elements were deferred)
+- Cue notes (was v0.4.0, lower priority)
 
-### v0.5.0
+### v0.5.0 (Advanced and Specific Features)
 - Percussion notation
-- Advanced articulations
-- Performance features
+- Percussion clef
+- Advanced articulations (specific less common ones)
+- Performance features (`<sound>`, `<play>`)
+- `<midi-bank>`
+- Organ systems
+- Other lower priority items from previous plans or new considerations.
 
 ## Testing Coverage
 
