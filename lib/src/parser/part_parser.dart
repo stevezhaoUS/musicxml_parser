@@ -1,7 +1,6 @@
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/models/key_signature.dart';
-import 'package:musicxml_parser/src/models/measure.dart';
 import 'package:musicxml_parser/src/models/part.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
 import 'package:musicxml_parser/src/parser/measure_parser.dart';
@@ -93,9 +92,11 @@ class PartParser {
 
       // Divisions: If the current measure defined new divisions, use that.
       // Otherwise, continue with the previously active divisions.
-      final attributesInMeasure = measureElement.findElements('attributes').firstOrNull;
+      final attributesInMeasure =
+          measureElement.findElements('attributes').firstOrNull;
       if (attributesInMeasure != null) {
-        final divisionsElement = attributesInMeasure.findElements('divisions').firstOrNull;
+        final divisionsElement =
+            attributesInMeasure.findElements('divisions').firstOrNull;
         if (divisionsElement != null) {
           final newDivisions = int.tryParse(divisionsElement.innerText.trim());
           if (newDivisions != null && newDivisions > 0) {

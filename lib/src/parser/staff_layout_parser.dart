@@ -13,7 +13,8 @@ class StaffLayoutParser {
 
     return StaffLayout(
       staffNumber: staffNumber,
-      staffDistance: XmlHelper.getElementTextAsDouble(element.findElements('staff-distance').firstOrNull),
+      staffDistance: XmlHelper.getElementTextAsDouble(
+          element.findElements('staff-distance').firstOrNull),
     );
   }
 }

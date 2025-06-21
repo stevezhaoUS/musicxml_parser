@@ -615,7 +615,8 @@ void main() {
         // that returns a simple note or null would also work.
         // Using a real NoteParser with its own warning system or passing the main one.
         // For simplicity, and since backup/forward are side-effects, keeping existing mock setup.
-        mockNoteParser = MockNoteParser(); // Reset or use fresh mock if needed for specific interactions
+        mockNoteParser =
+            MockNoteParser(); // Reset or use fresh mock if needed for specific interactions
         mockAttributesParser = MockAttributesParser();
 
         measureParser = MeasureParser(
@@ -635,14 +636,18 @@ void main() {
           final argElement = invocation.positionalArguments[0] as XmlElement;
           final pitchElement = argElement.findElements('pitch').firstOrNull;
           if (pitchElement != null) {
-            final step = pitchElement.findElements('step').firstOrNull?.innerText;
-            final octave = int.tryParse(pitchElement.findElements('octave').firstOrNull?.innerText ?? "4");
+            final step =
+                pitchElement.findElements('step').firstOrNull?.innerText;
+            final octave = int.tryParse(
+                pitchElement.findElements('octave').firstOrNull?.innerText ??
+                    "4");
             return Note(
-              pitch: Pitch(step: step ?? 'C', octave: octave ?? 4),
-              duration: Duration(value: 1, divisions: 1), // Dummy duration
-              isRest: false);
+                pitch: Pitch(step: step ?? 'C', octave: octave ?? 4),
+                duration: Duration(value: 1, divisions: 1), // Dummy duration
+                isRest: false);
           } else if (argElement.findElements('rest').isNotEmpty) {
-             return Note(duration: Duration(value: 1, divisions: 1), isRest: true);
+            return Note(
+                duration: Duration(value: 1, divisions: 1), isRest: true);
           }
           return null;
         });
@@ -665,9 +670,11 @@ void main() {
         expect(result.notes[0].pitch!.step, 'C');
         expect(result.notes[1].pitch!.step, 'D');
 
-        final warnings = warningSystem.getWarningsByCategory('partial_processing');
+        final warnings =
+            warningSystem.getWarningsByCategory('partial_processing');
         expect(warnings, hasLength(1));
-        expect(warnings.first.message, contains('Encountered <backup> with duration 2'));
+        expect(warnings.first.message,
+            contains('Encountered <backup> with duration 2'));
         expect(warnings.first.context?['element'], 'backup');
         expect(warnings.first.context?['duration'], 2);
       });
@@ -689,9 +696,11 @@ void main() {
         expect(result.notes[0].pitch!.step, 'E');
         expect(result.notes[1].pitch!.step, 'F');
 
-        final warnings = warningSystem.getWarningsByCategory('partial_processing');
+        final warnings =
+            warningSystem.getWarningsByCategory('partial_processing');
         expect(warnings, hasLength(1));
-        expect(warnings.first.message, contains('Encountered <forward> with duration 2'));
+        expect(warnings.first.message,
+            contains('Encountered <forward> with duration 2'));
         expect(warnings.first.context?['element'], 'forward');
         expect(warnings.first.context?['duration'], 2);
       });
@@ -708,10 +717,15 @@ void main() {
         expect(
             () => measureParser.parse(element, 'P1'),
             throwsA(isA<MusicXmlStructureException>().having(
-                (e) => e.message, 'message', contains('<backup> element missing required <duration> child.'))));
+                (e) => e.message,
+                'message',
+                contains(
+                    '<backup> element missing required <duration> child.'))));
       });
 
-      test('<forward> with invalid <duration> (non-integer) throws MusicXmlStructureException', () {
+      test(
+          '<forward> with invalid <duration> (non-integer) throws MusicXmlStructureException',
+          () {
         final xml = XmlDocument.parse('''
           <measure number="4">
             <attributes><divisions>1</divisions></attributes>
@@ -723,10 +737,14 @@ void main() {
         expect(
             () => measureParser.parse(element, 'P1'),
             throwsA(isA<MusicXmlStructureException>().having(
-                (e) => e.message, 'message', 'Invalid or missing duration value for <forward>.')));
+                (e) => e.message,
+                'message',
+                'Invalid or missing duration value for <forward>.')));
       });
 
-      test('<backup> with negative <duration> throws MusicXmlStructureException', () {
+      test(
+          '<backup> with negative <duration> throws MusicXmlStructureException',
+          () {
         final xml = XmlDocument.parse('''
           <measure number="5">
             <attributes><divisions>1</divisions></attributes>
@@ -737,10 +755,10 @@ void main() {
 
         expect(
             () => measureParser.parse(element, 'P1'),
-            throwsA(isA<MusicXmlStructureException>().having(
-                (e) => e.message, 'message', 'Invalid or missing duration value for <backup>.')));
+            throwsA(isA<MusicXmlStructureException>().having((e) => e.message,
+                'message', 'Invalid or missing duration value for <backup>.')));
       });
-       test('<forward> with zero <duration> is allowed and logs warning', () {
+      test('<forward> with zero <duration> is allowed and logs warning', () {
         final xml = XmlDocument.parse('''
           <measure number="6">
             <attributes><divisions>1</divisions></attributes>
@@ -752,9 +770,11 @@ void main() {
         final result = measureParser.parse(element, 'P1');
         expect(result.notes, isEmpty);
 
-        final warnings = warningSystem.getWarningsByCategory('partial_processing');
+        final warnings =
+            warningSystem.getWarningsByCategory('partial_processing');
         expect(warnings, hasLength(1));
-        expect(warnings.first.message, contains('Encountered <forward> with duration 0'));
+        expect(warnings.first.message,
+            contains('Encountered <forward> with duration 0'));
         expect(warnings.first.context?['element'], 'forward');
         expect(warnings.first.context?['duration'], 0);
       });
@@ -775,13 +795,17 @@ void main() {
             warningSystem: warningSystem);
 
         // Default mock behaviors
-        when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': 1});
-        when(mockNoteParser.parse(any, any, any, any)).thenAnswer((_) => null); // Default to no notes unless specified by test
+        when(mockAttributesParser.parse(any, any, any, any))
+            .thenReturn({'divisions': 1});
+        when(mockNoteParser.parse(any, any, any, any)).thenAnswer(
+            (_) => null); // Default to no notes unless specified by test
       });
 
       test('parses measure with no explicit barlines or endings', () {
-        final xml = XmlDocument.parse('<measure number="1"><note><duration>4</duration></note></measure>');
-        when(mockNoteParser.parse(any, any, any, any)).thenReturn(Note(duration: Duration(value: 4, divisions: 1), isRest: true));
+        final xml = XmlDocument.parse(
+            '<measure number="1"><note><duration>4</duration></note></measure>');
+        when(mockNoteParser.parse(any, any, any, any)).thenReturn(
+            Note(duration: Duration(value: 4, divisions: 1), isRest: true));
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
         expect(result.barlines, isNull);
@@ -848,7 +872,10 @@ void main() {
             <barline location="right"><bar-style>light-heavy</bar-style><repeat direction="backward"/></barline>
           </measure>
         ''');
-         when(mockNoteParser.parse(any, any, any, any)).thenReturn(Note(pitch: Pitch(step: 'C', octave: 4), duration: Duration(value: 4, divisions: 1),isRest: false));
+        when(mockNoteParser.parse(any, any, any, any)).thenReturn(Note(
+            pitch: Pitch(step: 'C', octave: 4),
+            duration: Duration(value: 4, divisions: 1),
+            isRest: false));
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
         expect(result.barlines, isNotNull);
@@ -910,7 +937,8 @@ void main() {
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
         expect(result.ending, isNull);
-        final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+        final warnings =
+            warningSystem.getWarningsByCategory(WarningCategories.structure);
         expect(warnings, hasLength(1));
         expect(warnings.first.message, contains('Incomplete <ending> element'));
       });
@@ -924,7 +952,8 @@ void main() {
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
         expect(result.ending, isNull);
-        final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+        final warnings =
+            warningSystem.getWarningsByCategory(WarningCategories.structure);
         expect(warnings, hasLength(1));
         expect(warnings.first.message, contains('Incomplete <ending> element'));
       });
@@ -943,8 +972,7 @@ void main() {
         // Default mock behaviors
         when(mockAttributesParser.parse(any, any, any, any))
             .thenReturn({'divisions': 1});
-        when(mockNoteParser.parse(any, any, any, any))
-            .thenAnswer((_) => null);
+        when(mockNoteParser.parse(any, any, any, any)).thenAnswer((_) => null);
       });
 
       test('parses direction with single words element', () {
@@ -963,7 +991,8 @@ void main() {
         expect(result.wordsDirections[0].text, 'Allegro');
       });
 
-      test('parses direction with multiple words elements in one direction-type',
+      test(
+          'parses direction with multiple words elements in one direction-type',
           () {
         final xml = XmlDocument.parse('''
           <measure number="1">
@@ -982,7 +1011,7 @@ void main() {
         expect(result.wordsDirections[1].text, 'assai');
       });
 
-       test('parses multiple direction elements with words', () {
+      test('parses multiple direction elements with words', () {
         final xml = XmlDocument.parse('''
           <measure number="1">
             <direction>
@@ -998,7 +1027,8 @@ void main() {
             </direction>
           </measure>
         ''');
-        when(mockNoteParser.parse(any, any, any, any)).thenReturn(Note(duration: Duration(value: 4, divisions: 1), isRest: true));
+        when(mockNoteParser.parse(any, any, any, any)).thenReturn(
+            Note(duration: Duration(value: 4, divisions: 1), isRest: true));
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
         expect(result.wordsDirections, hasLength(2));
@@ -1026,7 +1056,8 @@ void main() {
         expect(result.wordsDirections, hasLength(1));
         expect(result.wordsDirections[0].text, 'Non-empty');
 
-        final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+        final warnings =
+            warningSystem.getWarningsByCategory(WarningCategories.structure);
         expect(warnings, hasLength(1));
         expect(warnings.first.message, contains('Empty <words> element'));
       });
@@ -1070,7 +1101,10 @@ void main() {
             </direction>
           </measure>
         ''');
-        when(mockNoteParser.parse(any, any, any, any)).thenReturn(Note(pitch: Pitch(step: 'C', octave: 4), duration: Duration(value: 4, divisions: 1),isRest: false));
+        when(mockNoteParser.parse(any, any, any, any)).thenReturn(Note(
+            pitch: Pitch(step: 'C', octave: 4),
+            duration: Duration(value: 4, divisions: 1),
+            isRest: false));
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
 
@@ -1082,7 +1116,9 @@ void main() {
         expect(result.barlines, hasLength(1));
       });
 
-       test('parses words within multiple direction-type elements in one direction', () {
+      test(
+          'parses words within multiple direction-type elements in one direction',
+          () {
         final xml = XmlDocument.parse('''
           <measure number="1">
             <direction>
@@ -1116,7 +1152,8 @@ void main() {
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
         expect(result.wordsDirections, hasLength(1));
-        expect(result.wordsDirections[0].text, 'Tempo  Primo'); // .trim() only removes leading/trailing
+        expect(result.wordsDirections[0].text,
+            'Tempo  Primo'); // .trim() only removes leading/trailing
       });
     });
 
@@ -1131,7 +1168,8 @@ void main() {
             warningSystem: warningSystem);
 
         // Default behavior for mocks
-        when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': 1});
+        when(mockAttributesParser.parse(any, any, any, any))
+            .thenReturn({'divisions': 1});
         when(mockNoteParser.parse(any, any, any, any)).thenReturn(null);
       });
 
@@ -1189,7 +1227,8 @@ void main() {
         expect(result.printObject, isNotNull);
         expect(result.printObject!.newSystem, isTrue);
         expect(result.printObject!.localSystemLayout, isNotNull);
-        expect(result.printObject!.localSystemLayout!.systemMargins!.leftMargin, 70);
+        expect(result.printObject!.localSystemLayout!.systemMargins!.leftMargin,
+            70);
         expect(result.printObject!.localSystemLayout!.systemDistance, 100);
       });
 
@@ -1233,7 +1272,9 @@ void main() {
         expect(result.printObject!.localStaffLayouts, isEmpty);
       });
 
-      test('parses print element with mixed content (attributes and local layouts)', () {
+      test(
+          'parses print element with mixed content (attributes and local layouts)',
+          () {
         final xmlString = '''
         <measure number="7">
           <print new-page="yes" new-system="no">
@@ -1243,7 +1284,8 @@ void main() {
           <note><rest/><duration>4</duration></note>
         </measure>
         ''';
-        when(mockNoteParser.parse(any, any, any, any)).thenReturn(Note(duration: Duration(value: 4, divisions: 1), isRest: true));
+        when(mockNoteParser.parse(any, any, any, any)).thenReturn(
+            Note(duration: Duration(value: 4, divisions: 1), isRest: true));
         final element = XmlDocument.parse(xmlString).rootElement;
         final result = measureParser.parse(element, 'P1');
 
@@ -1257,7 +1299,6 @@ void main() {
         expect(result.printObject!.localStaffLayouts[0].staffDistance, 75);
         expect(result.notes, hasLength(1));
       });
-
     });
   });
 }

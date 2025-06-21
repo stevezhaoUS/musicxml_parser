@@ -69,6 +69,7 @@ class PartBuilder {
 
   /// Line number in the XML for error reporting context.
   final int? _line;
+
   /// Additional context for error reporting.
   final Map<String, dynamic>? _context;
 
@@ -77,7 +78,8 @@ class PartBuilder {
   /// [line] and [context] can be provided for more detailed error
   /// messages if validation (not currently implemented in builder) were to fail.
   PartBuilder(this._id, {int? line, Map<String, dynamic>? context})
-   : _line = line, _context = context;
+      : _line = line,
+        _context = context;
 
   /// Sets the name of the part.
   PartBuilder setName(String? name) {

@@ -22,21 +22,23 @@ void main() {
     group('equality and hashCode', () {
       const e1 = Ending(number: '1', type: 'start', printObject: 'yes');
       const e2 = Ending(number: '1', type: 'start', printObject: 'yes');
-      const e3 = Ending(number: '2', type: 'start', printObject: 'yes'); // diff number
-      const e4 = Ending(number: '1', type: 'stop', printObject: 'yes'); // diff type
-      const e5 = Ending(number: '1', type: 'start', printObject: 'no'); // diff printObject
+      const e3 =
+          Ending(number: '2', type: 'start', printObject: 'yes'); // diff number
+      const e4 =
+          Ending(number: '1', type: 'stop', printObject: 'yes'); // diff type
+      const e5 = Ending(
+          number: '1', type: 'start', printObject: 'no'); // diff printObject
 
       // Test constructor default for printObject
       const e_default_po1 = Ending(number: '1', type: 'start');
       const e_default_po2 = Ending(number: '1', type: 'start');
-
 
       test('instances with same values are equal and have same hashCode', () {
         expect(e1, equals(e2));
         expect(e1.hashCode, equals(e2.hashCode));
       });
 
-      test('instances using default printObject are equal',(){
+      test('instances using default printObject are equal', () {
         expect(e1, equals(e_default_po1));
         expect(e1.hashCode, equals(e_default_po1.hashCode));
         expect(e_default_po1, equals(e_default_po2));
@@ -58,12 +60,15 @@ void main() {
 
     group('toString representation', () {
       test('includes all fields, printObject shown if not default', () {
-        const ending1 = Ending(number: '1, 3', type: 'discontinue', printObject: 'no');
-        expect(ending1.toString(), equals('Ending{number: 1, 3, type: discontinue, printObject: no}'));
+        const ending1 =
+            Ending(number: '1, 3', type: 'discontinue', printObject: 'no');
+        expect(ending1.toString(),
+            equals('Ending{number: 1, 3, type: discontinue, printObject: no}'));
       });
 
       test('omits printObject when it is default "yes"', () {
-        const ending2 = Ending(number: '2', type: 'stop'); // printObject defaults to "yes"
+        const ending2 =
+            Ending(number: '2', type: 'stop'); // printObject defaults to "yes"
         expect(ending2.toString(), equals('Ending{number: 2, type: stop}'));
 
         const ending3 = Ending(number: '2', type: 'stop', printObject: 'yes');

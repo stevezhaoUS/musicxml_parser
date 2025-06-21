@@ -20,8 +20,10 @@ void main() {
     group('equality and hashCode', () {
       const art1 = Articulation(type: 'staccato', placement: 'above');
       const art2 = Articulation(type: 'staccato', placement: 'above');
-      const art3 = Articulation(type: 'accent', placement: 'above'); // Different type
-      const art4 = Articulation(type: 'staccato', placement: 'below'); // Different placement
+      const art3 =
+          Articulation(type: 'accent', placement: 'above'); // Different type
+      const art4 = Articulation(
+          type: 'staccato', placement: 'below'); // Different placement
       const art5 = Articulation(type: 'staccato'); // Null placement
 
       test('instances with same values are equal and have same hashCode', () {
@@ -52,12 +54,14 @@ void main() {
     group('toString representation', () {
       test('includes all fields when present', () {
         const articulation = Articulation(type: 'accent', placement: 'below');
-        expect(articulation.toString(), equals('Articulation{type: accent, placement: below}'));
+        expect(articulation.toString(),
+            equals('Articulation{type: accent, placement: below}'));
       });
 
       test('omits placement when null', () {
         const articulation = Articulation(type: 'strong-accent');
-        expect(articulation.toString(), equals('Articulation{type: strong-accent}'));
+        expect(articulation.toString(),
+            equals('Articulation{type: strong-accent}'));
       });
     });
   });

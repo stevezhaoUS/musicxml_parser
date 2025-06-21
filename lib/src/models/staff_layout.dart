@@ -2,7 +2,8 @@ import 'package:meta/meta.dart';
 
 @immutable
 class StaffLayout {
-  final int staffNumber; // staff number this layout applies to (default 1 if not present in XML attribute)
+  final int
+      staffNumber; // staff number this layout applies to (default 1 if not present in XML attribute)
   final double? staffDistance; // distance from previous staff
 
   const StaffLayout({

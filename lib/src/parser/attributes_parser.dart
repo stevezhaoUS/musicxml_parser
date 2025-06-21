@@ -91,10 +91,10 @@ class AttributesParser {
   ) {
     try {
       return KeySignature.fromXmlElement(element, partId, measureNumber);
-    } on MusicXmlStructureException catch (e) {
+    } on MusicXmlStructureException {
       // Re-throw, or add more context if needed
       rethrow;
-    } on MusicXmlValidationException catch (e) {
+    } on MusicXmlValidationException {
       // Re-throw, or add more context if needed
       rethrow;
     }
@@ -108,10 +108,10 @@ class AttributesParser {
   ) {
     try {
       return TimeSignature.fromXmlElement(element, partId, measureNumber);
-    } on MusicXmlStructureException catch (e) {
+    } on MusicXmlStructureException {
       // Re-throw, or add more context if needed
       rethrow;
-    } on MusicXmlValidationException catch (e) {
+    } on MusicXmlValidationException {
       // Re-throw, or add more context if needed
       rethrow;
     }

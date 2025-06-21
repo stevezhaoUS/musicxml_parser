@@ -177,7 +177,8 @@ class Note {
           dots == other.dots &&
           timeModification == other.timeModification &&
           const DeepCollectionEquality().equals(slurs, other.slurs) &&
-          const DeepCollectionEquality().equals(articulations, other.articulations) &&
+          const DeepCollectionEquality()
+              .equals(articulations, other.articulations) &&
           const DeepCollectionEquality().equals(ties, other.ties) &&
           isChordElementPresent == other.isChordElementPresent;
 
@@ -191,7 +192,9 @@ class Note {
       (dots?.hashCode ?? 0) ^
       (timeModification?.hashCode ?? 0) ^
       (slurs != null ? const DeepCollectionEquality().hash(slurs!) : 0) ^
-      (articulations != null ? const DeepCollectionEquality().hash(articulations!) : 0) ^
+      (articulations != null
+          ? const DeepCollectionEquality().hash(articulations!)
+          : 0) ^
       (ties != null ? const DeepCollectionEquality().hash(ties!) : 0) ^
       isChordElementPresent.hashCode;
 

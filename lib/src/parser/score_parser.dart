@@ -98,9 +98,10 @@ class ScoreParser {
     final defaults = _parseDefaults(element.getElement('defaults'));
 
     // Initialize ScoreBuilder
-    final scoreBuilder = ScoreBuilder(version: version, line: XmlHelper.getLineNumber(element))
-        .setTitle(title)
-        .setComposer(composer);
+    final scoreBuilder =
+        ScoreBuilder(version: version, line: XmlHelper.getLineNumber(element))
+            .setTitle(title)
+            .setComposer(composer);
 
     // Set parts
     scoreBuilder.setParts(parts);
@@ -145,7 +146,8 @@ class ScoreParser {
         : null;
 
     final systemLayout = defaultsElement.getElement('system-layout') != null
-        ? SystemLayoutParser().parse(defaultsElement.getElement('system-layout')!)
+        ? SystemLayoutParser()
+            .parse(defaultsElement.getElement('system-layout')!)
         : null;
 
     final staffLayouts = defaultsElement
@@ -169,9 +171,12 @@ class ScoreParser {
     final creditElements = scoreElement.findElements('credit');
     for (final creditElement in creditElements) {
       String? pageStr = creditElement.getAttribute('page');
-      int? page = (pageStr != null && pageStr.isNotEmpty ? int.tryParse(pageStr) : null);
+      int? page = (pageStr != null && pageStr.isNotEmpty
+          ? int.tryParse(pageStr)
+          : null);
 
-      XmlElement? creditTypeElement = creditElement.findElements('credit-type').firstOrNull;
+      XmlElement? creditTypeElement =
+          creditElement.findElements('credit-type').firstOrNull;
       String? creditType = creditTypeElement?.innerText.trim();
 
       List<String> creditWordsList = [];
@@ -179,14 +184,17 @@ class ScoreParser {
       for (final wordsElement in creditWordsElements) {
         final text = wordsElement.innerText.trim();
         if (text.isNotEmpty) {
-            creditWordsList.add(text);
+          creditWordsList.add(text);
         }
       }
 
-      if ((creditType != null && creditType.isNotEmpty) || creditWordsList.isNotEmpty) {
-         parsedCredits.add(Credit(page: page, creditType: creditType, creditWords: creditWordsList));
+      if ((creditType != null && creditType.isNotEmpty) ||
+          creditWordsList.isNotEmpty) {
+        parsedCredits.add(Credit(
+            page: page, creditType: creditType, creditWords: creditWordsList));
       } else if (page != null) {
-         parsedCredits.add(Credit(page: page, creditType: creditType, creditWords: creditWordsList));
+        parsedCredits.add(Credit(
+            page: page, creditType: creditType, creditWords: creditWordsList));
       }
     }
     return parsedCredits;

@@ -34,17 +34,15 @@ class Ending {
           printObject == other.printObject;
 
   @override
-  int get hashCode =>
-      number.hashCode ^
-      type.hashCode ^
-      printObject.hashCode;
+  int get hashCode => number.hashCode ^ type.hashCode ^ printObject.hashCode;
 
   @override
   String toString() {
     final parts = [
       'number: $number',
       'type: $type',
-      if (printObject != "yes") 'printObject: $printObject', // Only show if not default
+      if (printObject != "yes")
+        'printObject: $printObject', // Only show if not default
     ];
     return 'Ending{${parts.join(', ')}}';
   }

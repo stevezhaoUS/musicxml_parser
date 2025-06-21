@@ -35,7 +35,8 @@ class PrintObject {
           pageNumber == other.pageNumber &&
           localPageLayout == other.localPageLayout &&
           localSystemLayout == other.localSystemLayout &&
-          const DeepCollectionEquality().equals(localStaffLayouts, other.localStaffLayouts);
+          const DeepCollectionEquality()
+              .equals(localStaffLayouts, other.localStaffLayouts);
 
   @override
   int get hashCode =>

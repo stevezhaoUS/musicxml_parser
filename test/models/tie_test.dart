@@ -21,7 +21,8 @@ void main() {
       const tie1 = Tie(type: 'start', placement: 'above');
       const tie2 = Tie(type: 'start', placement: 'above');
       const tie3 = Tie(type: 'stop', placement: 'above'); // Different type
-      const tie4 = Tie(type: 'start', placement: 'below'); // Different placement
+      const tie4 =
+          Tie(type: 'start', placement: 'below'); // Different placement
       const tie5 = Tie(type: 'start'); // Null placement
 
       test('instances with same values are equal and have same hashCode', () {
