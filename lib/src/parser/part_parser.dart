@@ -72,53 +72,27 @@ class PartParser {
       name = XmlHelper.findOptionalTextElement(scorePart, 'part-name');
     }
 
-    // Parse measures
-    final measures = <Measure>[];
-    int? currentDivisions;
-    KeySignature? currentKeySignature;
-    TimeSignature? currentTimeSignature;
+    final partBuilder = PartBuilder(id, line: line)..setName(name);
+
+    int? activeDivisions;
+    KeySignature? activeKeySignature;
+    TimeSignature? activeTimeSignature;
 
     for (final measureElement in element.findElements('measure')) {
       final measure = _measureParser.parse(
         measureElement,
         id,
-        inheritedDivisions: currentDivisions,
-        inheritedKeySignature: currentKeySignature,
-        inheritedTimeSignature: currentTimeSignature,
-      );
-
-      // Carry forward attributes to the next measure
-      if (measure.keySignature != null) {
-        currentKeySignature = measure.keySignature;
-      }
-      if (measure.timeSignature != null) {
-        currentTimeSignature = measure.timeSignature;
-      }
-
-      measures.add(measure);
-    }
-
-    // Use PartBuilder
-    final partBuilder = PartBuilder(id, line: line)..setName(name);
-
-    // These variables will hold the *active* attributes to be inherited by subsequent measures.
-    int? activeDivisions = currentDivisions; // Initialize with potentially inherited divisions from score defaults or previous part context
-    KeySignature? activeKeySignature = currentKeySignature; // Initialize similarly
-    TimeSignature? activeTimeSignature = currentTimeSignature; // Initialize similarly
-
-    for (final measureElement in element.findElements('measure')) {
-      final measure = _measureParser.parse(
-        measureElement,
-        id, // partId for context
         inheritedDivisions: activeDivisions,
         inheritedKeySignature: activeKeySignature,
         inheritedTimeSignature: activeTimeSignature,
       );
-
       partBuilder.addMeasure(measure);
 
-      // Update active attributes for the next measure based on what was
-      // defined *within* the measure just parsed.
+      // Update active attributes for the *next* measure based on what was
+      // defined or inherited by the measure just parsed.
+
+      // Divisions: If the current measure defined new divisions, use that.
+      // Otherwise, continue with the previously active divisions.
       final attributesInMeasure = measureElement.findElements('attributes').firstOrNull;
       if (attributesInMeasure != null) {
         final divisionsElement = attributesInMeasure.findElements('divisions').firstOrNull;
@@ -128,15 +102,14 @@ class PartParser {
             activeDivisions = newDivisions;
           }
         }
-        // The measure object itself now holds the key/time signature that applies to it.
-        // So, if the parsed measure has a key/time signature, that's the new active one.
-        // If it's null, the previously active one (from a prior measure or defaults) continues.
-        if (measure.keySignature != null) {
-          activeKeySignature = measure.keySignature;
-        }
-        if (measure.timeSignature != null) {
-          activeTimeSignature = measure.timeSignature;
-        }
+      }
+      // Key and Time Signature: The measure object itself contains the key/time
+      // that applied to it (either newly defined or inherited). So, use that for the next.
+      if (measure.keySignature != null) {
+        activeKeySignature = measure.keySignature;
+      }
+      if (measure.timeSignature != null) {
+        activeTimeSignature = measure.timeSignature;
       }
     }
     return partBuilder.build();
