@@ -1,8 +1,4 @@
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
-// Removed duplicate import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
-import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
-import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
-// Removed duplicate import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/models/articulation.dart'; // Import for Articulation
 import 'package:musicxml_parser/src/models/duration.dart';
@@ -280,6 +276,9 @@ class NoteParser {
       // articulationsList is already populated if an <articulations> group was found and had items
     }
 
+    // Check for <chord/> element
+    final bool isChord = element.findElements('chord').isNotEmpty;
+
     // Create and return the note
     return Note(
       pitch: pitch,
@@ -292,6 +291,7 @@ class NoteParser {
       slurs: slursList,
       articulations: articulationsList,
       ties: tiesList,
+      isChordElementPresent: isChord,
     );
   }
 

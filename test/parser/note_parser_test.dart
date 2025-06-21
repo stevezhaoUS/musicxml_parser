@@ -1363,5 +1363,49 @@ void main() {
         expect(warnings.first.message, contains('Found: "invalid-type"'));
       });
     });
+
+    group('chord element parsing', () {
+      test('parses note without <chord/> element', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch><step>C</step><octave>4</octave></pitch>
+            <duration>480</duration>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.isChordElementPresent, isFalse);
+      });
+
+      test('parses note with <chord/> element', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <chord/>
+            <pitch><step>E</step><octave>4</octave></pitch>
+            <duration>480</duration>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.isChordElementPresent, isTrue);
+      });
+
+      test('parses rest with <chord/> element', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <chord/>
+            <rest/>
+            <duration>480</duration>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.isRest, isTrue);
+        expect(result.isChordElementPresent, isTrue);
+      });
+    });
   });
 }
