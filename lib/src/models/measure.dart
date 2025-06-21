@@ -6,7 +6,7 @@ import 'package:musicxml_parser/src/models/ending.dart';
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
-import 'package:musicxml_parser/src/models/direction_words.dart';
+import 'package:musicxml_parser/src/models/direction.dart';
 import 'print_object.dart';
 
 /// Represents a single measure in a musical score.
@@ -46,8 +46,8 @@ class Measure {
   /// Repeat [Ending] information for this measure, if applicable.
   final Ending? ending;
 
-  /// List of textual [WordsDirection] (e.g., "Allegro", "Fine") associated with this measure.
-  final List<WordsDirection> wordsDirections;
+  /// List of [Direction] objects associated with this measure.
+  final List<Direction> directions;
 
   /// Print-related hints and overrides for this measure, such as new page/system breaks
   /// or local layout changes.
@@ -68,7 +68,7 @@ class Measure {
     this.beams = const [],
     this.barlines,
     this.ending,
-    this.wordsDirections = const [],
+    this.directions = const [],
     this.printObject,
   });
 
@@ -85,8 +85,7 @@ class Measure {
           const DeepCollectionEquality().equals(beams, other.beams) &&
           const DeepCollectionEquality().equals(barlines, other.barlines) &&
           ending == other.ending &&
-          const DeepCollectionEquality()
-              .equals(wordsDirections, other.wordsDirections) &&
+          const DeepCollectionEquality().equals(directions, other.directions) &&
           printObject == other.printObject;
 
   @override
@@ -99,7 +98,7 @@ class Measure {
       const DeepCollectionEquality().hash(beams) ^
       (barlines != null ? const DeepCollectionEquality().hash(barlines!) : 0) ^
       (ending?.hashCode ?? 0) ^
-      const DeepCollectionEquality().hash(wordsDirections) ^
+      const DeepCollectionEquality().hash(directions) ^
       (printObject?.hashCode ?? 0);
 
   @override
@@ -114,7 +113,7 @@ class Measure {
       if (isPickup) 'pickup',
       if (barlines != null && barlines!.isNotEmpty) 'barlines: $barlines',
       if (ending != null) 'ending: $ending',
-      if (wordsDirections.isNotEmpty) 'wordsDirections: $wordsDirections',
+      if (directions.isNotEmpty) 'directions: $directions',
       if (printObject != null) 'printObject: $printObject',
     ];
     return 'Measure{${parts.join(', ')}}';
@@ -147,7 +146,7 @@ class MeasureBuilder {
   bool _isPickup = false;
   List<Barline>? _barlines;
   Ending? _ending;
-  List<WordsDirection> _wordsDirections = [];
+  List<Direction> _directions = [];
   PrintObject? _printObject;
 
   /// Line number in the XML for error reporting context.
@@ -233,15 +232,15 @@ class MeasureBuilder {
     return this;
   }
 
-  /// Sets all textual words directions for the measure.
-  MeasureBuilder setWordsDirections(List<WordsDirection> wordsDirections) {
-    _wordsDirections = wordsDirections;
+  /// Sets all directions for the measure.
+  MeasureBuilder setDirections(List<Direction> directions) {
+    _directions = directions;
     return this;
   }
 
-  /// Adds a single [WordsDirection] to the measure.
-  MeasureBuilder addWordsDirection(WordsDirection wordsDirection) {
-    _wordsDirections.add(wordsDirection);
+  /// Adds a single [Direction] to the measure.
+  MeasureBuilder addDirection(Direction direction) {
+    _directions.add(direction);
     return this;
   }
 
@@ -282,7 +281,7 @@ class MeasureBuilder {
       isPickup: _isPickup,
       barlines: _barlines,
       ending: _ending,
-      wordsDirections: _wordsDirections,
+      directions: _directions,
       printObject: _printObject,
     );
   }

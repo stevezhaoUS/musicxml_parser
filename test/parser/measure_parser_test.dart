@@ -1300,5 +1300,255 @@ void main() {
         expect(result.notes, hasLength(1));
       });
     });
+
+    group('Direction element parsing', () {
+      setUp(() {
+        warningSystem = WarningSystem();
+        mockNoteParser = MockNoteParser();
+        mockAttributesParser = MockAttributesParser();
+        measureParser = MeasureParser(
+            noteParser: mockNoteParser,
+            attributesParser: mockAttributesParser,
+            warningSystem: warningSystem);
+
+        when(mockAttributesParser.parse(any, any, any, any))
+            .thenReturn({'divisions': 1});
+        when(mockNoteParser.parse(any, any, any, any)).thenReturn(null);
+      });
+
+      test('parses direction with Segno element', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <direction-type>
+                <segno smufl="segnoSmufl" default-x="10" color="#FF0000"/>
+              </direction-type>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.directions, hasLength(1));
+        final direction = result.directions[0];
+        expect(direction.directionTypes, hasLength(1));
+        final segno = direction.directionTypes[0] as Segno;
+        expect(segno.smufl, 'segnoSmufl');
+        expect(segno.defaultX, 10);
+        expect(segno.color, '#FF0000');
+      });
+
+      test('parses direction with Coda element and direction attributes', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction placement="above" id="dir-coda1">
+              <direction-type>
+                <coda font-family="Arial" font-size="12" relative-y="-5"/>
+              </direction-type>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.directions, hasLength(1));
+        final direction = result.directions[0];
+        expect(direction.placement, 'above');
+        expect(direction.id, 'dir-coda1');
+        expect(direction.directionTypes, hasLength(1));
+        final coda = direction.directionTypes[0] as Coda;
+        expect(coda.fontFamily, 'Arial');
+        expect(coda.fontSize, '12');
+        expect(coda.relativeY, -5);
+      });
+
+      test('parses direction with Dynamics element (single value)', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <direction-type>
+                <dynamics placement="below" default-y="20">
+                  <f/>
+                </dynamics>
+              </direction-type>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.directions, hasLength(1));
+        final direction = result.directions[0];
+        expect(direction.directionTypes, hasLength(1));
+        final dynamics = direction.directionTypes[0] as Dynamics;
+        expect(dynamics.values, equals(['f']));
+        expect(dynamics.placement, 'below'); // This placement is on dynamics itself
+        expect(dynamics.defaultY, 20);
+      });
+
+      test('parses direction with Offset element', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <direction-type><words>Offset Text</words></direction-type>
+              <offset sound="yes">120.5</offset>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.directions, hasLength(1));
+        final direction = result.directions[0];
+        expect(direction.offset, isNotNull);
+        expect(direction.offset!.value, 120.5);
+        expect(direction.offset!.sound, isTrue);
+        expect(direction.directionTypes, hasLength(1));
+        expect((direction.directionTypes[0] as WordsDirection).text, 'Offset Text');
+      });
+
+      test('parses direction with Staff element', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <direction-type><words>Staff Text</words></direction-type>
+              <staff>2</staff>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.directions, hasLength(1));
+        final direction = result.directions[0];
+        expect(direction.staff, isNotNull);
+        expect(direction.staff!.value, 2);
+      });
+
+      test('parses direction with Sound element', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <direction-type><words>Sound Text</words></direction-type>
+              <sound tempo="120" dynamics="80" pizzicato="yes"/>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.directions, hasLength(1));
+        final direction = result.directions[0];
+        expect(direction.sound, isNotNull);
+        expect(direction.sound!.tempo, 120);
+        expect(direction.sound!.dynamics, 80);
+        expect(direction.sound!.pizzicato, isTrue);
+      });
+
+      test('parses direction with all optional elements (offset, staff, sound) and attributes', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction placement="below" directive="yes" system="other" id="dir-full">
+              <direction-type>
+                <words>Full Direction</words>
+              </direction-type>
+              <direction-type>
+                <segno smufl="segnoIcon"/>
+              </direction-type>
+              <offset>240</offset>
+              <staff>1</staff>
+              <sound tempo="90" fine="Fine Text"/>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.directions, hasLength(1));
+        final direction = result.directions[0];
+
+        expect(direction.placement, 'below');
+        expect(direction.directive, 'yes');
+        expect(direction.system, 'other');
+        expect(direction.id, 'dir-full');
+
+        expect(direction.directionTypes, hasLength(2));
+        expect((direction.directionTypes[0] as WordsDirection).text, 'Full Direction');
+        expect((direction.directionTypes[1] as Segno).smufl, 'segnoIcon');
+
+        expect(direction.offset, isNotNull);
+        expect(direction.offset!.value, 240);
+        expect(direction.offset!.sound, isFalse); // default
+
+        expect(direction.staff, isNotNull);
+        expect(direction.staff!.value, 1);
+
+        expect(direction.sound, isNotNull);
+        expect(direction.sound!.tempo, 90);
+        expect(direction.sound!.fine, 'Fine Text');
+      });
+
+      test('returns null for direction with no direction-type and logs warning', () {
+          final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <offset>100</offset>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.directions, isEmpty); // No direction should be added
+
+        final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+        expect(warnings, hasLength(1));
+        expect(warnings.first.message, contains('Direction element without any direction-type children.'));
+      });
+
+      test('parses multiple direction elements with various contents', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction id="d1">
+              <direction-type><words>First</words></direction-type>
+              <staff>1</staff>
+            </direction>
+            <note><rest/><duration>4</duration></note>
+            <direction id="d2">
+              <direction-type><dynamics><p/></dynamics></direction-type>
+              <sound tempo="60"/>
+            </direction>
+             <direction id="d3">
+              <direction-type><segno/></direction-type>
+              <offset>10</offset>
+            </direction>
+          </measure>
+        ''');
+         when(mockNoteParser.parse(any, any, any, any)).thenReturn(
+            Note(duration: Duration(value: 4, divisions: 1), isRest: true));
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.directions, hasLength(3));
+
+        // Check first direction
+        final dir1 = result.directions[0];
+        expect(dir1.id, 'd1');
+        expect(dir1.directionTypes, hasLength(1));
+        expect((dir1.directionTypes[0] as WordsDirection).text, 'First');
+        expect(dir1.staff?.value, 1);
+        expect(dir1.offset, isNull);
+        expect(dir1.sound, isNull);
+
+        // Check second direction
+        final dir2 = result.directions[1];
+        expect(dir2.id, 'd2');
+        expect(dir2.directionTypes, hasLength(1));
+        expect((dir2.directionTypes[0] as Dynamics).values, equals(['p']));
+        expect(dir2.sound?.tempo, 60);
+        expect(dir2.staff, isNull);
+        expect(dir2.offset, isNull);
+
+         // Check third direction
+        final dir3 = result.directions[2];
+        expect(dir3.id, 'd3');
+        expect(dir3.directionTypes, hasLength(1));
+        expect(dir3.directionTypes[0], isA<Segno>());
+        expect(dir3.offset?.value, 10);
+        expect(dir3.staff, isNull);
+        expect(dir3.sound, isNull);
+      });
+    });
   });
 }

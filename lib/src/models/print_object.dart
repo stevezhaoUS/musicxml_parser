@@ -3,6 +3,7 @@ import 'package:collection/collection.dart';
 import 'page_layout.dart';
 import 'system_layout.dart';
 import 'staff_layout.dart';
+import 'measure_layout_info.dart'; // Import for MeasureLayout and MeasureNumbering
 
 @immutable
 class PrintObject {
@@ -13,6 +14,8 @@ class PrintObject {
   final PageLayout? localPageLayout;
   final SystemLayout? localSystemLayout;
   final List<StaffLayout> localStaffLayouts;
+  final MeasureLayout? measureLayout;
+  final MeasureNumbering? measureNumbering;
 
   const PrintObject({
     this.newPage = false,
@@ -22,6 +25,8 @@ class PrintObject {
     this.localPageLayout,
     this.localSystemLayout,
     this.localStaffLayouts = const [],
+    this.measureLayout,
+    this.measureNumbering,
   });
 
   @override
@@ -36,7 +41,9 @@ class PrintObject {
           localPageLayout == other.localPageLayout &&
           localSystemLayout == other.localSystemLayout &&
           const DeepCollectionEquality()
-              .equals(localStaffLayouts, other.localStaffLayouts);
+              .equals(localStaffLayouts, other.localStaffLayouts) &&
+          measureLayout == other.measureLayout &&
+          measureNumbering == other.measureNumbering;
 
   @override
   int get hashCode =>
@@ -46,10 +53,12 @@ class PrintObject {
       pageNumber.hashCode ^
       localPageLayout.hashCode ^
       localSystemLayout.hashCode ^
-      const DeepCollectionEquality().hash(localStaffLayouts);
+      const DeepCollectionEquality().hash(localStaffLayouts) ^
+      measureLayout.hashCode ^
+      measureNumbering.hashCode;
 
   @override
   String toString() {
-    return 'PrintObject{newPage: $newPage, newSystem: $newSystem, blankPage: $blankPage, pageNumber: $pageNumber, localPageLayout: $localPageLayout, localSystemLayout: $localSystemLayout, localStaffLayouts: $localStaffLayouts}';
+    return 'PrintObject{newPage: $newPage, newSystem: $newSystem, blankPage: $blankPage, pageNumber: $pageNumber, localPageLayout: $localPageLayout, localSystemLayout: $localSystemLayout, localStaffLayouts: $localStaffLayouts, measureLayout: $measureLayout, measureNumbering: $measureNumbering}';
   }
 }
