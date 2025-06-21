@@ -105,10 +105,10 @@ This document tracks the current implementation status of MusicXML features in t
 ### Page Layout
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<page-layout>` | ➖ | Not applicable for parsing |
-| `<system-layout>` | ➖ | Not applicable for parsing |
-| `<staff-layout>` | ➖ | Not applicable for parsing |
-| `<print>` | ➖ | Not applicable for parsing |
+| `<page-layout>` | ⏳ | Planned for v0.3.0, High Priority, core layout information. |
+| `<system-layout>` | ⏳ | Planned for v0.3.0, High Priority, system layout details. |
+| `<staff-layout>` | ⏳ | Planned for v0.3.0, High Priority, staff layout details. |
+| `<print>` | ⏳ | Planned for v0.3.0, High Priority, print suggestions (e.g., new page/system, measure numbering). |
 
 ## Metadata
 
@@ -195,7 +195,9 @@ This document tracks the current implementation status of MusicXML features in t
 - ✅ Basic tuplet support (parses `<time-modification>`)
 - Enhanced error handling
 
-### v0.3.0 (Core Musical Elements Enhancement)
+### v0.3.0 (Core Musical Elements & Initial Layout Support)
+- **Layout: `<page-layout>`, `<system-layout>`, `<staff-layout>` (High Priority)**
+- **Layout: `<print>` element (new page/system, measure numbering, etc.) (High Priority)**
 - **Grace notes (High Priority)**
 - **Complex time signatures (High Priority)**
 - **Refine Key signature changes (High Priority)**
