@@ -6,6 +6,8 @@ import 'package:musicxml_parser/src/models/identification.dart';
 import 'package:musicxml_parser/src/models/page_layout.dart';
 import 'package:musicxml_parser/src/models/part.dart';
 import 'package:musicxml_parser/src/models/work.dart';
+import 'system_layout.dart'; // New import
+import 'staff_layout.dart'; // New import
 
 /// Represents a MusicXML score document.
 @immutable
@@ -22,8 +24,14 @@ class Score {
   /// List of parts in the score.
   final List<Part> parts;
 
-  /// Page layout information.
-  final PageLayout? pageLayout;
+  /// Default page layout information.
+  final PageLayout? pageLayout; // Renamed from defaultPageLayout for consistency with existing
+
+  /// Default system layout information.
+  final SystemLayout? defaultSystemLayout;
+
+  /// Default staff layout information.
+  final List<StaffLayout> defaultStaffLayouts;
 
   /// Scaling information.
   final Scaling? scaling;
@@ -46,7 +54,9 @@ class Score {
     this.work,
     this.identification,
     required this.parts,
-    this.pageLayout,
+    this.pageLayout, // This is the default page layout
+    this.defaultSystemLayout,
+    this.defaultStaffLayouts = const [],
     this.scaling,
     this.appearance,
     this.title,
@@ -62,8 +72,10 @@ class Score {
           version == other.version &&
           work == other.work &&
           identification == other.identification &&
-          const DeepCollectionEquality().equals(parts, other.parts) && // parts is List<Part>
+          const DeepCollectionEquality().equals(parts, other.parts) &&
           pageLayout == other.pageLayout &&
+          defaultSystemLayout == other.defaultSystemLayout &&
+          const DeepCollectionEquality().equals(defaultStaffLayouts, other.defaultStaffLayouts) &&
           scaling == other.scaling &&
           appearance == other.appearance &&
           title == other.title &&
@@ -75,8 +87,10 @@ class Score {
       version.hashCode ^
       (work?.hashCode ?? 0) ^
       (identification?.hashCode ?? 0) ^
-      const DeepCollectionEquality().hash(parts) ^ // parts is List<Part>
+      const DeepCollectionEquality().hash(parts) ^
       (pageLayout?.hashCode ?? 0) ^
+      (defaultSystemLayout?.hashCode ?? 0) ^
+      const DeepCollectionEquality().hash(defaultStaffLayouts) ^
       (scaling?.hashCode ?? 0) ^
       (appearance?.hashCode ?? 0) ^
       (title?.hashCode ?? 0) ^
@@ -99,6 +113,21 @@ class Score {
       buffer.write(', identification: $identification');
     }
     buffer.write(', parts: ${parts.length}');
+    if (pageLayout != null) {
+      buffer.write(', defaultPageLayout: $pageLayout');
+    }
+    if (defaultSystemLayout != null) {
+      buffer.write(', defaultSystemLayout: $defaultSystemLayout');
+    }
+    if (defaultStaffLayouts.isNotEmpty) {
+      buffer.write(', defaultStaffLayouts: $defaultStaffLayouts');
+    }
+    if (scaling != null) {
+      buffer.write(', scaling: $scaling');
+    }
+    if (appearance != null) {
+      buffer.write(', appearance: $appearance');
+    }
     if (credits != null && credits!.isNotEmpty) {
       buffer.write(', credits: ${credits!.length}');
     }

@@ -1120,6 +1120,145 @@ void main() {
         expect(result.wordsDirections, hasLength(1));
         expect(result.wordsDirections[0].text, 'Tempo  Primo'); // .trim() only removes leading/trailing
       });
+    });
+
+    group('print object parsing', () {
+      setUp(() {
+        warningSystem = WarningSystem();
+        mockNoteParser = MockNoteParser(); // Re-initialize mocks for safety
+        mockAttributesParser = MockAttributesParser();
+        measureParser = MeasureParser(
+            noteParser: mockNoteParser,
+            attributesParser: mockAttributesParser,
+            warningSystem: warningSystem);
+
+        // Default behavior for mocks
+        when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': 1});
+        when(mockNoteParser.parse(any, any, any, any)).thenReturn(null);
+      });
+
+      test('parses print element with new-page and new-system attributes', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <print new-page="yes" new-system="yes" page-number="2" blank-page="1"/>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+
+        expect(result.printObject, isNotNull);
+        expect(result.printObject!.newPage, isTrue);
+        expect(result.printObject!.newSystem, isTrue);
+        expect(result.printObject!.pageNumber, "2");
+        expect(result.printObject!.blankPage, 1);
+      });
+
+      test('parses print element with local page-layout', () {
+        final xml = XmlDocument.parse('''
+          <measure number="2">
+            <print new-page="yes">
+              <page-layout>
+                <page-height>1500</page-height>
+                <page-width>1100</page-width>
+              </page-layout>
+            </print>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+
+        expect(result.printObject, isNotNull);
+        expect(result.printObject!.newPage, isTrue);
+        expect(result.printObject!.localPageLayout, isNotNull);
+        expect(result.printObject!.localPageLayout!.pageHeight, 1500);
+        expect(result.printObject!.localPageLayout!.pageWidth, 1100);
+      });
+
+      test('parses print element with local system-layout', () {
+        final xml = XmlDocument.parse('''
+          <measure number="3">
+            <print new-system="yes">
+              <system-layout>
+                <system-margins><left-margin>70</left-margin></system-margins>
+                <system-distance>100</system-distance>
+              </system-layout>
+            </print>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+
+        expect(result.printObject, isNotNull);
+        expect(result.printObject!.newSystem, isTrue);
+        expect(result.printObject!.localSystemLayout, isNotNull);
+        expect(result.printObject!.localSystemLayout!.systemMargins!.leftMargin, 70);
+        expect(result.printObject!.localSystemLayout!.systemDistance, 100);
+      });
+
+      test('parses print element with local staff-layouts', () {
+        final xml = XmlDocument.parse('''
+          <measure number="4">
+            <print>
+              <staff-layout number="1"><staff-distance>90</staff-distance></staff-layout>
+              <staff-layout number="2"><staff-distance>85</staff-distance></staff-layout>
+            </print>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+
+        expect(result.printObject, isNotNull);
+        expect(result.printObject!.localStaffLayouts, hasLength(2));
+        expect(result.printObject!.localStaffLayouts[0].staffNumber, 1);
+        expect(result.printObject!.localStaffLayouts[0].staffDistance, 90);
+        expect(result.printObject!.localStaffLayouts[1].staffNumber, 2);
+        expect(result.printObject!.localStaffLayouts[1].staffDistance, 85);
+      });
+
+      test('parses measure with no print element', () {
+        final xml = XmlDocument.parse('<measure number="5"></measure>');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.printObject, isNull);
+      });
+
+      test('parses empty print element', () {
+        final xml = XmlDocument.parse('<measure number="6"><print/></measure>');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+
+        expect(result.printObject, isNotNull);
+        expect(result.printObject!.newPage, isFalse); // Defaults
+        expect(result.printObject!.newSystem, isFalse); // Defaults
+        expect(result.printObject!.localPageLayout, isNull);
+        expect(result.printObject!.localSystemLayout, isNull);
+        expect(result.printObject!.localStaffLayouts, isEmpty);
+      });
+
+      test('parses print element with mixed content (attributes and local layouts)', () {
+        final xmlString = '''
+        <measure number="7">
+          <print new-page="yes" new-system="no">
+            <page-layout><page-width>1000</page-width></page-layout>
+            <staff-layout number="1"><staff-distance>75</staff-distance></staff-layout>
+          </print>
+          <note><rest/><duration>4</duration></note>
+        </measure>
+        ''';
+        when(mockNoteParser.parse(any, any, any, any)).thenReturn(Note(duration: Duration(value: 4, divisions: 1), isRest: true));
+        final element = XmlDocument.parse(xmlString).rootElement;
+        final result = measureParser.parse(element, 'P1');
+
+        expect(result.printObject, isNotNull);
+        expect(result.printObject!.newPage, isTrue);
+        expect(result.printObject!.newSystem, isFalse);
+        expect(result.printObject!.localPageLayout, isNotNull);
+        expect(result.printObject!.localPageLayout!.pageWidth, 1000);
+        expect(result.printObject!.localSystemLayout, isNull);
+        expect(result.printObject!.localStaffLayouts, hasLength(1));
+        expect(result.printObject!.localStaffLayouts[0].staffDistance, 75);
+        expect(result.notes, hasLength(1));
+      });
 
     });
   });
