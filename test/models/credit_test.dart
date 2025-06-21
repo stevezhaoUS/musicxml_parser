@@ -1,5 +1,4 @@
 import 'package:musicxml_parser/src/models/credit.dart'; // Adjust import as needed
-import 'package:collection/collection.dart'; // For DeepCollectionEquality
 import 'package:test/test.dart';
 
 void main() {

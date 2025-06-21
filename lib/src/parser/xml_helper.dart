@@ -128,4 +128,23 @@ class XmlHelper {
     final text = element.innerText.trim();
     return double.tryParse(text);
   }
+
+  /// Gets the text content of an element as a boolean.
+  ///
+  /// Returns `true` if the text is "yes" (case-insensitive).
+  /// Returns `false` if the text is "no" (case-insensitive).
+  /// Returns `defaultValue` (which is `false` if not specified) for any other text,
+  /// or if the element is null or its text is empty.
+  static bool getElementTextAsBool(XmlElement? element, {bool defaultValue = false}) {
+    if (element == null) return defaultValue;
+
+    final text = element.innerText.trim().toLowerCase();
+    if (text == 'yes') {
+      return true;
+    }
+    if (text == 'no') {
+      return false;
+    }
+    return defaultValue;
+  }
 }

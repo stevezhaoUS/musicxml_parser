@@ -11,7 +11,6 @@ import 'package:musicxml_parser/src/models/score.dart';
 import 'package:musicxml_parser/src/parser/score_parser.dart';
 import 'package:musicxml_parser/src/utils/warning_system.dart';
 import 'package:xml/xml.dart';
-import 'package:xml/xml_events.dart';
 
 /// The main parser class for MusicXML files.
 ///

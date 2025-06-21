@@ -1,10 +1,6 @@
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 
-import 'package:musicxml_parser/src/models/articulation.dart'; // Added for Articulation tests
-import 'package:musicxml_parser/src/models/slur.dart'; // Added for Slur tests
-import 'package:musicxml_parser/src/models/tie.dart'; // Added for Tie tests
-import 'package:musicxml_parser/src/models/time_modification.dart'; // Added for TimeModification tests
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/parser/note_parser.dart';
@@ -401,7 +397,7 @@ void main() {
 
         expect(result, isNotNull);
         expect(result!.duration, isNotNull);
-        expect(result!.duration!.divisions, equals(1));
+        expect(result.duration!.divisions, equals(1));
 
         final warnings = warningSystem.getWarningsByCategory('note_divisions');
         expect(warnings, isNotEmpty);
@@ -426,7 +422,7 @@ void main() {
 
         expect(result, isNotNull);
         expect(result!.duration, isNotNull);
-        expect(result!.duration!.divisions, equals(1));
+        expect(result.duration!.divisions, equals(1));
 
         final warnings = warningSystem.getWarningsByCategory('note_divisions');
         expect(warnings, isNotEmpty);
@@ -449,7 +445,7 @@ void main() {
 
         expect(result, isNotNull);
         expect(result!.duration, isNotNull);
-        expect(result!.duration!.divisions, equals(1));
+        expect(result.duration!.divisions, equals(1));
 
         final warnings = warningSystem.getWarningsByCategory('note_divisions');
         expect(warnings, isNotEmpty);
@@ -807,7 +803,9 @@ void main() {
         expect(result.timeModification!.normalDotCount, equals(2));
       });
 
-      test('throws MusicXmlStructureException if tuplet is missing actual-notes', () {
+      test(
+          'throws MusicXmlStructureException if tuplet is missing actual-notes',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch><step>F</step><octave>4</octave></pitch>
@@ -821,10 +819,14 @@ void main() {
         expect(
             () => noteParser.parse(element, 480, 'P1', '1'),
             throwsA(isA<MusicXmlStructureException>().having(
-                (e) => e.message, 'message', '<time-modification> is missing <actual-notes> element')));
+                (e) => e.message,
+                'message',
+                '<time-modification> is missing <actual-notes> element')));
       });
 
-      test('throws MusicXmlStructureException if tuplet actual-notes is non-integer', () {
+      test(
+          'throws MusicXmlStructureException if tuplet actual-notes is non-integer',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch><step>G</step><octave>4</octave></pitch>
@@ -838,11 +840,13 @@ void main() {
         final element = xml.rootElement;
         expect(
             () => noteParser.parse(element, 480, 'P1', '1'),
-            throwsA(isA<MusicXmlStructureException>().having(
-                (e) => e.message, 'message', '<actual-notes> must contain an integer value')));
+            throwsA(isA<MusicXmlStructureException>().having((e) => e.message,
+                'message', '<actual-notes> must contain an integer value')));
       });
 
-      test('throws MusicXmlStructureException if tuplet is missing normal-notes', () {
+      test(
+          'throws MusicXmlStructureException if tuplet is missing normal-notes',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch><step>F</step><octave>4</octave></pitch>
@@ -856,10 +860,14 @@ void main() {
         expect(
             () => noteParser.parse(element, 480, 'P1', '1'),
             throwsA(isA<MusicXmlStructureException>().having(
-                (e) => e.message, 'message', '<time-modification> is missing <normal-notes> element')));
+                (e) => e.message,
+                'message',
+                '<time-modification> is missing <normal-notes> element')));
       });
 
-      test('throws MusicXmlStructureException if tuplet normal-notes is non-integer', () {
+      test(
+          'throws MusicXmlStructureException if tuplet normal-notes is non-integer',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch><step>G</step><octave>4</octave></pitch>
@@ -873,11 +881,13 @@ void main() {
         final element = xml.rootElement;
         expect(
             () => noteParser.parse(element, 480, 'P1', '1'),
-            throwsA(isA<MusicXmlStructureException>().having(
-                (e) => e.message, 'message', '<normal-notes> must contain an integer value')));
+            throwsA(isA<MusicXmlStructureException>().having((e) => e.message,
+                'message', '<normal-notes> must contain an integer value')));
       });
 
-      test('handles invalid actual-notes value (zero) by warning and nullifying timeModification', () {
+      test(
+          'handles invalid actual-notes value (zero) by warning and nullifying timeModification',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch><step>A</step><octave>4</octave></pitch>
@@ -892,15 +902,21 @@ void main() {
         final result = noteParser.parse(element, 480, 'P1', '1');
 
         expect(result, isNotNull);
-        expect(result!.timeModification, isNull); // Should be null due to validation failure being caught
+        expect(result!.timeModification,
+            isNull); // Should be null due to validation failure being caught
 
-        final warnings = warningSystem.getWarningsByCategory('time_modification_validation');
+        final warnings =
+            warningSystem.getWarningsByCategory('time_modification_validation');
         expect(warnings, isNotEmpty);
-        expect(warnings.first.message, contains('TimeModification actualNotes must be positive, got 0'));
-        expect(warnings.first.rule, equals('time_modification_actual_notes_positive'));
+        expect(warnings.first.message,
+            contains('TimeModification actualNotes must be positive, got 0'));
+        expect(warnings.first.rule,
+            equals('time_modification_actual_notes_positive'));
       });
 
-      test('handles invalid normal-notes value (zero) by warning and nullifying timeModification', () {
+      test(
+          'handles invalid normal-notes value (zero) by warning and nullifying timeModification',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch><step>B</step><octave>4</octave></pitch>
@@ -917,15 +933,23 @@ void main() {
         expect(result, isNotNull);
         expect(result!.timeModification, isNull);
 
-        final warnings = warningSystem.getWarningsByCategory('time_modification_validation');
+        final warnings =
+            warningSystem.getWarningsByCategory('time_modification_validation');
         expect(warnings, isNotEmpty);
-        expect(warnings.first.message, contains('TimeModification normalNotes must be positive, got 0'));
-        expect(warnings.first.rule, equals('time_modification_normal_notes_positive'));
+        expect(warnings.first.message,
+            contains('TimeModification normalNotes must be positive, got 0'));
+        expect(warnings.first.rule,
+            equals('time_modification_normal_notes_positive'));
       });
 
-       test('handles invalid normal-dot-count value (-1) by warning and nullifying timeModification', () {
-        final xml = XmlDocument.parse('''
-          <note>
+      test(
+          'handles invalid normal-dot-count value (-1) by warning and nullifying timeModification',
+          () {
+        // The test for negative normal-dot-count was re-scoped as the parser cannot produce it.
+        // This test now verifies correct parsing of a single normal-dot.
+        // Original unused 'xml' variable related to the old test scope is removed.
+        final xml_single_dot = XmlDocument.parse('''
+           <note>
             <pitch><step>C</step><octave>5</octave></pitch>
             <duration>320</duration>
             <time-modification>
@@ -943,36 +967,14 @@ void main() {
             </time-modification>
           </note>
         ''');
-        // Re-scope: The parser counts <normal-dot/>, so it can't produce a negative normalDotCount.
-        // The validation for normalDotCount < 0 in TimeModification.validated is for programmatic creation.
-        // This test should instead verify correct parsing of valid normal-dot count.
-        // The existing test 'parses note with tuplet specifying normal-dot elements' covers this.
-        // So, we can remove this specific negative test for normal-dot-count *through the parser*,
-        // as it's not a scenario the parser would create.
-        // Let's ensure the positive case is well-tested.
-        // The test 'parses note with tuplet specifying normal-dot elements' handles normalDotCount == 2.
-        // A test for normalDotCount == 0 (no <normal-dot/> elements) is implicitly covered by 'parses note with basic tuplet (3 over 2)'
-        // where normalDotCount is null.
-        // A test for normalDotCount == 1 is also useful.
-        final xml_single_dot = XmlDocument.parse('''
-           <note>
-            <pitch><step>C</step><octave>5</octave></pitch>
-            <duration>320</duration>
-            <time-modification>
-              <actual-notes>3</actual-notes>
-              <normal-notes>2</normal-notes>
-              <normal-dot/>
-            </time-modification>
-          </note>
-        ''');
+
         final element_single_dot = xml_single_dot.rootElement;
-        final result_single_dot = noteParser.parse(element_single_dot, 480, 'P1', '1');
+        final result_single_dot =
+            noteParser.parse(element_single_dot, 480, 'P1', '1');
         expect(result_single_dot, isNotNull);
         expect(result_single_dot!.timeModification, isNotNull);
         expect(result_single_dot.timeModification!.normalDotCount, equals(1));
-
       });
-
     });
 
     group('slur parsing (from <notations>)', () {
@@ -1002,7 +1004,8 @@ void main() {
         final element = xml.rootElement;
         final result = noteParser.parse(element, 480, 'P1', '1');
         expect(result, isNotNull);
-        expect(result!.slurs, isNull); // Parser logic sets to null if foundSlurs is empty
+        expect(result!.slurs,
+            isNull); // Parser logic sets to null if foundSlurs is empty
       });
 
       test('parses note with a single slur (start)', () {
@@ -1071,7 +1074,9 @@ void main() {
         expect(result.slurs![0].placement, isNull);
       });
 
-      test('throws MusicXmlStructureException if slur is missing type attribute', () {
+      test(
+          'throws MusicXmlStructureException if slur is missing type attribute',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch><step>A</step><octave>4</octave></pitch>
@@ -1136,7 +1141,8 @@ void main() {
         final element = xml.rootElement;
         final result = noteParser.parse(element, 480, 'P1', '1');
         expect(result, isNotNull);
-        expect(result!.articulations, isNull); // Parser logic sets to null if found list is empty
+        expect(result!.articulations,
+            isNull); // Parser logic sets to null if found list is empty
       });
 
       test('parses note with a single articulation (accent)', () {
@@ -1263,7 +1269,8 @@ void main() {
         expect(result.ties![0].placement, isNull);
       });
 
-      test('parses note with a <tied type="stop" placement="above"/> element', () {
+      test('parses note with a <tied type="stop" placement="above"/> element',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch><step>D</step><octave>4</octave></pitch>
@@ -1322,7 +1329,8 @@ void main() {
         expect(result.ties![0].type, equals('continue'));
       });
 
-      test('<tied> missing type attribute logs warning and note has no ties', () {
+      test('<tied> missing type attribute logs warning and note has no ties',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch><step>F</step><octave>4</octave></pitch>
@@ -1335,14 +1343,19 @@ void main() {
         final element = xml.rootElement;
         final result = noteParser.parse(element, 480, 'P1', '1');
         expect(result, isNotNull);
-        expect(result!.ties, isNull); // Or isEmpty, depending on parser strictness with warnings
+        expect(result!.ties,
+            isNull); // Or isEmpty, depending on parser strictness with warnings
 
-        final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+        final warnings =
+            warningSystem.getWarningsByCategory(WarningCategories.structure);
         expect(warnings, hasLength(1));
-        expect(warnings.first.message, contains('<tied> element has invalid or missing "type" attribute'));
+        expect(warnings.first.message,
+            contains('<tied> element has invalid or missing "type" attribute'));
       });
 
-      test('<tied> with invalid type attribute logs warning and note has no ties', () {
+      test(
+          '<tied> with invalid type attribute logs warning and note has no ties',
+          () {
         final xml = XmlDocument.parse('''
           <note>
             <pitch><step>G</step><octave>4</octave></pitch>
@@ -1357,9 +1370,11 @@ void main() {
         expect(result, isNotNull);
         expect(result!.ties, isNull); // Or isEmpty
 
-        final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+        final warnings =
+            warningSystem.getWarningsByCategory(WarningCategories.structure);
         expect(warnings, hasLength(1));
-        expect(warnings.first.message, contains('<tied> element has invalid or missing "type" attribute'));
+        expect(warnings.first.message,
+            contains('<tied> element has invalid or missing "type" attribute'));
         expect(warnings.first.message, contains('Found: "invalid-type"'));
       });
     });
