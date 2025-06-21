@@ -1,5 +1,6 @@
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart';
 import 'package:musicxml_parser/src/models/appearance.dart';
+import 'package:musicxml_parser/src/models/credit.dart'; // Import for Credit
 import 'package:musicxml_parser/src/models/identification.dart';
 import 'package:musicxml_parser/src/models/page_layout.dart';
 import 'package:musicxml_parser/src/models/score.dart';
@@ -112,6 +113,38 @@ class ScoreParser {
       identification = Identification(composer: composer);
     }
 
+    // Parse credits
+    List<Credit> parsedCredits = [];
+    final creditElements = element.findElements('credit');
+    for (final creditElement in creditElements) {
+      String? pageStr = creditElement.getAttribute('page');
+      int? page = (pageStr != null && pageStr.isNotEmpty ? int.tryParse(pageStr) : null);
+
+      XmlElement? creditTypeElement = creditElement.findElements('credit-type').firstOrNull;
+      String? creditType = creditTypeElement?.innerText.trim();
+
+      List<String> creditWordsList = [];
+      final creditWordsElements = creditElement.findElements('credit-words');
+      for (final wordsElement in creditWordsElements) {
+        final text = wordsElement.innerText.trim();
+        if (text.isNotEmpty) {
+            creditWordsList.add(text);
+        }
+      }
+      // Only add credit if it has some content (either type or words)
+      // This avoids adding empty Credit objects if a <credit> tag is empty or only has a page number.
+      if ((creditType != null && creditType.isNotEmpty) || creditWordsList.isNotEmpty) {
+         parsedCredits.add(Credit(page: page, creditType: creditType, creditWords: creditWordsList));
+      } else if (page != null) {
+        // If only a page number is present with no other content, we might still want to record it,
+        // or log a warning if such a credit is considered incomplete.
+        // For now, let's add it if it has a page, even if type/words are empty.
+        // Alternatively, one could decide that a credit needs at least a type or some words.
+        // The current Credit model defaults creditWords to const [], so an empty list is fine.
+         parsedCredits.add(Credit(page: page, creditType: creditType, creditWords: creditWordsList));
+      }
+    }
+
     return Score(
       version: version ?? "3.0", // Default to "3.0" if version is not specified
       work: work,
@@ -122,6 +155,7 @@ class ScoreParser {
       appearance: appearance,
       title: title,       // Pass the parsed title directly
       composer: composer, // Pass the parsed composer directly
+      credits: parsedCredits.isNotEmpty ? parsedCredits : null,
     );
   }
 

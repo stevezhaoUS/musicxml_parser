@@ -132,8 +132,8 @@ This document tracks the current implementation status of MusicXML features in t
 ### Credits
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<credit>` | ❌ | Planned for v0.3.0 |
-| `<credit-words>` | ❌ | Planned for v0.3.0 |
+| `<credit>` | ✅ | Parses `page` attribute, `<credit-type>` child, and `<credit-words>` children. |
+| `<credit-words>` | ✅ | Parsed as text content of `<credit-words>` elements within a `<credit>`. |
 | `<credit-image>` | ❌ | Low priority |
 
 ## Instruments and MIDI
@@ -199,6 +199,7 @@ This document tracks the current implementation status of MusicXML features in t
 - ✅ Repeat structures (<barline> repeats, <ending> elements)
 - 🚧 Backup/forward elements (basic parsing implemented, duration recognized; full timeline impact pending)
 - Part grouping
+- ✅ Credits (`<credit>`, `<credit-words>`, `<credit-type>` basic parsing)
 
 ### v0.4.0
 - Grace notes and ornaments
