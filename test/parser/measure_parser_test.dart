@@ -5,7 +5,9 @@ import 'package:xml/xml.dart';
 
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart'; // Added for backup/forward tests
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
+import 'package:musicxml_parser/src/models/barline.dart'; // Added for Barline tests
 import 'package:musicxml_parser/src/models/duration.dart';
+import 'package:musicxml_parser/src/models/ending.dart'; // Added for Ending tests
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
@@ -757,6 +759,176 @@ void main() {
         expect(warnings.first.message, contains('Encountered <forward> with duration 0'));
         expect(warnings.first.context?['element'], 'forward');
         expect(warnings.first.context?['duration'], 0);
+      });
+    });
+
+    group('barline and ending parsing', () {
+      setUp(() {
+        warningSystem = WarningSystem();
+        // Using real NoteParser and AttributesParser for simplicity in these tests,
+        // as mocking their interactions for every measure structure can be complex.
+        // Alternatively, ensure existing mocks provide basic valid objects if notes/attributes are in test XML.
+        // The existing mock setup for backup/forward tests might be sufficient if notes are simple.
+        mockNoteParser = MockNoteParser();
+        mockAttributesParser = MockAttributesParser();
+        measureParser = MeasureParser(
+            noteParser: mockNoteParser,
+            attributesParser: mockAttributesParser,
+            warningSystem: warningSystem);
+
+        // Default mock behaviors
+        when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': 1});
+        when(mockNoteParser.parse(any, any, any, any)).thenAnswer((_) => null); // Default to no notes unless specified by test
+      });
+
+      test('parses measure with no explicit barlines or endings', () {
+        final xml = XmlDocument.parse('<measure number="1"><note><duration>4</duration></note></measure>');
+        when(mockNoteParser.parse(any, any, any, any)).thenReturn(Note(duration: Duration(value: 4, divisions: 1), isRest: true));
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.barlines, isNull);
+        expect(result.ending, isNull);
+      });
+
+      test('parses simple barline', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <barline location="right">
+              <bar-style>light-heavy</bar-style>
+            </barline>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.barlines, isNotNull);
+        expect(result.barlines, hasLength(1));
+        expect(result.barlines![0].location, 'right');
+        expect(result.barlines![0].barStyle, 'light-heavy');
+        expect(result.barlines![0].repeatDirection, isNull);
+        expect(result.barlines![0].times, isNull);
+      });
+
+      test('parses forward repeat barline', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <barline location="right">
+              <bar-style>heavy-light</bar-style>
+              <repeat direction="forward"/>
+            </barline>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.barlines, isNotNull);
+        expect(result.barlines, hasLength(1));
+        expect(result.barlines![0].barStyle, 'heavy-light');
+        expect(result.barlines![0].repeatDirection, 'forward');
+      });
+
+      test('parses backward repeat barline with times', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <barline location="left">
+              <repeat direction="backward" times="2"/>
+            </barline>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.barlines, isNotNull);
+        expect(result.barlines, hasLength(1));
+        expect(result.barlines![0].location, 'left');
+        expect(result.barlines![0].repeatDirection, 'backward');
+        expect(result.barlines![0].times, 2);
+      });
+
+      test('parses multiple barlines', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <barline location="left"><bar-style>heavy-light</bar-style><repeat direction="forward"/></barline>
+            <note><pitch><step>C</step><octave>4</octave></pitch><duration>4</duration></note>
+            <barline location="right"><bar-style>light-heavy</bar-style><repeat direction="backward"/></barline>
+          </measure>
+        ''');
+         when(mockNoteParser.parse(any, any, any, any)).thenReturn(Note(pitch: Pitch(step: 'C', octave: 4), duration: Duration(value: 4, divisions: 1),isRest: false));
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.barlines, isNotNull);
+        expect(result.barlines, hasLength(2));
+        expect(result.barlines![0].location, 'left');
+        expect(result.barlines![0].repeatDirection, 'forward');
+        expect(result.barlines![1].location, 'right');
+        expect(result.barlines![1].repeatDirection, 'backward');
+      });
+
+      test('parses ending with attributes (MusicXML 3.0+ style)', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <ending number="1" type="start" print-object="no"/>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.ending, isNotNull);
+        expect(result.ending!.number, '1');
+        expect(result.ending!.type, 'start');
+        expect(result.ending!.printObject, 'no');
+      });
+
+      test('parses ending with text number (MusicXML 2.0 style)', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <ending type="stop">2</ending>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.ending, isNotNull);
+        expect(result.ending!.number, '2');
+        expect(result.ending!.type, 'stop');
+        expect(result.ending!.printObject, 'yes'); // Default
+      });
+
+      test('parses ending with default print-object', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <ending number="1,3" type="discontinue"/>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.ending, isNotNull);
+        expect(result.ending!.number, '1,3');
+        expect(result.ending!.type, 'discontinue');
+        expect(result.ending!.printObject, 'yes');
+      });
+
+      test('handles invalid ending (missing type), logs warning', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <ending number="1"/>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.ending, isNull);
+        final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+        expect(warnings, hasLength(1));
+        expect(warnings.first.message, contains('Incomplete <ending> element'));
+      });
+
+      test('handles invalid ending (missing number), logs warning', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <ending type="start"/>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.ending, isNull);
+        final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+        expect(warnings, hasLength(1));
+        expect(warnings.first.message, contains('Incomplete <ending> element'));
       });
     });
   });
