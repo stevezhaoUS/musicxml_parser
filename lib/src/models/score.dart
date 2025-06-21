@@ -1,5 +1,7 @@
 import 'package:meta/meta.dart';
+import 'package:collection/collection.dart'; // For DeepCollectionEquality
 import 'package:musicxml_parser/src/models/appearance.dart';
+import 'package:musicxml_parser/src/models/credit.dart'; // Import for Credit
 import 'package:musicxml_parser/src/models/identification.dart';
 import 'package:musicxml_parser/src/models/page_layout.dart';
 import 'package:musicxml_parser/src/models/part.dart';
@@ -35,6 +37,9 @@ class Score {
   /// The composer of the score.
   final String? composer;
 
+  /// A list of credits for the score.
+  final List<Credit>? credits;
+
   /// Creates a new [Score] instance.
   const Score({
     required this.version,
@@ -46,6 +51,7 @@ class Score {
     this.appearance,
     this.title,
     this.composer,
+    this.credits,
   });
 
   @override
@@ -56,24 +62,26 @@ class Score {
           version == other.version &&
           work == other.work &&
           identification == other.identification &&
-          parts == other.parts &&
+          const DeepCollectionEquality().equals(parts, other.parts) && // parts is List<Part>
           pageLayout == other.pageLayout &&
           scaling == other.scaling &&
           appearance == other.appearance &&
           title == other.title &&
-          composer == other.composer;
+          composer == other.composer &&
+          const DeepCollectionEquality().equals(credits, other.credits);
 
   @override
   int get hashCode =>
       version.hashCode ^
       (work?.hashCode ?? 0) ^
       (identification?.hashCode ?? 0) ^
-      parts.hashCode ^
+      const DeepCollectionEquality().hash(parts) ^ // parts is List<Part>
       (pageLayout?.hashCode ?? 0) ^
       (scaling?.hashCode ?? 0) ^
       (appearance?.hashCode ?? 0) ^
       (title?.hashCode ?? 0) ^
-      (composer?.hashCode ?? 0);
+      (composer?.hashCode ?? 0) ^
+      (credits != null ? const DeepCollectionEquality().hash(credits!) : 0);
 
   @override
   String toString() {
@@ -90,7 +98,11 @@ class Score {
     if (identification != null) {
       buffer.write(', identification: $identification');
     }
-    buffer.write(', parts: ${parts.length}}');
+    buffer.write(', parts: ${parts.length}');
+    if (credits != null && credits!.isNotEmpty) {
+      buffer.write(', credits: ${credits!.length}');
+    }
+    buffer.write('}');
     return buffer.toString();
   }
 }

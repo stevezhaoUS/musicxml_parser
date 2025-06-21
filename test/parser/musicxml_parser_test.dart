@@ -1,4 +1,5 @@
 import 'package:musicxml_parser/src/exceptions/invalid_musicxml_exception.dart';
+import 'package:musicxml_parser/src/models/credit.dart'; // Added for Credit tests
 import 'package:musicxml_parser/src/models/score.dart';
 import 'package:musicxml_parser/src/parser/musicxml_parser.dart';
 import 'package:test/test.dart';
@@ -89,6 +90,139 @@ void main() {
       const nonMusicXml = '<root><child>This is not MusicXML</child></root>';
       expect(() => parser.parse(nonMusicXml),
           throwsA(isA<InvalidMusicXmlException>()));
+    });
+
+    group('credit parsing', () {
+      test('parses score with no <credit> elements', () {
+        const xmlString = '''
+          <score-partwise version="3.1">
+            <part-list><score-part id="P1"><part-name>Part</part-name></score-part></part-list>
+            <part id="P1"><measure number="1"><note><rest/><duration>4</duration></note></measure></part>
+          </score-partwise>
+        ''';
+        final score = parser.parse(xmlString);
+        expect(score.credits, isNull);
+      });
+
+      test('parses score with a single, simple <credit> (credit-words only)', () {
+        const xmlString = '''
+          <score-partwise version="3.1">
+            <credit><credit-words>Copyright 2023</credit-words></credit>
+            <part-list><score-part id="P1"><part-name>Part</part-name></score-part></part-list>
+            <part id="P1"><measure number="1"><note><rest/><duration>4</duration></note></measure></part>
+          </score-partwise>
+        ''';
+        final score = parser.parse(xmlString);
+        expect(score.credits, isNotNull);
+        expect(score.credits, hasLength(1));
+        expect(score.credits![0].creditWords, equals(['Copyright 2023']));
+        expect(score.credits![0].page, isNull);
+        expect(score.credits![0].creditType, isNull);
+      });
+
+      test('parses score with a <credit> having page and <credit-type>', () {
+        const xmlString = '''
+          <score-partwise version="3.1">
+            <credit page="1">
+              <credit-type>title</credit-type>
+              <credit-words>My Awesome Score</credit-words>
+            </credit>
+            <part-list><score-part id="P1"><part-name>Part</part-name></score-part></part-list>
+            <part id="P1"><measure number="1"><note><rest/><duration>4</duration></note></measure></part>
+          </score-partwise>
+        ''';
+        final score = parser.parse(xmlString);
+        expect(score.credits, isNotNull);
+        expect(score.credits, hasLength(1));
+        final credit = score.credits![0];
+        expect(credit.page, 1);
+        expect(credit.creditType, 'title');
+        expect(credit.creditWords, equals(['My Awesome Score']));
+      });
+
+      test('parses score with a <credit> having multiple <credit-words>', () {
+        const xmlString = '''
+          <score-partwise version="3.1">
+            <credit>
+              <credit-type>composer</credit-type>
+              <credit-words>John Doe</credit-words>
+              <credit-words>Arr. Jane Smith</credit-words>
+            </credit>
+            <part-list><score-part id="P1"><part-name>Part</part-name></score-part></part-list>
+            <part id="P1"><measure number="1"><note><rest/><duration>4</duration></note></measure></part>
+          </score-partwise>
+        ''';
+        final score = parser.parse(xmlString);
+        expect(score.credits, isNotNull);
+        expect(score.credits, hasLength(1));
+        final credit = score.credits![0];
+        expect(credit.creditType, 'composer');
+        expect(credit.creditWords, equals(['John Doe', 'Arr. Jane Smith']));
+      });
+
+      test('parses score with multiple <credit> elements', () {
+        const xmlString = '''
+          <score-partwise version="3.1">
+            <credit page="1"><credit-type>title</credit-type><credit-words>Main Title</credit-words></credit>
+            <credit><credit-type>composer</credit-type><credit-words>The Composer</credit-words></credit>
+            <part-list><score-part id="P1"><part-name>Part</part-name></score-part></part-list>
+            <part id="P1"><measure number="1"><note><rest/><duration>4</duration></note></measure></part>
+          </score-partwise>
+        ''';
+        final score = parser.parse(xmlString);
+        expect(score.credits, isNotNull);
+        expect(score.credits, hasLength(2));
+
+        final credit1 = score.credits![0];
+        expect(credit1.page, 1);
+        expect(credit1.creditType, 'title');
+        expect(credit1.creditWords, equals(['Main Title']));
+
+        final credit2 = score.credits![1];
+        expect(credit2.page, isNull);
+        expect(credit2.creditType, 'composer');
+        expect(credit2.creditWords, equals(['The Composer']));
+      });
+
+      test('parses score with an "empty" <credit> (no type or words, no page) - should be skipped', () {
+        const xmlString = '''
+          <score-partwise version="3.1">
+            <credit></credit>
+            <part-list><score-part id="P1"><part-name>Part</part-name></score-part></part-list>
+            <part id="P1"><measure number="1"><note><rest/><duration>4</duration></note></measure></part>
+          </score-partwise>
+        ''';
+        final score = parser.parse(xmlString);
+        expect(score.credits, isNull);
+      });
+
+      test('parses score with <credit> having only empty <credit-type> - should be skipped', () {
+        const xmlString = '''
+          <score-partwise version="3.1">
+            <credit><credit-type></credit-type></credit>
+            <part-list><score-part id="P1"><part-name>Part</part-name></score-part></part-list>
+            <part id="P1"><measure number="1"><note><rest/><duration>4</duration></note></measure></part>
+          </score-partwise>
+        ''';
+        final score = parser.parse(xmlString);
+        expect(score.credits, isNull);
+      });
+
+      test('parses score with <credit> having only page number - should be included', () {
+        const xmlString = '''
+          <score-partwise version="3.1">
+            <credit page="3"></credit>
+            <part-list><score-part id="P1"><part-name>Part</part-name></score-part></part-list>
+            <part id="P1"><measure number="1"><note><rest/><duration>4</duration></note></measure></part>
+          </score-partwise>
+        ''';
+        final score = parser.parse(xmlString);
+        expect(score.credits, isNotNull);
+        expect(score.credits, hasLength(1));
+        expect(score.credits![0].page, equals(3));
+        expect(score.credits![0].creditType, isNull);
+        expect(score.credits![0].creditWords, isEmpty);
+      });
     });
   });
 }
