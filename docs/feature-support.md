@@ -18,7 +18,7 @@ This document tracks the current implementation status of MusicXML features in t
 | `<score-partwise>` | ✅ | Primary format support |
 | `<score-timewise>` | 🚧 | Basic parsing, needs more testing |
 | Version detection (3.0/3.1/4.0) | ✅ | Automatic detection |
-| Compressed (.mxl) files | ⏳ | Planned for v0.2.0, High Priority |
+| Compressed (.mxl) files | ✅ | Fully Supported. |
 
 ### Parts and Measures
 | Feature | Status | Notes |
@@ -76,9 +76,9 @@ This document tracks the current implementation status of MusicXML features in t
 ### Text and Lyrics
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<lyric>` | ⏳ | Planned for v0.2.0, High Priority (was future version) |
-| Syllabic types | ⏳ | Planned for v0.2.0 (with Lyrics), High Priority |
-| Multiple verses | ⏳ | Planned for v0.2.0 (with Lyrics), High Priority |
+| `<lyric>` | ⏳ | Planned for v0.5.0 (was v0.2.0), Lower Priority |
+| Syllabic types | ⏳ | Planned for v0.5.0 (with Lyrics), Lower Priority |
+| Multiple verses | ⏳ | Planned for v0.5.0 (with Lyrics), Lower Priority |
 | `<words>` (directions) | ⏳ | Planned for v0.2.0 (was v0.4.0), e.g., Allegro, Andante. High Priority. |
 | `<rehearsal>` marks | ⏳ | Planned for v0.3.0 (was v0.4.0), High Priority |
 
@@ -190,8 +190,7 @@ This document tracks the current implementation status of MusicXML features in t
 ## Development Roadmap
 
 ### v0.2.0 (Current Focus - High Priority Basic Features)
-- **Compressed file (.mxl) support (High Priority)**
-- **`<lyric>`, Syllabic types, Multiple verses (High Priority)**
+- ✅ **Compressed file (.mxl) support (Now Fully Supported!)**
 - **`<words>` (directions, e.g., Allegro, Andante) (High Priority)**
 - ✅ Basic tuplet support (parses `<time-modification>`)
 - Enhanced error handling
@@ -218,6 +217,7 @@ This document tracks the current implementation status of MusicXML features in t
 - Cue notes (was v0.4.0, lower priority)
 
 ### v0.5.0 (Advanced and Specific Features)
+- **`<lyric>`, Syllabic types, Multiple verses (Lower Priority)**
 - Percussion notation
 - Percussion clef
 - Advanced articulations (specific less common ones)
