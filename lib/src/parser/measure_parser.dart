@@ -1,6 +1,8 @@
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart'; // Added for backup/forward
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
+import 'package:musicxml_parser/src/models/barline.dart'; // Import for Barline
 import 'package:musicxml_parser/src/models/beam.dart';
+import 'package:musicxml_parser/src/models/ending.dart'; // Import for Ending
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/measure.dart';
 import 'package:musicxml_parser/src/models/note.dart';
@@ -101,7 +103,9 @@ class MeasureParser {
     var keySignature = inheritedKeySignature;
     var timeSignature = inheritedTimeSignature;
     final notes = <Note>[];
-    final beams = <Beam>[]; // beams 列表
+    final beams = <Beam>[];
+    List<Barline> barlinesList = []; // Initialize barlines list
+    Ending? measureEnding; // Initialize measureEnding
 
     // Process measure content
     for (final child in element.childElements) {
@@ -200,6 +204,53 @@ class MeasureParser {
             'line': XmlHelper.getLineNumber(child)
           },
         );
+      } else if (child.name.local == 'barline') {
+        final barlineElement = child;
+        String? location = barlineElement.getAttribute('location');
+        XmlElement? barStyleElement = barlineElement.findElements('bar-style').firstOrNull;
+        String? barStyle = barStyleElement?.innerText.trim();
+        XmlElement? repeatElement = barlineElement.findElements('repeat').firstOrNull;
+        String? repeatDirection;
+        int? repeatTimes;
+        if (repeatElement != null) {
+          repeatDirection = repeatElement.getAttribute('direction');
+          String? timesStr = repeatElement.getAttribute('times');
+          if (timesStr != null && timesStr.isNotEmpty) {
+            repeatTimes = int.tryParse(timesStr);
+          }
+        }
+        barlinesList.add(Barline(
+            location: location,
+            barStyle: barStyle,
+            repeatDirection: repeatDirection,
+            times: repeatTimes));
+      } else if (child.name.local == 'ending') {
+        final endingElement = child;
+        String? endingNumber = endingElement.getAttribute('number');
+        // MusicXML 2.0 stored number as text content. MusicXML 3.0+ uses 'number' attribute.
+        // This prioritizes the attribute if present, then falls back to text content.
+        if (endingNumber == null || endingNumber.isEmpty) {
+            final textContent = endingElement.innerText.trim();
+            if (textContent.isNotEmpty) {
+                endingNumber = textContent;
+            }
+        }
+        String? type = endingElement.getAttribute('type');
+        String? printObject = endingElement.getAttribute('print-object');
+
+        if (endingNumber != null && endingNumber.isNotEmpty && type != null && type.isNotEmpty) {
+          measureEnding = Ending(
+              number: endingNumber,
+              type: type,
+              printObject: printObject ?? "yes");
+        } else {
+          warningSystem.addWarning(
+            'Incomplete <ending> element in measure $number. Missing "number" or "type" attribute, or number text content.',
+            category: WarningCategories.structure, // Using pre-defined category
+            line: XmlHelper.getLineNumber(endingElement),
+            context: {'part': partId, 'measure': number},
+          );
+        }
       }
       // Other elements like direction, etc. can be added here
     }
@@ -216,6 +267,8 @@ class MeasureParser {
       width: width,
       beams: mergedBeams,
       isPickup: isPickup,
+      barlines: barlinesList.isNotEmpty ? barlinesList : null,
+      ending: measureEnding,
     );
   }
 }

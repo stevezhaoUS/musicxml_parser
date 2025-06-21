@@ -96,11 +96,11 @@ This document tracks the current implementation status of MusicXML features in t
 ### Repeats and Navigation
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<repeat>` | ❌ | Planned for v0.3.0 |
-| `<ending>` | ❌ | Planned for v0.3.0 |
+| `<repeat>` | 🚧 | Parsed via `<barline>`: `direction` and `times` attributes of `<repeat>` child element are supported. |
+| `<ending>` | ✅ | Parses `number` (attribute or text), `type`, and `print-object` attributes. |
 | `<segno>` | ❌ | Planned for v0.4.0 |
 | `<coda>` | ❌ | Planned for v0.4.0 |
-| `<barline>` | 🚧 | Basic barline types |
+| `<barline>` | 🚧 | Basic barline types. Now includes parsing of `location`, `<bar-style>` child, and `<repeat>` child (for direction and times). |
 
 ### Page Layout
 | Feature | Status | Notes |
@@ -196,7 +196,7 @@ This document tracks the current implementation status of MusicXML features in t
 
 ### v0.3.0
 - 🚧 Slurs (basic parsing) and 🚧 Articulations (basic parsing of common types)
-- Repeat structures
+- ✅ Repeat structures (<barline> repeats, <ending> elements)
 - 🚧 Backup/forward elements (basic parsing implemented, duration recognized; full timeline impact pending)
 - Part grouping
 
