@@ -6,6 +6,7 @@ import 'package:musicxml_parser/src/models/ending.dart'; // Import for Ending
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
+import 'package:musicxml_parser/src/models/direction_words.dart'; // New import
 
 /// Represents a measure in a musical score.
 @immutable
@@ -37,6 +38,9 @@ class Measure {
   /// Optional repeat ending information for this measure.
   final Ending? ending;
 
+  /// Textual directions (e.g., "Allegro", "Fine") associated with this measure.
+  final List<WordsDirection> wordsDirections;
+
   /// Creates a new [Measure] instance.
   const Measure({
     required this.number,
@@ -48,6 +52,7 @@ class Measure {
     this.beams = const [],
     this.barlines,
     this.ending,
+    this.wordsDirections = const [], // Initialize new field
   });
 
   @override
@@ -56,27 +61,26 @@ class Measure {
       other is Measure &&
           runtimeType == other.runtimeType &&
           number == other.number &&
-          notes == other.notes && // Assuming Note also has correct deep equality for its lists
+          const DeepCollectionEquality().equals(notes, other.notes) && // Deep equality for notes
           keySignature == other.keySignature &&
           timeSignature == other.timeSignature &&
           width == other.width &&
-          const DeepCollectionEquality().equals(beams, other.beams) && // Corrected for beams as well
+          const DeepCollectionEquality().equals(beams, other.beams) &&
           const DeepCollectionEquality().equals(barlines, other.barlines) &&
-          ending == other.ending;
+          ending == other.ending &&
+          const DeepCollectionEquality().equals(wordsDirections, other.wordsDirections); // Add to equality check
 
   @override
   int get hashCode =>
       number.hashCode ^
-      // For lists like notes and beams, need DeepCollectionEquality().hash if deep hash is desired
-      // For simplicity and consistency with previous state, notes.hashCode is used.
-      // Beams was just beams.hashCode, let's make it deep too.
-      notes.hashCode ^
+      const DeepCollectionEquality().hash(notes) ^ // Deep hash for notes
       keySignature.hashCode ^
       timeSignature.hashCode ^
       (width?.hashCode ?? 0) ^
-      const DeepCollectionEquality().hash(beams) ^ // Corrected for beams
+      const DeepCollectionEquality().hash(beams) ^
       (barlines != null ? const DeepCollectionEquality().hash(barlines!) : 0) ^
-      (ending?.hashCode ?? 0);
+      (ending?.hashCode ?? 0) ^
+      const DeepCollectionEquality().hash(wordsDirections); // Add to hash code
 
   @override
   String toString() {
@@ -90,6 +94,7 @@ class Measure {
       if (isPickup) 'pickup',
       if (barlines != null && barlines!.isNotEmpty) 'barlines: $barlines',
       if (ending != null) 'ending: $ending',
+      if (wordsDirections.isNotEmpty) 'wordsDirections: $wordsDirections', // Add to toString
     ];
     return 'Measure{${parts.join(', ')}}';
   }

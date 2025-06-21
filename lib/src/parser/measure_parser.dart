@@ -7,6 +7,7 @@ import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/measure.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
+import 'package:musicxml_parser/src/models/direction_words.dart'; // Import for WordsDirection
 import 'package:musicxml_parser/src/parser/attributes_parser.dart';
 import 'package:musicxml_parser/src/parser/beam_parser.dart';
 import 'package:musicxml_parser/src/parser/note_parser.dart';
@@ -106,6 +107,7 @@ class MeasureParser {
     final beams = <Beam>[];
     List<Barline> barlinesList = []; // Initialize barlines list
     Ending? measureEnding; // Initialize measureEnding
+    final List<WordsDirection> wordsDirections = []; // Initialize list for words directions
 
     // Process measure content
     for (final child in element.childElements) {
@@ -251,6 +253,24 @@ class MeasureParser {
             context: {'part': partId, 'measure': number},
           );
         }
+      } else if (child.name.local == 'direction') {
+        for (final directionTypeElement in child.findElements('direction-type')) {
+          for (final wordsElement in directionTypeElement.findElements('words')) {
+            final text = wordsElement.innerText.trim();
+            if (text.isNotEmpty) {
+              wordsDirections.add(WordsDirection(text: text));
+            } else {
+              warningSystem.addWarning(
+                'Empty <words> element found in direction.',
+                category: WarningCategories.structure,
+                line: XmlHelper.getLineNumber(wordsElement),
+                context: {'part': partId, 'measure': number},
+              );
+            }
+          }
+          // TODO: Handle other direction-type children like <segno>, <coda>, <dynamics> etc. if needed in the future
+        }
+        // TODO: Handle other <direction> children like <offset>, <staff>, <sound> if needed
       }
       // Other elements like direction, etc. can be added here
     }
@@ -269,6 +289,7 @@ class MeasureParser {
       isPickup: isPickup,
       barlines: barlinesList.isNotEmpty ? barlinesList : null,
       ending: measureEnding,
+      wordsDirections: wordsDirections, // Pass the parsed words directions
     );
   }
 }
