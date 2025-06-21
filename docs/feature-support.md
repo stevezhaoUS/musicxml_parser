@@ -105,10 +105,10 @@ This document tracks the current implementation status of MusicXML features in t
 ### Page Layout
 | Feature | Status | Notes |
 |---------|--------|-------|
-| `<page-layout>` | ⏳ | Planned for v0.3.0, High Priority, core layout information. |
-| `<system-layout>` | ⏳ | Planned for v0.3.0, High Priority, system layout details. |
-| `<staff-layout>` | ⏳ | Planned for v0.3.0, High Priority, staff layout details. |
-| `<print>` | ⏳ | Planned for v0.3.0, High Priority, print suggestions (e.g., new page/system, measure numbering). |
+| `<page-layout>` | 🚧 | Partial Support for v0.3.0. Parses page height, width, and margins (both, odd, even). Stored in `Score.pageLayout` (default) and `PrintObject.localPageLayout`. |
+| `<system-layout>` | 🚧 | Partial Support for v0.3.0. Parses system margins, system distance, top system distance, and system dividers. Stored in `Score.defaultSystemLayout` and `PrintObject.localSystemLayout`. |
+| `<staff-layout>` | 🚧 | Partial Support for v0.3.0. Parses staff distance and staff number. Stored in `Score.defaultStaffLayouts` and `PrintObject.localStaffLayouts`. |
+| `<print>` | 🚧 | Partial Support for v0.3.0. Parses `new-page`, `new-system`, `blank-page`, `page-number` attributes. Parses nested `<page-layout>`, `<system-layout>`, `<staff-layout>`. Stored in `Measure.printObject`. |
 
 ## Metadata
 
@@ -196,8 +196,8 @@ This document tracks the current implementation status of MusicXML features in t
 - Enhanced error handling
 
 ### v0.3.0 (Core Musical Elements & Initial Layout Support)
-- **Layout: `<page-layout>`, `<system-layout>`, `<staff-layout>` (High Priority)**
-- **Layout: `<print>` element (new page/system, measure numbering, etc.) (High Priority)**
+- 🚧 **Layout: `<page-layout>`, `<system-layout>`, `<staff-layout>` (Partial Support: Core attributes parsed from `<defaults>` and `<print>`)**
+- 🚧 **Layout: `<print>` element (Partial Support: Attributes like `new-page`, `new-system` and nested layouts parsed)**
 - **Grace notes (High Priority)**
 - **Complex time signatures (High Priority)**
 - **Refine Key signature changes (High Priority)**

@@ -4,8 +4,13 @@ import 'package:musicxml_parser/src/models/credit.dart'; // Import for Credit
 import 'package:musicxml_parser/src/models/identification.dart';
 import 'package:musicxml_parser/src/models/page_layout.dart';
 import 'package:musicxml_parser/src/models/score.dart';
+import 'package:musicxml_parser/src/models/staff_layout.dart'; // New import
+import 'package:musicxml_parser/src/models/system_layout.dart'; // New import
 import 'package:musicxml_parser/src/models/work.dart';
+import 'package:musicxml_parser/src/parser/page_layout_parser.dart'; // New import
 import 'package:musicxml_parser/src/parser/part_parser.dart';
+import 'package:musicxml_parser/src/parser/staff_layout_parser.dart'; // New import
+import 'package:musicxml_parser/src/parser/system_layout_parser.dart'; // New import
 import 'package:musicxml_parser/src/parser/xml_helper.dart';
 import 'package:musicxml_parser/src/utils/warning_system.dart';
 import 'package:xml/xml.dart';
@@ -92,13 +97,32 @@ class ScoreParser {
     // Parse defaults section if it exists
     final defaultsElement = element.getElement('defaults');
     Scaling? scaling;
-    PageLayout? pageLayout;
+    PageLayout? pageLayout; // This will be defaultPageLayout
+    SystemLayout? defaultSystemLayout;
+    List<StaffLayout> defaultStaffLayouts = [];
     Appearance? appearance;
 
     if (defaultsElement != null) {
-      scaling = _parseScaling(defaultsElement);
-      pageLayout = _parsePageLayout(defaultsElement);
-      appearance = _parseAppearance(defaultsElement);
+      final scalingElement = defaultsElement.getElement('scaling');
+      if (scalingElement != null) {
+        scaling = ScalingParser().parse(scalingElement);
+      }
+
+      final pageLayoutElement = defaultsElement.getElement('page-layout');
+      if (pageLayoutElement != null) {
+        pageLayout = PageLayoutParser().parse(pageLayoutElement);
+      }
+
+      final systemLayoutElement = defaultsElement.getElement('system-layout');
+      if (systemLayoutElement != null) {
+        defaultSystemLayout = SystemLayoutParser().parse(systemLayoutElement);
+      }
+
+      for (final staffLayoutElement in defaultsElement.findElements('staff-layout')) {
+        defaultStaffLayouts.add(StaffLayoutParser().parse(staffLayoutElement));
+      }
+
+      appearance = _parseAppearance(defaultsElement); // Keep existing appearance parsing
     }
 
     // Create work object if title is available
@@ -150,103 +174,18 @@ class ScoreParser {
       work: work,
       identification: identification,
       parts: parts,
-      pageLayout: pageLayout,
+      pageLayout: pageLayout, // This is the defaultPageLayout
+      defaultSystemLayout: defaultSystemLayout,
+      defaultStaffLayouts: defaultStaffLayouts,
       scaling: scaling,
       appearance: appearance,
-      title: title,       // Pass the parsed title directly
-      composer: composer, // Pass the parsed composer directly
+      title: title,
+      composer: composer,
       credits: parsedCredits.isNotEmpty ? parsedCredits : null,
     );
   }
 
-  /// Parses the scaling information from the defaults element.
-  Scaling? _parseScaling(XmlElement defaultsElement) {
-    final scalingElement = defaultsElement.getElement('scaling');
-    if (scalingElement == null) return null;
-
-    final millimetersElement = scalingElement.getElement('millimeters');
-    final tenthsElement = scalingElement.getElement('tenths');
-
-    if (millimetersElement == null || tenthsElement == null) return null;
-
-    final millimeters = double.tryParse(millimetersElement.innerText);
-    final tenths = double.tryParse(tenthsElement.innerText);
-
-    if (millimeters == null || tenths == null) return null;
-
-    return Scaling(
-      millimeters: millimeters,
-      tenths: tenths,
-    );
-  }
-
-  /// Parses the page layout information from the defaults element.
-  PageLayout? _parsePageLayout(XmlElement defaultsElement) {
-    final pageLayoutElement = defaultsElement.getElement('page-layout');
-    if (pageLayoutElement == null) return null;
-
-    final pageHeightElement = pageLayoutElement.getElement('page-height');
-    final pageWidthElement = pageLayoutElement.getElement('page-width');
-
-    double? pageHeight;
-    double? pageWidth;
-
-    if (pageHeightElement != null) {
-      pageHeight = double.tryParse(pageHeightElement.innerText);
-    }
-
-    if (pageWidthElement != null) {
-      pageWidth = double.tryParse(pageWidthElement.innerText);
-    }
-
-    PageMargins? evenMargins;
-    PageMargins? oddMargins;
-
-    // Parse margins
-    for (final marginElement
-        in pageLayoutElement.findElements('page-margins')) {
-      final type = marginElement.getAttribute('type');
-
-      final leftMarginElement = marginElement.getElement('left-margin');
-      final rightMarginElement = marginElement.getElement('right-margin');
-      final topMarginElement = marginElement.getElement('top-margin');
-      final bottomMarginElement = marginElement.getElement('bottom-margin');
-
-      if (leftMarginElement == null ||
-          rightMarginElement == null ||
-          topMarginElement == null ||
-          bottomMarginElement == null) {
-        continue;
-      }
-
-      final leftMargin = double.tryParse(leftMarginElement.innerText) ?? 0.0;
-      final rightMargin = double.tryParse(rightMarginElement.innerText) ?? 0.0;
-      final topMargin = double.tryParse(topMarginElement.innerText) ?? 0.0;
-      final bottomMargin =
-          double.tryParse(bottomMarginElement.innerText) ?? 0.0;
-
-      final margins = PageMargins(
-        leftMargin: leftMargin,
-        rightMargin: rightMargin,
-        topMargin: topMargin,
-        bottomMargin: bottomMargin,
-        type: type,
-      );
-
-      if (type == 'even') {
-        evenMargins = margins;
-      } else if (type == 'odd') {
-        oddMargins = margins;
-      }
-    }
-
-    return PageLayout(
-      pageHeight: pageHeight,
-      pageWidth: pageWidth,
-      evenMargins: evenMargins,
-      oddMargins: oddMargins,
-    );
-  }
+  // _parseScaling and _parsePageLayout are no longer needed as we use dedicated parsers.
 
   /// Parses the appearance information from the defaults element.
   Appearance? _parseAppearance(XmlElement defaultsElement) {

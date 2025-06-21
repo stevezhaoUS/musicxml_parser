@@ -1,58 +1,82 @@
 import 'package:meta/meta.dart';
+import 'package:collection/collection.dart';
 
-/// Represents page margins in a MusicXML document.
 @immutable
 class PageMargins {
-  /// The left margin in tenths.
-  final double leftMargin;
+  final String? type; // "odd", "even", "both"
+  final double? leftMargin;
+  final double? rightMargin;
+  final double? topMargin;
+  final double? bottomMargin;
 
-  /// The right margin in tenths.
-  final double rightMargin;
-
-  /// The top margin in tenths.
-  final double topMargin;
-
-  /// The bottom margin in tenths.
-  final double bottomMargin;
-
-  /// The type of margin (even or odd).
-  final String? type;
-
-  /// Creates a new [PageMargins] instance.
   const PageMargins({
-    required this.leftMargin,
-    required this.rightMargin,
-    required this.topMargin,
-    required this.bottomMargin,
     this.type,
+    this.leftMargin,
+    this.rightMargin,
+    this.topMargin,
+    this.bottomMargin,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PageMargins &&
+          runtimeType == other.runtimeType &&
+          type == other.type &&
+          leftMargin == other.leftMargin &&
+          rightMargin == other.rightMargin &&
+          topMargin == other.topMargin &&
+          bottomMargin == other.bottomMargin;
+
+  @override
+  int get hashCode =>
+      type.hashCode ^
+      leftMargin.hashCode ^
+      rightMargin.hashCode ^
+      topMargin.hashCode ^
+      bottomMargin.hashCode;
+
+  @override
+  String toString() {
+    return 'PageMargins{type: $type, leftMargin: $leftMargin, rightMargin: $rightMargin, topMargin: $topMargin, bottomMargin: $bottomMargin}';
+  }
 }
 
-/// Represents page layout information in a MusicXML document.
 @immutable
 class PageLayout {
-  /// The page height in tenths.
   final double? pageHeight;
-
-  /// The page width in tenths.
   final double? pageWidth;
+  final List<PageMargins> pageMargins; // Can have up to 2 (odd/even) or one for "both"
 
-  /// The margins for even-numbered pages.
-  final PageMargins? evenMargins;
-
-  /// The margins for odd-numbered pages.
-  final PageMargins? oddMargins;
-
-  /// Creates a new [PageLayout] instance.
   const PageLayout({
     this.pageHeight,
     this.pageWidth,
-    this.evenMargins,
-    this.oddMargins,
+    this.pageMargins = const [],
   });
+
+   @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PageLayout &&
+          runtimeType == other.runtimeType &&
+          pageHeight == other.pageHeight &&
+          pageWidth == other.pageWidth &&
+          const DeepCollectionEquality().equals(pageMargins, other.pageMargins);
+
+  @override
+  int get hashCode =>
+      pageHeight.hashCode ^
+      pageWidth.hashCode ^
+      const DeepCollectionEquality().hash(pageMargins);
+
+  @override
+  String toString() {
+    return 'PageLayout{pageHeight: $pageHeight, pageWidth: $pageWidth, pageMargins: $pageMargins}';
+  }
 }
 
 /// Represents scaling information in a MusicXML document.
+/// Typically found within <defaults>.
 @immutable
 class Scaling {
   /// The number of millimeters per unit.
@@ -66,4 +90,20 @@ class Scaling {
     required this.millimeters,
     required this.tenths,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Scaling &&
+          runtimeType == other.runtimeType &&
+          millimeters == other.millimeters &&
+          tenths == other.tenths;
+
+  @override
+  int get hashCode => millimeters.hashCode ^ tenths.hashCode;
+
+  @override
+  String toString() {
+    return 'Scaling{millimeters: $millimeters, tenths: $tenths}';
+  }
 }

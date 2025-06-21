@@ -7,8 +7,15 @@ import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/measure.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
-import 'package:musicxml_parser/src/models/direction_words.dart'; // Import for WordsDirection
+import 'package:musicxml_parser/src/models/direction_words.dart';
+import 'package:musicxml_parser/src/models/print_object.dart'; // New import
+import 'package:musicxml_parser/src/models/page_layout.dart'; // For PageLayout in PrintObject
+import 'package:musicxml_parser/src/models/system_layout.dart'; // For SystemLayout in PrintObject
+import 'package:musicxml_parser/src/models/staff_layout.dart'; // For StaffLayout in PrintObject
 import 'package:musicxml_parser/src/parser/attributes_parser.dart';
+import 'package:musicxml_parser/src/parser/page_layout_parser.dart'; // New import
+import 'package:musicxml_parser/src/parser/system_layout_parser.dart'; // New import
+import 'package:musicxml_parser/src/parser/staff_layout_parser.dart'; // New import
 import 'package:musicxml_parser/src/parser/beam_parser.dart';
 import 'package:musicxml_parser/src/parser/note_parser.dart';
 import 'package:musicxml_parser/src/parser/xml_helper.dart';
@@ -105,9 +112,10 @@ class MeasureParser {
     var timeSignature = inheritedTimeSignature;
     final notes = <Note>[];
     final beams = <Beam>[];
-    List<Barline> barlinesList = []; // Initialize barlines list
-    Ending? measureEnding; // Initialize measureEnding
-    final List<WordsDirection> wordsDirections = []; // Initialize list for words directions
+    List<Barline> barlinesList = [];
+    Ending? measureEnding;
+    final List<WordsDirection> wordsDirections = [];
+    PrintObject? printObject; // Initialize PrintObject
 
     // Process measure content
     for (final child in element.childElements) {
@@ -271,6 +279,44 @@ class MeasureParser {
           // TODO: Handle other direction-type children like <segno>, <coda>, <dynamics> etc. if needed in the future
         }
         // TODO: Handle other <direction> children like <offset>, <staff>, <sound> if needed
+      } else if (child.name.local == 'print') {
+        final newPageAttr = child.getAttribute('new-page');
+        final newSystemAttr = child.getAttribute('new-system');
+        final blankPageStr = child.getAttribute('blank-page');
+        final pageNumberStr = child.getAttribute('page-number');
+
+        final newPage = newPageAttr == 'yes';
+        final newSystem = newSystemAttr == 'yes';
+        final blankPage = blankPageStr != null ? int.tryParse(blankPageStr) : null;
+
+        PageLayout? localPageLayout;
+        final pageLayoutElement = child.findElements('page-layout').firstOrNull;
+        if (pageLayoutElement != null) {
+          localPageLayout = PageLayoutParser().parse(pageLayoutElement);
+        }
+
+        SystemLayout? localSystemLayout;
+        final systemLayoutElement = child.findElements('system-layout').firstOrNull;
+        if (systemLayoutElement != null) {
+          localSystemLayout = SystemLayoutParser().parse(systemLayoutElement);
+        }
+
+        List<StaffLayout> localStaffLayouts = [];
+        for (final staffLayoutElement in child.findElements('staff-layout')) {
+          localStaffLayouts.add(StaffLayoutParser().parse(staffLayoutElement));
+        }
+
+        // TODO: Parse <measure-layout> and <measure-numbering> if needed in the future
+
+        printObject = PrintObject(
+          newPage: newPage,
+          newSystem: newSystem,
+          blankPage: blankPage,
+          pageNumber: pageNumberStr,
+          localPageLayout: localPageLayout,
+          localSystemLayout: localSystemLayout,
+          localStaffLayouts: localStaffLayouts,
+        );
       }
       // Other elements like direction, etc. can be added here
     }
@@ -289,7 +335,8 @@ class MeasureParser {
       isPickup: isPickup,
       barlines: barlinesList.isNotEmpty ? barlinesList : null,
       ending: measureEnding,
-      wordsDirections: wordsDirections, // Pass the parsed words directions
+      wordsDirections: wordsDirections,
+      printObject: printObject, // Pass the parsed print object
     );
   }
 }
