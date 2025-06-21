@@ -1,51 +1,66 @@
 import 'package:meta/meta.dart';
 import 'package:collection/collection.dart'; // For DeepCollectionEquality
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
-import 'package:musicxml_parser/src/models/articulation.dart'; // Import for Articulation
+import 'package:musicxml_parser/src/models/articulation.dart';
 import 'package:musicxml_parser/src/models/duration.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
-import 'package:musicxml_parser/src/models/slur.dart'; // Import for Slur
-import 'package:musicxml_parser/src/models/tie.dart'; // Import for Tie
+import 'package:musicxml_parser/src/models/slur.dart';
+import 'package:musicxml_parser/src/models/tie.dart';
 import 'package:musicxml_parser/src/models/time_modification.dart';
 import 'package:musicxml_parser/src/utils/validation_utils.dart';
 
-/// Represents a musical note in a score.
+/// Represents a musical note or rest in a score.
+///
+/// This class encapsulates all properties of a note, such as its [pitch] (if not a rest),
+/// [duration], [type] (e.g., "quarter", "eighth"), [voice], [dots],
+/// articulations, slurs, ties, and time modification for tuplets.
+///
+/// It also indicates if the note is a [isRest] or part of a chord via [isChordElementPresent].
+///
+/// Instances are typically created via [Note.validated] factory or [NoteBuilder]
+/// to ensure all MusicXML validation rules are applied.
+/// Objects of this class are immutable.
 @immutable
 class Note {
-  /// The pitch of the note.
+  /// The pitch of the note. Null if this is a rest.
   final Pitch? pitch;
 
   /// The duration of the note.
   final Duration? duration;
 
-  /// Indicates whether this note is a rest.
+  /// Indicates whether this note is a rest. If true, [pitch] must be null.
   final bool isRest;
 
-  /// Additional voice information for multi-voice measures.
+  /// The voice number for multi-voice music within a staff.
   final int? voice;
 
-  /// The type of the note (e.g., "quarter", "eighth", etc.).
+  /// The graphical type of the note (e.g., "quarter", "eighth", "whole").
   final String? type;
 
-  /// The number of dots on the note.
+  /// The number of augmentation dots on the note.
   final int? dots;
 
-  /// Time modification information, e.g. for tuplets.
+  /// Time modification information, e.g., for tuplets.
   final TimeModification? timeModification;
 
-  /// A list of slurs associated with this note.
+  /// A list of slurs starting or ending on this note.
   final List<Slur>? slurs;
 
-  /// A list of articulations associated with this note.
+  /// A list of articulations (e.g., staccato, accent) applied to this note.
   final List<Articulation>? articulations;
 
-  /// A list of ties associated with this note.
+  /// A list of ties connecting this note to an adjacent note.
   final List<Tie>? ties;
 
-  /// Indicates if the MusicXML <chord/> element was present for this note.
+  /// True if the MusicXML `<chord/>` element was present for this note,
+  /// indicating it shares a stem with the preceding note.
   final bool isChordElementPresent;
 
   /// Creates a new [Note] instance.
+  ///
+  /// Basic structural validation (e.g., a rest cannot have a pitch) is
+  /// performed via an assertion. For comprehensive MusicXML validation,
+  /// use the [Note.validated] factory or [NoteBuilder].
   const Note({
     this.pitch,
     this.duration,
@@ -59,12 +74,22 @@ class Note {
     this.ties,
     this.isChordElementPresent = false,
   }) : assert(isRest ? pitch == null : pitch != null,
-            'A rest must not have a pitch, and a note must have a pitch');
+            'A rest must not have a pitch, and a non-rest note must have a pitch.');
 
-  /// Creates a new [Note] instance with validation.
+  /// Creates a new [Note] instance with comprehensive validation.
   ///
-  /// This factory constructor performs comprehensive validation and throws
-  /// [MusicXmlValidationException] if the note is invalid.
+  /// This factory constructor checks various MusicXML rules, such as:
+  /// - Duration validity.
+  /// - Pitch validity (if not a rest).
+  /// - Voice number must be positive if specified.
+  /// - Dot count must be non-negative if specified.
+  /// - Rests must not have pitch information.
+  /// - Non-rest notes must have pitch information.
+  ///
+  /// Throws [MusicXmlValidationException] if any validation rule is violated.
+  ///
+  /// Parameters are the same as the default constructor, with additional
+  /// [line] and [context] for error reporting.
   factory Note.validated({
     Pitch? pitch,
     Duration? duration,
@@ -80,75 +105,50 @@ class Note {
     int? line,
     Map<String, dynamic>? context,
   }) {
-    // Perform validation first, before creating the Note
-    // This allows us to provide better error messages
-
-    // Validate duration if present
+    // Perform validation first
     if (duration != null) {
       ValidationUtils.validateDuration(duration, line: line, context: context);
     }
-
-    // Validate pitch if not a rest
     if (!isRest && pitch != null) {
       ValidationUtils.validatePitch(pitch, line: line, context: context);
     }
 
-    // Validate voice (should be positive if specified)
     if (voice != null && voice <= 0) {
       throw MusicXmlValidationException(
         'Note voice must be positive, got $voice',
         rule: 'note_voice_validation',
         line: line,
-        context: {
-          'voice': voice,
-          'isRest': isRest,
-          ...?context,
-        },
+        context: {'voice': voice, 'isRest': isRest, ...?context},
       );
     }
 
-    // Validate dots (should be non-negative if specified)
     if (dots != null && dots < 0) {
       throw MusicXmlValidationException(
         'Note dots must be non-negative, got $dots',
         rule: 'note_dots_validation',
         line: line,
-        context: {
-          'dots': dots,
-          ...?context,
-        },
+        context: {'dots': dots, ...?context},
       );
     }
 
-    // Validate that rests don't have pitches
     if (isRest && pitch != null) {
       throw MusicXmlValidationException(
-        'Rest notes should not have pitch information',
+        'Rest notes should not have pitch information.',
         rule: 'rest_no_pitch_validation',
         line: line,
-        context: {
-          'isRest': isRest,
-          'hasPitch': true,
-          ...?context,
-        },
+        context: {'isRest': isRest, 'hasPitch': true, ...?context},
       );
     }
 
-    // Validate that non-rest notes have pitches (unless it's a special case)
     if (!isRest && pitch == null) {
       throw MusicXmlValidationException(
-        'Non-rest notes must have pitch information',
+        'Non-rest notes must have pitch information.',
         rule: 'note_pitch_required_validation',
         line: line,
-        context: {
-          'isRest': isRest,
-          'hasPitch': false,
-          ...?context,
-        },
+        context: {'isRest': isRest, 'hasPitch': false, ...?context},
       );
     }
 
-    // Create the Note - this will still trigger the assertion if validation missed something
     return Note(
       pitch: pitch,
       duration: duration,
@@ -223,5 +223,133 @@ class Note {
     }
     sb.write('}');
     return sb.toString();
+  }
+}
+
+/// Builder for creating [Note] objects incrementally.
+///
+/// This builder is useful during the parsing process where note properties
+/// are discovered and set step-by-step. The [build] method finalizes
+/// the note construction and performs validation using [Note.validated].
+///
+/// Example:
+/// ```dart
+/// final noteBuilder = NoteBuilder(line: 10, context: {'measure': '1'});
+/// noteBuilder
+///   .setPitch(Pitch(step: 'C', octave: 4))
+///   .setDuration(Duration(value: 4, divisions: 1))
+///   .setType('quarter');
+/// final Note note = noteBuilder.build();
+/// ```
+class NoteBuilder {
+  Pitch? _pitch;
+  Duration? _duration;
+  bool _isRest = false;
+  int? _voice;
+  String? _type;
+  int? _dots;
+  TimeModification? _timeModification;
+  List<Slur>? _slurs;
+  List<Articulation>? _articulations;
+  List<Tie>? _ties;
+  bool _isChordElementPresent = false;
+
+  final int? _line;
+  final Map<String, dynamic>? _context;
+
+  /// Creates a [NoteBuilder].
+  ///
+  /// [line] and [context] can be provided for more detailed error
+  /// messages if validation fails during the [build] process.
+  NoteBuilder({int? line, Map<String, dynamic>? context})
+      : _line = line,
+        _context = context;
+
+  /// Sets the pitch of the note.
+  NoteBuilder setPitch(Pitch? pitch) {
+    _pitch = pitch;
+    return this;
+  }
+
+  /// Sets the duration of the note.
+  NoteBuilder setDuration(Duration? duration) {
+    _duration = duration;
+    return this;
+  }
+
+  /// Sets whether the note is a rest.
+  NoteBuilder setIsRest(bool isRest) {
+    _isRest = isRest;
+    return this;
+  }
+
+  /// Sets the voice of the note.
+  NoteBuilder setVoice(int? voice) {
+    _voice = voice;
+    return this;
+  }
+
+  /// Sets the graphical type of the note (e.g., "quarter").
+  NoteBuilder setType(String? type) {
+    _type = type;
+    return this;
+  }
+
+  /// Sets the number of augmentation dots.
+  NoteBuilder setDots(int? dots) {
+    _dots = dots;
+    return this;
+  }
+
+  /// Sets the time modification (e.g., for tuplets).
+  NoteBuilder setTimeModification(TimeModification? timeModification) {
+    _timeModification = timeModification;
+    return this;
+  }
+
+  /// Sets the list of slurs associated with the note.
+  NoteBuilder setSlurs(List<Slur>? slurs) {
+    _slurs = slurs;
+    return this;
+  }
+
+  /// Sets the list of articulations for the note.
+  NoteBuilder setArticulations(List<Articulation>? articulations) {
+    _articulations = articulations;
+    return this;
+  }
+
+  /// Sets the list of ties for the note.
+  NoteBuilder setTies(List<Tie>? ties) {
+    _ties = ties;
+    return this;
+  }
+
+  /// Sets whether the note is part of a chord (i.e., `<chord/>` element was present).
+  NoteBuilder setIsChordElementPresent(bool isChordElementPresent) {
+    _isChordElementPresent = isChordElementPresent;
+    return this;
+  }
+
+  /// Builds and validates the [Note] instance using [Note.validated].
+  ///
+  /// Throws [MusicXmlValidationException] if the constructed note violates
+  /// MusicXML validation rules.
+  Note build() {
+    return Note.validated(
+      pitch: _pitch,
+      duration: _duration,
+      isRest: _isRest,
+      voice: _voice,
+      type: _type,
+      dots: _dots,
+      timeModification: _timeModification,
+      slurs: _slurs,
+      articulations: _articulations,
+      ties: _ties,
+      isChordElementPresent: _isChordElementPresent,
+      line: _line,
+      context: _context,
+    );
   }
 }

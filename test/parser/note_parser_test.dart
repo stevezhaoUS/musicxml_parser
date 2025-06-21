@@ -173,9 +173,11 @@ void main() {
         expect(
           () => noteParser.parse(element, 480, 'P1', '1'),
           throwsA(isA<MusicXmlValidationException>()
-              .having((e) => e.message, 'message', 'Invalid pitch step: H')
+              .having((e) => e.message, 'message',
+                  contains('Invalid pitch step: "H"'))
               .having((e) => e.context?['part'], 'part context', 'P1')
-              .having((e) => e.context?['measure'], 'measure context', '1')),
+              .having((e) => e.context?['measure'], 'measure context', '1')
+              .having((e) => e.rule, 'rule', 'pitch_step_invalid')),
         );
       });
 
@@ -194,7 +196,8 @@ void main() {
         expect(
           () => noteParser.parse(element, 480, 'P1', '1'),
           throwsA(isA<MusicXmlValidationException>()
-              .having((e) => e.message, 'message', 'Invalid octave: -1')),
+              .having((e) => e.message, 'message', contains('Invalid octave: "-1"'))
+              .having((e) => e.rule, 'rule', 'pitch_octave_invalid')),
         );
       });
 
@@ -213,7 +216,8 @@ void main() {
         expect(
           () => noteParser.parse(element, 480, 'P1', '1'),
           throwsA(isA<MusicXmlValidationException>()
-              .having((e) => e.message, 'message', 'Invalid octave: 10')),
+              .having((e) => e.message, 'message', contains('Invalid octave: "10"'))
+              .having((e) => e.rule, 'rule', 'pitch_octave_invalid')),
         );
       });
 
@@ -232,7 +236,8 @@ void main() {
         expect(
           () => noteParser.parse(element, 480, 'P1', '1'),
           throwsA(isA<MusicXmlValidationException>()
-              .having((e) => e.message, 'message', 'Invalid octave: abc')),
+              .having((e) => e.message, 'message', contains('Invalid octave: "abc"'))
+              .having((e) => e.rule, 'rule', 'pitch_octave_invalid')),
         );
       });
 
@@ -252,7 +257,8 @@ void main() {
         expect(
           () => noteParser.parse(element, 480, 'P1', '1'),
           throwsA(isA<MusicXmlValidationException>()
-              .having((e) => e.message, 'message', 'Invalid alter value: -3')),
+              .having((e) => e.message, 'message', contains('Invalid alter value: "-3"'))
+              .having((e) => e.rule, 'rule', 'pitch_alter_invalid')),
         );
       });
 
@@ -272,7 +278,8 @@ void main() {
         expect(
           () => noteParser.parse(element, 480, 'P1', '1'),
           throwsA(isA<MusicXmlValidationException>()
-              .having((e) => e.message, 'message', 'Invalid alter value: 3')),
+              .having((e) => e.message, 'message', contains('Invalid alter value: "3"'))
+              .having((e) => e.rule, 'rule', 'pitch_alter_invalid')),
         );
       });
 
@@ -291,8 +298,9 @@ void main() {
 
         expect(
           () => noteParser.parse(element, 480, 'P1', '1'),
-          throwsA(isA<MusicXmlValidationException>().having(
-              (e) => e.message, 'message', 'Invalid alter value: sharp')),
+          throwsA(isA<MusicXmlValidationException>()
+              .having((e) => e.message, 'message', contains('Invalid alter value: "sharp"'))
+              .having((e) => e.rule, 'rule', 'pitch_alter_invalid')),
         );
       });
 

@@ -106,237 +106,220 @@ class MeasureParser {
     final widthAttr = element.getAttribute('width');
     final width = widthAttr != null ? double.tryParse(widthAttr) : null;
 
-    // Initialize with inherited values
-    int? divisions = inheritedDivisions;
-    var keySignature = inheritedKeySignature;
-    var timeSignature = inheritedTimeSignature;
-    final notes = <Note>[];
-    final beams = <Beam>[];
-    List<Barline> barlinesList = [];
-    Ending? measureEnding;
-    final List<WordsDirection> wordsDirections = [];
-    PrintObject? printObject; // Initialize PrintObject
+    // Initialize MeasureBuilder
+    final measureBuilder = MeasureBuilder(number, line: line, context: {'part': partId})
+        .setIsPickup(isPickup)
+        .setWidth(width)
+        .setKeySignature(inheritedKeySignature) // Set initial inherited values
+        .setTimeSignature(inheritedTimeSignature);
+
+    int? currentDivisions = inheritedDivisions;
+    final List<Beam> individualBeams = []; // Collect individual beams for later merging
 
     // Process measure content
     for (final child in element.childElements) {
-      if (child.name.local == 'attributes') {
-        // Parse attributes (divisions, key, time, etc.)
-        final attributes = _attributesParser.parse(
-          child,
-          partId,
-          number,
-          divisions,
-        );
-
-        // Update divisions if specified
-        if (attributes['divisions'] != null) {
-          divisions = attributes['divisions'];
-        }
-
-        // Update key signature if specified
-        if (attributes['keySignature'] != null) {
-          keySignature = attributes['keySignature'];
-        }
-
-        // Update time signature if specified
-        if (attributes['timeSignature'] != null) {
-          timeSignature = attributes['timeSignature'];
-        }
-      } else if (child.name.local == 'note') {
-        final note = _noteParser.parse(child, divisions, partId, number);
-        if (note != null) {
-          final noteIndex = notes.length;
-          notes.add(note);
-
-          // 调用 BeamParser 解析 beams
-          final noteBeams = BeamParser.parse(child, noteIndex, number);
-          beams.addAll(noteBeams);
-        }
-      } else if (child.name.local == 'backup') {
-        final durationElement = child.findElements('duration').firstOrNull;
-        if (durationElement == null) {
-          throw MusicXmlStructureException(
-            "Backup element missing required <duration> child.",
-            parentElement: 'backup',
-            line: XmlHelper.getLineNumber(child),
-            context: {'part': partId, 'measure': number},
-          );
-        }
-        final int? duration = XmlHelper.getElementTextAsInt(durationElement);
-        if (duration == null || duration < 0) {
-          throw MusicXmlStructureException(
-            "Invalid or missing duration value for <backup>.",
-            parentElement: 'backup',
-            line: XmlHelper.getLineNumber(durationElement),
-            context: {'part': partId, 'measure': number, 'parsedDuration': duration},
-          );
-        }
-        warningSystem.addWarning(
-          "Encountered <backup> with duration $duration. Full timeline impact not yet implemented.",
-          category: 'partial_processing',
-          rule: 'backup_partially_processed',
-          context: {
-            'element': 'backup',
-            'part': partId,
-            'measure': number,
-            'duration': duration,
-            'line': XmlHelper.getLineNumber(child)
-          },
-        );
-      } else if (child.name.local == 'forward') {
-        final durationElement = child.findElements('duration').firstOrNull;
-        if (durationElement == null) {
-          throw MusicXmlStructureException(
-            "Forward element missing required <duration> child.",
-            parentElement: 'forward',
-            line: XmlHelper.getLineNumber(child),
-            context: {'part': partId, 'measure': number},
-          );
-        }
-        final int? duration = XmlHelper.getElementTextAsInt(durationElement);
-        if (duration == null || duration < 0) {
-          throw MusicXmlStructureException(
-            "Invalid or missing duration value for <forward>.",
-            parentElement: 'forward',
-            line: XmlHelper.getLineNumber(durationElement),
-            context: {'part': partId, 'measure': number, 'parsedDuration': duration},
-          );
-        }
-        warningSystem.addWarning(
-          "Encountered <forward> with duration $duration. Full timeline impact not yet implemented.",
-          category: 'partial_processing',
-          rule: 'forward_partially_processed',
-          context: {
-            'element': 'forward',
-            'part': partId,
-            'measure': number,
-            'duration': duration,
-            'line': XmlHelper.getLineNumber(child)
-          },
-        );
-      } else if (child.name.local == 'barline') {
-        final barlineElement = child;
-        String? location = barlineElement.getAttribute('location');
-        XmlElement? barStyleElement = barlineElement.findElements('bar-style').firstOrNull;
-        String? barStyle = barStyleElement?.innerText.trim();
-        XmlElement? repeatElement = barlineElement.findElements('repeat').firstOrNull;
-        String? repeatDirection;
-        int? repeatTimes;
-        if (repeatElement != null) {
-          repeatDirection = repeatElement.getAttribute('direction');
-          String? timesStr = repeatElement.getAttribute('times');
-          if (timesStr != null && timesStr.isNotEmpty) {
-            repeatTimes = int.tryParse(timesStr);
+      switch (child.name.local) {
+        case 'attributes':
+          final attributesData = _attributesParser.parse(child, partId, number, currentDivisions);
+          currentDivisions = attributesData['divisions'] ?? currentDivisions;
+          // Use the new values if present, otherwise keep what was inherited or previously set in the builder.
+          if (attributesData['keySignature'] != null) {
+            measureBuilder.setKeySignature(attributesData['keySignature']);
           }
-        }
-        barlinesList.add(Barline(
-            location: location,
-            barStyle: barStyle,
-            repeatDirection: repeatDirection,
-            times: repeatTimes));
-      } else if (child.name.local == 'ending') {
-        final endingElement = child;
-        String? endingNumber = endingElement.getAttribute('number');
-        // MusicXML 2.0 stored number as text content. MusicXML 3.0+ uses 'number' attribute.
-        // This prioritizes the attribute if present, then falls back to text content.
-        if (endingNumber == null || endingNumber.isEmpty) {
-            final textContent = endingElement.innerText.trim();
-            if (textContent.isNotEmpty) {
-                endingNumber = textContent;
-            }
-        }
-        String? type = endingElement.getAttribute('type');
-        String? printObject = endingElement.getAttribute('print-object');
-
-        if (endingNumber != null && endingNumber.isNotEmpty && type != null && type.isNotEmpty) {
-          measureEnding = Ending(
-              number: endingNumber,
-              type: type,
-              printObject: printObject ?? "yes");
-        } else {
-          warningSystem.addWarning(
-            'Incomplete <ending> element in measure $number. Missing "number" or "type" attribute, or number text content.',
-            category: WarningCategories.structure, // Using pre-defined category
-            line: XmlHelper.getLineNumber(endingElement),
-            context: {'part': partId, 'measure': number},
-          );
-        }
-      } else if (child.name.local == 'direction') {
-        for (final directionTypeElement in child.findElements('direction-type')) {
-          for (final wordsElement in directionTypeElement.findElements('words')) {
-            final text = wordsElement.innerText.trim();
-            if (text.isNotEmpty) {
-              wordsDirections.add(WordsDirection(text: text));
-            } else {
-              warningSystem.addWarning(
-                'Empty <words> element found in direction.',
-                category: WarningCategories.structure,
-                line: XmlHelper.getLineNumber(wordsElement),
-                context: {'part': partId, 'measure': number},
-              );
-            }
+          if (attributesData['timeSignature'] != null) {
+            measureBuilder.setTimeSignature(attributesData['timeSignature']);
           }
-          // TODO: Handle other direction-type children like <segno>, <coda>, <dynamics> etc. if needed in the future
-        }
-        // TODO: Handle other <direction> children like <offset>, <staff>, <sound> if needed
-      } else if (child.name.local == 'print') {
-        final newPageAttr = child.getAttribute('new-page');
-        final newSystemAttr = child.getAttribute('new-system');
-        final blankPageStr = child.getAttribute('blank-page');
-        final pageNumberStr = child.getAttribute('page-number');
-
-        final newPage = newPageAttr == 'yes';
-        final newSystem = newSystemAttr == 'yes';
-        final blankPage = blankPageStr != null ? int.tryParse(blankPageStr) : null;
-
-        PageLayout? localPageLayout;
-        final pageLayoutElement = child.findElements('page-layout').firstOrNull;
-        if (pageLayoutElement != null) {
-          localPageLayout = PageLayoutParser().parse(pageLayoutElement);
-        }
-
-        SystemLayout? localSystemLayout;
-        final systemLayoutElement = child.findElements('system-layout').firstOrNull;
-        if (systemLayoutElement != null) {
-          localSystemLayout = SystemLayoutParser().parse(systemLayoutElement);
-        }
-
-        List<StaffLayout> localStaffLayouts = [];
-        for (final staffLayoutElement in child.findElements('staff-layout')) {
-          localStaffLayouts.add(StaffLayoutParser().parse(staffLayoutElement));
-        }
-
-        // TODO: Parse <measure-layout> and <measure-numbering> if needed in the future
-
-        printObject = PrintObject(
-          newPage: newPage,
-          newSystem: newSystem,
-          blankPage: blankPage,
-          pageNumber: pageNumberStr,
-          localPageLayout: localPageLayout,
-          localSystemLayout: localSystemLayout,
-          localStaffLayouts: localStaffLayouts,
-        );
+          break;
+        case 'note':
+          final note = _noteParser.parse(child, currentDivisions, partId, number);
+          if (note != null) {
+            // To get the noteIndex, we need to know how many notes are already in the builder.
+            // Assuming MeasureBuilder._notes is not directly accessible,
+            // we might need a getter in MeasureBuilder or manage notes list temporarily here.
+            // For simplicity, if MeasureBuilder's addNote is the only way notes are added,
+            // the current length *before* adding is the index.
+            final noteIndex = measureBuilder.debugGetNotesCount(); // Needs a temporary getter or local list
+            measureBuilder.addNote(note);
+            individualBeams.addAll(BeamParser.parse(child, noteIndex, number));
+          }
+          break;
+        case 'backup':
+          _parseBackupOrForward(child, 'backup', partId, number);
+          break;
+        case 'forward':
+          _parseBackupOrForward(child, 'forward', partId, number);
+          break;
+        case 'barline':
+          measureBuilder.addBarline(_parseBarline(child));
+          break;
+        case 'ending':
+          measureBuilder.setEnding(_parseEnding(child, partId, number));
+          break;
+        case 'direction':
+          // Assuming _parseDirection returns a list and builder has addAll or set method
+          final directions = _parseDirection(child, partId, number);
+          for (final dir in directions) {
+            measureBuilder.addWordsDirection(dir);
+          }
+          break;
+        case 'print':
+          measureBuilder.setPrintObject(_parsePrint(child));
+          break;
+        // Other elements like harmony, figured-bass, sound, etc. can be added here
       }
-      // Other elements like direction, etc. can be added here
     }
 
-    // 合并 beams 为连续的 beam 组
-    final mergedBeams = BeamParser.mergeBeams(beams, number);
+    // Merge beams
+    measureBuilder.setBeams(BeamParser.mergeBeams(individualBeams, number));
 
-    // 创建并返回 Measure
-    return Measure(
-      number: number,
-      notes: notes,
-      keySignature: keySignature,
-      timeSignature: timeSignature,
-      width: width,
-      beams: mergedBeams,
-      isPickup: isPickup,
-      barlines: barlinesList.isNotEmpty ? barlinesList : null,
-      ending: measureEnding,
-      wordsDirections: wordsDirections,
-      printObject: printObject, // Pass the parsed print object
+    return measureBuilder.build();
+  }
+
+  /// Parses a <backup> or <forward> element.
+  void _parseBackupOrForward(XmlElement element, String type, String partId, String measureNumber) {
+    final durationElement = element.findElements('duration').firstOrNull;
+    if (durationElement == null) {
+      throw MusicXmlStructureException(
+        "<$type> element missing required <duration> child.",
+        parentElement: type,
+        line: XmlHelper.getLineNumber(element),
+        context: {'part': partId, 'measure': measureNumber},
+      );
+    }
+    final int? duration = XmlHelper.getElementTextAsInt(durationElement);
+    if (duration == null || duration < 0) {
+      throw MusicXmlStructureException(
+        "Invalid or missing duration value for <$type>.",
+        parentElement: type,
+        line: XmlHelper.getLineNumber(durationElement),
+        context: {'part': partId, 'measure': measureNumber, 'parsedDuration': duration},
+      );
+    }
+    warningSystem.addWarning(
+      "Encountered <$type> with duration $duration. Full timeline impact not yet implemented.",
+      category: 'partial_processing',
+      rule: '${type}_partially_processed',
+      context: {
+        'element': type,
+        'part': partId,
+        'measure': measureNumber,
+        'duration': duration,
+        'line': XmlHelper.getLineNumber(element)
+      },
+    );
+  }
+
+  /// Parses a <barline> element.
+  Barline _parseBarline(XmlElement barlineElement) {
+    String? location = barlineElement.getAttribute('location');
+    XmlElement? barStyleElement = barlineElement.findElements('bar-style').firstOrNull;
+    String? barStyle = barStyleElement?.innerText.trim();
+    XmlElement? repeatElement = barlineElement.findElements('repeat').firstOrNull;
+    String? repeatDirection;
+    int? repeatTimes;
+    if (repeatElement != null) {
+      repeatDirection = repeatElement.getAttribute('direction');
+      String? timesStr = repeatElement.getAttribute('times');
+      if (timesStr != null && timesStr.isNotEmpty) {
+        repeatTimes = int.tryParse(timesStr);
+      }
+    }
+    return Barline(
+        location: location,
+        barStyle: barStyle,
+        repeatDirection: repeatDirection,
+        times: repeatTimes);
+  }
+
+  /// Parses an <ending> element.
+  Ending? _parseEnding(XmlElement endingElement, String partId, String measureNumber) {
+    String? endingNumber = endingElement.getAttribute('number');
+    if (endingNumber == null || endingNumber.isEmpty) {
+        final textContent = endingElement.innerText.trim();
+        if (textContent.isNotEmpty) {
+            endingNumber = textContent;
+        }
+    }
+    String? type = endingElement.getAttribute('type');
+    String? printObjectAttr = endingElement.getAttribute('print-object');
+
+    if (endingNumber != null && endingNumber.isNotEmpty && type != null && type.isNotEmpty) {
+      return Ending(
+          number: endingNumber,
+          type: type,
+          printObject: printObjectAttr ?? "yes");
+    } else {
+      warningSystem.addWarning(
+        'Incomplete <ending> element in measure $measureNumber. Missing "number" or "type" attribute, or number text content.',
+        category: WarningCategories.structure,
+        line: XmlHelper.getLineNumber(endingElement),
+        context: {'part': partId, 'measure': measureNumber},
+      );
+      return null;
+    }
+  }
+
+  /// Parses a <direction> element for <words>.
+  List<WordsDirection> _parseDirection(XmlElement directionElement, String partId, String measureNumber) {
+    final wordsDirections = <WordsDirection>[];
+    for (final directionTypeElement in directionElement.findElements('direction-type')) {
+      for (final wordsElement in directionTypeElement.findElements('words')) {
+        final text = wordsElement.innerText.trim();
+        if (text.isNotEmpty) {
+          wordsDirections.add(WordsDirection(text: text));
+        } else {
+          warningSystem.addWarning(
+            'Empty <words> element found in direction.',
+            category: WarningCategories.structure,
+            line: XmlHelper.getLineNumber(wordsElement),
+            context: {'part': partId, 'measure': measureNumber},
+          );
+        }
+      }
+      // TODO: Handle other direction-type children like <segno>, <coda>, <dynamics> etc. if needed in the future
+    }
+    // TODO: Handle other <direction> children like <offset>, <staff>, <sound> if needed
+    return wordsDirections;
+  }
+
+  /// Parses a <print> element.
+  PrintObject _parsePrint(XmlElement printElement) {
+    final newPageAttr = printElement.getAttribute('new-page');
+    final newSystemAttr = printElement.getAttribute('new-system');
+    final blankPageStr = printElement.getAttribute('blank-page');
+    final pageNumberStr = printElement.getAttribute('page-number');
+
+    final newPage = newPageAttr == 'yes';
+    final newSystem = newSystemAttr == 'yes';
+    final blankPage = blankPageStr != null ? int.tryParse(blankPageStr) : null;
+
+    PageLayout? localPageLayout;
+    final pageLayoutElement = printElement.findElements('page-layout').firstOrNull;
+    if (pageLayoutElement != null) {
+      localPageLayout = PageLayoutParser().parse(pageLayoutElement);
+    }
+
+    SystemLayout? localSystemLayout;
+    final systemLayoutElement = printElement.findElements('system-layout').firstOrNull;
+    if (systemLayoutElement != null) {
+      localSystemLayout = SystemLayoutParser().parse(systemLayoutElement);
+    }
+
+    List<StaffLayout> localStaffLayouts = [];
+    for (final staffLayoutElement in printElement.findElements('staff-layout')) {
+      localStaffLayouts.add(StaffLayoutParser().parse(staffLayoutElement));
+    }
+
+    // TODO: Parse <measure-layout> and <measure-numbering> if needed in the future
+
+    return PrintObject(
+      newPage: newPage,
+      newSystem: newSystem,
+      blankPage: blankPage,
+      pageNumber: pageNumberStr,
+      localPageLayout: localPageLayout,
+      localSystemLayout: localSystemLayout,
+      localStaffLayouts: localStaffLayouts,
     );
   }
 }

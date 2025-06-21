@@ -94,52 +94,79 @@ class ScoreParser {
         )
         .toList();
 
-    // Parse defaults section if it exists
-    final defaultsElement = element.getElement('defaults');
-    Scaling? scaling;
-    PageLayout? pageLayout; // This will be defaultPageLayout
-    SystemLayout? defaultSystemLayout;
-    List<StaffLayout> defaultStaffLayouts = [];
-    Appearance? appearance;
+    // Parse defaults section
+    final defaults = _parseDefaults(element.getElement('defaults'));
 
-    if (defaultsElement != null) {
-      final scalingElement = defaultsElement.getElement('scaling');
-      if (scalingElement != null) {
-        scaling = ScalingParser().parse(scalingElement);
-      }
+    // Initialize ScoreBuilder
+    final scoreBuilder = ScoreBuilder(version: version, line: XmlHelper.getLineNumber(element))
+        .setTitle(title)
+        .setComposer(composer);
 
-      final pageLayoutElement = defaultsElement.getElement('page-layout');
-      if (pageLayoutElement != null) {
-        pageLayout = PageLayoutParser().parse(pageLayoutElement);
-      }
+    // Set parts
+    scoreBuilder.setParts(parts);
 
-      final systemLayoutElement = defaultsElement.getElement('system-layout');
-      if (systemLayoutElement != null) {
-        defaultSystemLayout = SystemLayoutParser().parse(systemLayoutElement);
-      }
+    // Set defaults
+    scoreBuilder
+        .setPageLayout(defaults.pageLayout)
+        .setDefaultSystemLayout(defaults.systemLayout)
+        .setDefaultStaffLayouts(defaults.staffLayouts)
+        .setScaling(defaults.scaling)
+        .setAppearance(defaults.appearance);
 
-      for (final staffLayoutElement in defaultsElement.findElements('staff-layout')) {
-        defaultStaffLayouts.add(StaffLayoutParser().parse(staffLayoutElement));
-      }
-
-      appearance = _parseAppearance(defaultsElement); // Keep existing appearance parsing
-    }
-
-    // Create work object if title is available
-    Work? work;
+    // Set work and identification
     if (title != null) {
-      work = Work(title: title);
+      scoreBuilder.setWork(Work(title: title));
     }
-
-    // Create identification object if composer is available
-    Identification? identification;
     if (composer != null) {
-      identification = Identification(composer: composer);
+      scoreBuilder.setIdentification(Identification(composer: composer));
     }
 
-    // Parse credits
+    // Set credits
+    final parsedCredits = _parseCredits(element);
+    if (parsedCredits.isNotEmpty) {
+      scoreBuilder.setCredits(parsedCredits);
+    }
+
+    return scoreBuilder.build();
+  }
+
+  /// Helper structure to hold parsed default values.
+  _DefaultsData _parseDefaults(XmlElement? defaultsElement) {
+    if (defaultsElement == null) {
+      return _DefaultsData();
+    }
+
+    final scaling = defaultsElement.getElement('scaling') != null
+        ? ScalingParser().parse(defaultsElement.getElement('scaling')!)
+        : null;
+
+    final pageLayout = defaultsElement.getElement('page-layout') != null
+        ? PageLayoutParser().parse(defaultsElement.getElement('page-layout')!)
+        : null;
+
+    final systemLayout = defaultsElement.getElement('system-layout') != null
+        ? SystemLayoutParser().parse(defaultsElement.getElement('system-layout')!)
+        : null;
+
+    final staffLayouts = defaultsElement
+        .findElements('staff-layout')
+        .map((el) => StaffLayoutParser().parse(el))
+        .toList();
+
+    final appearance = _parseAppearance(defaultsElement);
+
+    return _DefaultsData(
+      scaling: scaling,
+      pageLayout: pageLayout,
+      systemLayout: systemLayout,
+      staffLayouts: staffLayouts,
+      appearance: appearance,
+    );
+  }
+
+  List<Credit> _parseCredits(XmlElement scoreElement) {
     List<Credit> parsedCredits = [];
-    final creditElements = element.findElements('credit');
+    final creditElements = scoreElement.findElements('credit');
     for (final creditElement in creditElements) {
       String? pageStr = creditElement.getAttribute('page');
       int? page = (pageStr != null && pageStr.isNotEmpty ? int.tryParse(pageStr) : null);
@@ -155,40 +182,19 @@ class ScoreParser {
             creditWordsList.add(text);
         }
       }
-      // Only add credit if it has some content (either type or words)
-      // This avoids adding empty Credit objects if a <credit> tag is empty or only has a page number.
+
       if ((creditType != null && creditType.isNotEmpty) || creditWordsList.isNotEmpty) {
          parsedCredits.add(Credit(page: page, creditType: creditType, creditWords: creditWordsList));
       } else if (page != null) {
-        // If only a page number is present with no other content, we might still want to record it,
-        // or log a warning if such a credit is considered incomplete.
-        // For now, let's add it if it has a page, even if type/words are empty.
-        // Alternatively, one could decide that a credit needs at least a type or some words.
-        // The current Credit model defaults creditWords to const [], so an empty list is fine.
          parsedCredits.add(Credit(page: page, creditType: creditType, creditWords: creditWordsList));
       }
     }
-
-    return Score(
-      version: version ?? "3.0", // Default to "3.0" if version is not specified
-      work: work,
-      identification: identification,
-      parts: parts,
-      pageLayout: pageLayout, // This is the defaultPageLayout
-      defaultSystemLayout: defaultSystemLayout,
-      defaultStaffLayouts: defaultStaffLayouts,
-      scaling: scaling,
-      appearance: appearance,
-      title: title,
-      composer: composer,
-      credits: parsedCredits.isNotEmpty ? parsedCredits : null,
-    );
+    return parsedCredits;
   }
 
-  // _parseScaling and _parsePageLayout are no longer needed as we use dedicated parsers.
-
   /// Parses the appearance information from the defaults element.
-  Appearance? _parseAppearance(XmlElement defaultsElement) {
+  Appearance? _parseAppearance(XmlElement? defaultsElement) {
+    if (defaultsElement == null) return null;
     final appearanceElement = defaultsElement.getElement('appearance');
     if (appearanceElement == null) return null;
 
@@ -229,4 +235,21 @@ class ScoreParser {
       noteSizes: noteSizes,
     );
   }
+}
+
+/// Helper class to store parsed data from the <defaults> element.
+class _DefaultsData {
+  final Scaling? scaling;
+  final PageLayout? pageLayout;
+  final SystemLayout? systemLayout;
+  final List<StaffLayout> staffLayouts;
+  final Appearance? appearance;
+
+  _DefaultsData({
+    this.scaling,
+    this.pageLayout,
+    this.systemLayout,
+    this.staffLayouts = const [],
+    this.appearance,
+  });
 }
