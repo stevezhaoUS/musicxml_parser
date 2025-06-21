@@ -79,7 +79,7 @@ This document tracks the current implementation status of MusicXML features in t
 | `<lyric>` | ⏳ | Planned for v0.5.0 (was v0.2.0), Lower Priority |
 | Syllabic types | ⏳ | Planned for v0.5.0 (with Lyrics), Lower Priority |
 | Multiple verses | ⏳ | Planned for v0.5.0 (with Lyrics), Lower Priority |
-| `<words>` (directions) | ⏳ | Planned for v0.2.0 (was v0.4.0), e.g., Allegro, Andante. High Priority. |
+| `<words>` (directions) | 🚧 | Partial Support for v0.2.0. Parses text content from `<direction><direction-type><words>`. Attributes like font, position are not yet parsed. |
 | `<rehearsal>` marks | ⏳ | Planned for v0.3.0 (was v0.4.0), High Priority |
 
 ### Rhythm and Timing
@@ -191,7 +191,7 @@ This document tracks the current implementation status of MusicXML features in t
 
 ### v0.2.0 (Current Focus - High Priority Basic Features)
 - ✅ **Compressed file (.mxl) support (Now Fully Supported!)**
-- **`<words>` (directions, e.g., Allegro, Andante) (High Priority)**
+- 🚧 **`<words>` (directions, e.g., Allegro, Andante) (Partial Support: Text content parsed)**
 - ✅ Basic tuplet support (parses `<time-modification>`)
 - Enhanced error handling
 

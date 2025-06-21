@@ -931,5 +931,196 @@ void main() {
         expect(warnings.first.message, contains('Incomplete <ending> element'));
       });
     });
+
+    group('words direction parsing', () {
+      setUp(() {
+        warningSystem = WarningSystem();
+        mockNoteParser = MockNoteParser();
+        mockAttributesParser = MockAttributesParser();
+        measureParser = MeasureParser(
+            noteParser: mockNoteParser,
+            attributesParser: mockAttributesParser,
+            warningSystem: warningSystem);
+
+        // Default mock behaviors
+        when(mockAttributesParser.parse(any, any, any, any))
+            .thenReturn({'divisions': 1});
+        when(mockNoteParser.parse(any, any, any, any))
+            .thenAnswer((_) => null);
+      });
+
+      test('parses direction with single words element', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <direction-type>
+                <words>Allegro</words>
+              </direction-type>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.wordsDirections, hasLength(1));
+        expect(result.wordsDirections[0].text, 'Allegro');
+      });
+
+      test('parses direction with multiple words elements in one direction-type',
+          () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <direction-type>
+                <words>Vivace</words>
+                <words>assai</words>
+              </direction-type>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.wordsDirections, hasLength(2));
+        expect(result.wordsDirections[0].text, 'Vivace');
+        expect(result.wordsDirections[1].text, 'assai');
+      });
+
+       test('parses multiple direction elements with words', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <direction-type>
+                <words>Andante</words>
+              </direction-type>
+            </direction>
+            <note><duration>4</duration></note>
+            <direction>
+              <direction-type>
+                <words>Fine</words>
+              </direction-type>
+            </direction>
+          </measure>
+        ''');
+        when(mockNoteParser.parse(any, any, any, any)).thenReturn(Note(duration: Duration(value: 4, divisions: 1), isRest: true));
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.wordsDirections, hasLength(2));
+        expect(result.wordsDirections[0].text, 'Andante');
+        expect(result.wordsDirections[1].text, 'Fine');
+      });
+
+      test('handles empty words element and logs warning', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <direction-type>
+                <words></words>
+              </direction-type>
+            </direction>
+            <direction>
+              <direction-type>
+                <words>Non-empty</words>
+              </direction-type>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.wordsDirections, hasLength(1));
+        expect(result.wordsDirections[0].text, 'Non-empty');
+
+        final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+        expect(warnings, hasLength(1));
+        expect(warnings.first.message, contains('Empty <words> element'));
+      });
+
+      test('ignores direction without words element', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <direction-type>
+                <dynamics><f/></dynamics>
+              </direction-type>
+            </direction>
+            <direction>
+              <direction-type>
+                <words>Tempo</words>
+              </direction-type>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.wordsDirections, hasLength(1));
+        expect(result.wordsDirections[0].text, 'Tempo');
+      });
+
+      test('parses words mixed with other measure elements', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <attributes><divisions>1</divisions></attributes>
+            <direction>
+              <direction-type>
+                <words>Largo</words>
+              </direction-type>
+            </direction>
+            <note><pitch><step>C</step><octave>4</octave></pitch><duration>4</duration></note>
+            <barline location="right"><bar-style>light-heavy</bar-style></barline>
+            <direction>
+              <direction-type>
+                <words>rit.</words>
+              </direction-type>
+            </direction>
+          </measure>
+        ''');
+        when(mockNoteParser.parse(any, any, any, any)).thenReturn(Note(pitch: Pitch(step: 'C', octave: 4), duration: Duration(value: 4, divisions: 1),isRest: false));
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+
+        expect(result.wordsDirections, hasLength(2));
+        expect(result.wordsDirections[0].text, 'Largo');
+        expect(result.wordsDirections[1].text, 'rit.');
+        expect(result.notes, hasLength(1));
+        expect(result.barlines, isNotNull);
+        expect(result.barlines, hasLength(1));
+      });
+
+       test('parses words within multiple direction-type elements in one direction', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <direction-type>
+                <words>Slow</words>
+              </direction-type>
+              <direction-type>
+                <words> جدا </words>
+              </direction-type>
+            </direction>
+          </measure>
+        ''');
+        // Note: The space around "جدا" should be trimmed by .trim()
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.wordsDirections, hasLength(2));
+        expect(result.wordsDirections[0].text, 'Slow');
+        expect(result.wordsDirections[1].text, 'جدا');
+      });
+
+      test('parses words with various text content including spaces', () {
+        final xml = XmlDocument.parse('''
+          <measure number="1">
+            <direction>
+              <direction-type>
+                <words>  Tempo  Primo  </words>
+              </direction-type>
+            </direction>
+          </measure>
+        ''');
+        final element = xml.rootElement;
+        final result = measureParser.parse(element, 'P1');
+        expect(result.wordsDirections, hasLength(1));
+        expect(result.wordsDirections[0].text, 'Tempo  Primo'); // .trim() only removes leading/trailing
+      });
+
+    });
   });
 }
