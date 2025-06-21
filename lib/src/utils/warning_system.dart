@@ -307,4 +307,5 @@ class WarningCategories {
   static const String notation = 'notation';
   static const String performance = 'performance';
   static const String compatibility = 'compatibility';
+  static const String noteDivisions = 'note_divisions';
 }

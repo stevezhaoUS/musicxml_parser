@@ -68,7 +68,7 @@ class NoteParser {
         if (effectiveParentDivisions == null || effectiveParentDivisions <= 0) {
           warningSystem.addWarning(
             'No valid divisions specified for note with duration. Using default divisions value 1.',
-            category: 'note_divisions',
+            category: WarningCategories.noteDivisions,
             context: {
               'part': partId,
               'measure': measureNumber,
@@ -193,8 +193,10 @@ class NoteParser {
     if (timeModificationElement == null) return null;
 
     final tmLine = XmlHelper.getLineNumber(timeModificationElement);
-    final actualNotesElement = timeModificationElement.findElements('actual-notes').firstOrNull;
-    final normalNotesElement = timeModificationElement.findElements('normal-notes').firstOrNull;
+    final actualNotesElement =
+        timeModificationElement.findElements('actual-notes').firstOrNull;
+    final normalNotesElement =
+        timeModificationElement.findElements('normal-notes').firstOrNull;
 
     if (actualNotesElement == null) {
       throw MusicXmlStructureException(
@@ -235,11 +237,14 @@ class NoteParser {
       );
     }
 
-    final normalTypeElement = timeModificationElement.findElements('normal-type').firstOrNull;
+    final normalTypeElement =
+        timeModificationElement.findElements('normal-type').firstOrNull;
     final normalType = normalTypeElement?.innerText.trim();
 
-    final normalDotElements = timeModificationElement.findElements('normal-dot');
-    final int? normalDotCount = normalDotElements.isNotEmpty ? normalDotElements.length : null;
+    final normalDotElements =
+        timeModificationElement.findElements('normal-dot');
+    final int? normalDotCount =
+        normalDotElements.isNotEmpty ? normalDotElements.length : null;
 
     try {
       return TimeModification.validated(
@@ -248,7 +253,11 @@ class NoteParser {
         normalType: normalType,
         normalDotCount: normalDotCount,
         line: tmLine,
-        context: {'part': partId, 'measure': measureNumber, 'noteLine': noteLine},
+        context: {
+          'part': partId,
+          'measure': measureNumber,
+          'noteLine': noteLine
+        },
       );
     } on MusicXmlValidationException catch (e) {
       warningSystem.addWarning(
@@ -289,34 +298,52 @@ class NoteParser {
               '<slur> element missing required "type" attribute',
               parentElement: 'notations',
               line: XmlHelper.getLineNumber(notationChild),
-              context: {'part': partId, 'measure': measureNumber, 'noteLine': noteLine},
+              context: {
+                'part': partId,
+                'measure': measureNumber,
+                'noteLine': noteLine
+              },
             );
           }
           final String? numberStr = notationChild.getAttribute('number');
-          final int numberAttr = (numberStr != null && numberStr.isNotEmpty ? int.tryParse(numberStr) : null) ?? 1;
+          final int numberAttr = (numberStr != null && numberStr.isNotEmpty
+                  ? int.tryParse(numberStr)
+                  : null) ??
+              1;
           final String? placementAttr = notationChild.getAttribute('placement');
-          slurs.add(Slur(type: typeAttr, number: numberAttr, placement: placementAttr));
+          slurs.add(Slur(
+              type: typeAttr, number: numberAttr, placement: placementAttr));
           break;
         case 'articulations':
           for (final specificArtElement in notationChild.childElements) {
             final String artType = specificArtElement.name.local;
             if (artType.isNotEmpty) {
-              final String? placementAttr = specificArtElement.getAttribute('placement');
-              articulations.add(Articulation(type: artType, placement: placementAttr));
+              final String? placementAttr =
+                  specificArtElement.getAttribute('placement');
+              articulations
+                  .add(Articulation(type: artType, placement: placementAttr));
             }
           }
           break;
         case 'tied':
           final String? typeAttr = notationChild.getAttribute('type');
-          if (typeAttr == null || (typeAttr != 'start' && typeAttr != 'stop' && typeAttr != 'continue')) {
+          if (typeAttr == null ||
+              (typeAttr != 'start' &&
+                  typeAttr != 'stop' &&
+                  typeAttr != 'continue')) {
             warningSystem.addWarning(
               '<tied> element has invalid or missing "type" attribute. Found: "$typeAttr". Skipping tie.',
               category: WarningCategories.structure,
               line: XmlHelper.getLineNumber(notationChild),
-              context: {'part': partId, 'measure': measureNumber, 'noteLine': noteLine},
+              context: {
+                'part': partId,
+                'measure': measureNumber,
+                'noteLine': noteLine
+              },
             );
           } else {
-            final String? placementAttr = notationChild.getAttribute('placement');
+            final String? placementAttr =
+                notationChild.getAttribute('placement');
             ties.add(Tie(type: typeAttr, placement: placementAttr));
           }
           break;

@@ -1,4 +1,4 @@
-import 'package:musicxml_parser/src/exceptions/invalid_musicxml_exception.dart';
+import 'package:musicxml_parser/musicxml_parser.dart';
 
 /// Exception thrown when parsing MusicXML content fails.
 ///
