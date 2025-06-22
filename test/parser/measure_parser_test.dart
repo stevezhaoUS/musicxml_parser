@@ -10,6 +10,9 @@ import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/note.dart';
 import 'package:musicxml_parser/src/models/pitch.dart';
 import 'package:musicxml_parser/src/models/time_signature.dart';
+import 'package:musicxml_parser/src/models/direction.dart'; // Added for Direction model
+import 'package:musicxml_parser/src/models/direction_type_elements.dart'; // Added for Segno, Coda, Dynamics
+import 'package:musicxml_parser/src/models/direction_words.dart'; // Corrected import for WordsDirection
 import 'package:musicxml_parser/src/parser/attributes_parser.dart';
 import 'package:musicxml_parser/src/parser/measure_parser.dart';
 import 'package:musicxml_parser/src/parser/note_parser.dart';
@@ -987,8 +990,10 @@ void main() {
         ''');
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
-        expect(result.wordsDirections, hasLength(1));
-        expect(result.wordsDirections[0].text, 'Allegro');
+        expect(result.directions, hasLength(1));
+        expect(result.directions[0].directionTypes, hasLength(1));
+        expect(result.directions[0].directionTypes[0], isA<WordsDirection>());
+        expect((result.directions[0].directionTypes[0] as WordsDirection).text, 'Allegro');
       });
 
       test(
@@ -1006,9 +1011,12 @@ void main() {
         ''');
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
-        expect(result.wordsDirections, hasLength(2));
-        expect(result.wordsDirections[0].text, 'Vivace');
-        expect(result.wordsDirections[1].text, 'assai');
+        expect(result.directions, hasLength(1));
+        expect(result.directions[0].directionTypes, hasLength(2));
+        expect(result.directions[0].directionTypes[0], isA<WordsDirection>());
+        expect((result.directions[0].directionTypes[0] as WordsDirection).text, 'Vivace');
+        expect(result.directions[0].directionTypes[1], isA<WordsDirection>());
+        expect((result.directions[0].directionTypes[1] as WordsDirection).text, 'assai');
       });
 
       test('parses multiple direction elements with words', () {
@@ -1031,12 +1039,14 @@ void main() {
             Note(duration: Duration(value: 4, divisions: 1), isRest: true));
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
-        expect(result.wordsDirections, hasLength(2));
-        expect(result.wordsDirections[0].text, 'Andante');
-        expect(result.wordsDirections[1].text, 'Fine');
+        expect(result.directions, hasLength(2));
+        expect(result.directions[0].directionTypes, hasLength(1));
+        expect((result.directions[0].directionTypes[0] as WordsDirection).text, 'Andante');
+        expect(result.directions[1].directionTypes, hasLength(1));
+        expect((result.directions[1].directionTypes[0] as WordsDirection).text, 'Fine');
       });
 
-      test('handles empty words element and logs warning', () {
+      test('handles empty words element and logs warning, processes valid one', () {
         final xml = XmlDocument.parse('''
           <measure number="1">
             <direction>
@@ -1053,16 +1063,41 @@ void main() {
         ''');
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
-        expect(result.wordsDirections, hasLength(1));
-        expect(result.wordsDirections[0].text, 'Non-empty');
+
+        // Debugging assertions from previous attempt (which failed on result.directions.length):
+        expect(result.directions, isA<List<Direction>>(), reason: "result.directions should be List<Direction>");
+        expect(result.directions.length, 2, reason: "Should parse two <direction> elements into Measure.directions. Actual: ${result.directions.length}");
+
+        if (result.directions.length == 2) {
+          expect(result.directions[0], isA<Direction>(), reason: "First element in Measure.directions should be a Direction object");
+          expect(result.directions[0].directionTypes, isNotEmpty, reason: "First Direction object should have directionTypes");
+          if (result.directions[0].directionTypes.isNotEmpty) {
+            expect(result.directions[0].directionTypes[0], isA<WordsDirection>(), reason: "First Direction's type should be WordsDirection");
+            expect((result.directions[0].directionTypes[0] as WordsDirection).text, isEmpty, reason: "First WordsDirection should have empty text");
+          }
+
+          expect(result.directions[1], isA<Direction>(), reason: "Second element in Measure.directions should be a Direction object");
+          expect(result.directions[1].directionTypes, isNotEmpty, reason: "Second Direction object should have directionTypes");
+          if (result.directions[1].directionTypes.isNotEmpty) {
+            expect(result.directions[1].directionTypes[0], isA<WordsDirection>(), reason: "Second Direction's type should be WordsDirection");
+            expect((result.directions[1].directionTypes[0] as WordsDirection).text, 'Non-empty', reason: "Second WordsDirection should have 'Non-empty' text");
+          }
+        }
+
+        final validDirections = result.directions.where((d) => d.directionTypes.any((dt) => dt is WordsDirection && (dt as WordsDirection).text.isNotEmpty)).toList();
+        expect(validDirections, hasLength(1), reason: "validDirections should filter to 1 item containing the 'Non-empty' direction. Actual length: ${validDirections.length}");
 
         final warnings =
             warningSystem.getWarningsByCategory(WarningCategories.structure);
-        expect(warnings, hasLength(1));
-        expect(warnings.first.message, contains('Empty <words> element'));
+        // We expect one warning for empty <words>.
+        // The "Direction element without any <direction-type> children" should NOT be generated for this XML with the current parser logic.
+        expect(warnings, hasLength(1), reason: "Should have exactly one warning for the empty <words> element. Actual warnings count: ${warnings.length}. Warnings: ${warnings.map((w)=>w.message).toList()}");
+        if (warnings.isNotEmpty) {
+          expect(warnings.first.message, contains('Empty <words> element'));
+        }
       });
 
-      test('ignores direction without words element', () {
+      test('ignores direction without words element, parses one with words', () {
         final xml = XmlDocument.parse('''
           <measure number="1">
             <direction>
@@ -1079,8 +1114,12 @@ void main() {
         ''');
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
-        expect(result.wordsDirections, hasLength(1));
-        expect(result.wordsDirections[0].text, 'Tempo');
+        final wordsDirections = result.directions
+            .expand((d) => d.directionTypes)
+            .whereType<WordsDirection>()
+            .toList();
+        expect(wordsDirections, hasLength(1));
+        expect(wordsDirections[0].text, 'Tempo');
       });
 
       test('parses words mixed with other measure elements', () {
@@ -1108,9 +1147,10 @@ void main() {
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
 
-        expect(result.wordsDirections, hasLength(2));
-        expect(result.wordsDirections[0].text, 'Largo');
-        expect(result.wordsDirections[1].text, 'rit.');
+        final allWords = result.directions.expand((d) => d.directionTypes).whereType<WordsDirection>().toList();
+        expect(allWords, hasLength(2));
+        expect(allWords[0].text, 'Largo');
+        expect(allWords[1].text, 'rit.');
         expect(result.notes, hasLength(1));
         expect(result.barlines, isNotNull);
         expect(result.barlines, hasLength(1));
@@ -1134,9 +1174,10 @@ void main() {
         // Note: The space around "جدا" should be trimmed by .trim()
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
-        expect(result.wordsDirections, hasLength(2));
-        expect(result.wordsDirections[0].text, 'Slow');
-        expect(result.wordsDirections[1].text, 'جدا');
+        expect(result.directions, hasLength(1));
+        expect(result.directions[0].directionTypes, hasLength(2));
+        expect((result.directions[0].directionTypes[0] as WordsDirection).text, 'Slow');
+        expect((result.directions[0].directionTypes[1] as WordsDirection).text, 'جدا');
       });
 
       test('parses words with various text content including spaces', () {
@@ -1151,8 +1192,9 @@ void main() {
         ''');
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
-        expect(result.wordsDirections, hasLength(1));
-        expect(result.wordsDirections[0].text,
+        expect(result.directions, hasLength(1));
+        expect(result.directions[0].directionTypes, hasLength(1));
+        expect((result.directions[0].directionTypes[0] as WordsDirection).text,
             'Tempo  Primo'); // .trim() only removes leading/trailing
       });
     });
@@ -1495,7 +1537,7 @@ void main() {
 
         final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
         expect(warnings, hasLength(1));
-        expect(warnings.first.message, contains('Direction element without any direction-type children.'));
+        expect(warnings.first.message, contains('Direction element without any <direction-type> children. Skipping this direction.'));
       });
 
       test('parses multiple direction elements with various contents', () {

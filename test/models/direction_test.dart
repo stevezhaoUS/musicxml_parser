@@ -45,7 +45,7 @@ void main() {
           segno: 'segno1',
           coda: 'coda1',
           fine: 'fine1',
-          timeOnly: 'beats',
+          timeOnly: true, // Corrected to bool
           pizzicato: true,
           pan: -50,
           elevation: 20,
