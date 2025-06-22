@@ -64,9 +64,9 @@ class MeasureParser {
     TimeSignature? inheritedTimeSignature,
   }) {
     final line = XmlHelper.getLineNumber(element);
-    final implicit = element.getAttribute('implicit');
+    final implicit = XmlHelper.getAttributeValue(element, 'implicit');
     // Get measure number (required)
-    final number = element.getAttribute('number');
+    final number = XmlHelper.getAttributeValue(element, 'number');
 
     if (number == null || number.isEmpty) {
       throw MusicXmlValidationException(
@@ -105,7 +105,7 @@ class MeasureParser {
     }
 
     // Get measure width (optional)
-    final widthAttr = element.getAttribute('width');
+    final widthAttr = XmlHelper.getAttributeValue(element, 'width');
     final width = widthAttr != null ? double.tryParse(widthAttr) : null;
 
     // Initialize MeasureBuilder
@@ -222,7 +222,7 @@ class MeasureParser {
 
   /// Parses a <barline> element.
   Barline _parseBarline(XmlElement barlineElement) {
-    String? location = barlineElement.getAttribute('location');
+    String? location = XmlHelper.getAttributeValue(barlineElement, 'location');
     XmlElement? barStyleElement =
         barlineElement.findElements('bar-style').firstOrNull;
     String? barStyle = barStyleElement?.innerText.trim();
@@ -231,8 +231,8 @@ class MeasureParser {
     String? repeatDirection;
     int? repeatTimes;
     if (repeatElement != null) {
-      repeatDirection = repeatElement.getAttribute('direction');
-      String? timesStr = repeatElement.getAttribute('times');
+      repeatDirection = XmlHelper.getAttributeValue(repeatElement, 'direction');
+      String? timesStr = XmlHelper.getAttributeValue(repeatElement, 'times');
       if (timesStr != null && timesStr.isNotEmpty) {
         repeatTimes = int.tryParse(timesStr);
       }
@@ -247,15 +247,16 @@ class MeasureParser {
   /// Parses an <ending> element.
   Ending? _parseEnding(
       XmlElement endingElement, String partId, String measureNumber) {
-    String? endingNumber = endingElement.getAttribute('number');
+    String? endingNumber = XmlHelper.getAttributeValue(endingElement, 'number');
     if (endingNumber == null || endingNumber.isEmpty) {
       final textContent = endingElement.innerText.trim();
       if (textContent.isNotEmpty) {
         endingNumber = textContent;
       }
     }
-    String? type = endingElement.getAttribute('type');
-    String? printObjectAttr = endingElement.getAttribute('print-object');
+    String? type = XmlHelper.getAttributeValue(endingElement, 'type');
+    String? printObjectAttr =
+        XmlHelper.getAttributeValue(endingElement, 'print-object');
 
     if (endingNumber != null &&
         endingNumber.isNotEmpty &&
@@ -291,45 +292,49 @@ class MeasureParser {
         switch (childElement.name.local) {
           case 'words':
             final text = childElement.innerText.trim();
-            if (text.isNotEmpty) {
-              directionTypeElements.add(WordsDirection(
-                text: text,
-                color: XmlHelper.getAttribute(childElement, 'color'),
-                defaultX:
-                    XmlHelper.getAttributeAsDouble(childElement, 'default-x'),
-                defaultY:
-                    XmlHelper.getAttributeAsDouble(childElement, 'default-y'),
-                dir: XmlHelper.getAttribute(childElement, 'dir'),
-                enclosure: XmlHelper.getAttribute(childElement, 'enclosure'),
-                fontFamily:
-                    XmlHelper.getAttribute(childElement, 'font-family'),
-                fontSize: XmlHelper.getAttribute(childElement, 'font-size'),
-                fontStyle: XmlHelper.getAttribute(childElement, 'font-style'),
-                fontWeight:
-                    XmlHelper.getAttribute(childElement, 'font-weight'),
-                halign: XmlHelper.getAttribute(childElement, 'halign'),
-                id: XmlHelper.getAttribute(childElement, 'id'),
-                justify: XmlHelper.getAttribute(childElement, 'justify'),
-                letterSpacing:
-                    XmlHelper.getAttribute(childElement, 'letter-spacing'),
-                lineHeight:
-                    XmlHelper.getAttribute(childElement, 'line-height'),
-                lineThrough:
-                    XmlHelper.getAttributeAsInt(childElement, 'line-through'),
-                overline: XmlHelper.getAttributeAsInt(childElement, 'overline'),
-                relativeX:
-                    XmlHelper.getAttributeAsDouble(childElement, 'relative-x'),
-                relativeY:
-                    XmlHelper.getAttributeAsDouble(childElement, 'relative-y'),
-                rotation:
-                    XmlHelper.getAttributeAsDouble(childElement, 'rotation'),
-                underline:
-                    XmlHelper.getAttributeAsInt(childElement, 'underline'),
-                valign: XmlHelper.getAttribute(childElement, 'valign'),
-                xmlLang: XmlHelper.getAttribute(childElement, 'xml:lang'),
-                xmlSpace: XmlHelper.getAttribute(childElement, 'xml:space'),
-              ));
-            } else {
+            // Always add the WordsDirection, even if the text is empty
+            directionTypeElements.add(WordsDirection(
+              text: text,
+              color: XmlHelper.getAttributeValue(childElement, 'color'),
+              defaultX: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'default-x'),
+              defaultY: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'default-y'),
+              dir: XmlHelper.getAttributeValue(childElement, 'dir'),
+              enclosure: XmlHelper.getAttributeValue(childElement, 'enclosure'),
+              fontFamily:
+                  XmlHelper.getAttributeValue(childElement, 'font-family'),
+              fontSize: XmlHelper.getAttributeValue(childElement, 'font-size'),
+              fontStyle:
+                  XmlHelper.getAttributeValue(childElement, 'font-style'),
+              fontWeight:
+                  XmlHelper.getAttributeValue(childElement, 'font-weight'),
+              halign: XmlHelper.getAttributeValue(childElement, 'halign'),
+              id: XmlHelper.getAttributeValue(childElement, 'id'),
+              justify: XmlHelper.getAttributeValue(childElement, 'justify'),
+              letterSpacing:
+                  XmlHelper.getAttributeValue(childElement, 'letter-spacing'),
+              lineHeight:
+                  XmlHelper.getAttributeValue(childElement, 'line-height'),
+              lineThrough: XmlHelper.getAttributeValueAsInt(
+                  childElement, 'line-through'),
+              overline:
+                  XmlHelper.getAttributeValueAsInt(childElement, 'overline'),
+              relativeX: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'relative-x'),
+              relativeY: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'relative-y'),
+              rotation:
+                  XmlHelper.getAttributeValueAsDouble(childElement, 'rotation'),
+              underline:
+                  XmlHelper.getAttributeValueAsInt(childElement, 'underline'),
+              valign: XmlHelper.getAttributeValue(childElement, 'valign'),
+              xmlLang: XmlHelper.getAttributeValue(childElement, 'xml:lang'),
+              xmlSpace: XmlHelper.getAttributeValue(childElement, 'xml:space'),
+            ));
+
+            // Add a warning if text is empty
+            if (text.isEmpty) {
               warningSystem.addWarning(
                 'Empty <words> element found in direction.',
                 category: WarningCategories.structure,
@@ -340,44 +345,50 @@ class MeasureParser {
             break;
           case 'segno':
             directionTypeElements.add(Segno(
-              color: XmlHelper.getAttribute(childElement, 'color'),
-              defaultX:
-                  XmlHelper.getAttributeAsDouble(childElement, 'default-x'),
-              defaultY:
-                  XmlHelper.getAttributeAsDouble(childElement, 'default-y'),
-              fontFamily: XmlHelper.getAttribute(childElement, 'font-family'),
-              fontSize: XmlHelper.getAttribute(childElement, 'font-size'),
-              fontStyle: XmlHelper.getAttribute(childElement, 'font-style'),
-              fontWeight: XmlHelper.getAttribute(childElement, 'font-weight'),
-              halign: XmlHelper.getAttribute(childElement, 'halign'),
-              id: XmlHelper.getAttribute(childElement, 'id'),
-              relativeX:
-                  XmlHelper.getAttributeAsDouble(childElement, 'relative-x'),
-              relativeY:
-                  XmlHelper.getAttributeAsDouble(childElement, 'relative-y'),
-              smufl: XmlHelper.getAttribute(childElement, 'smufl'),
-              valign: XmlHelper.getAttribute(childElement, 'valign'),
+              color: XmlHelper.getAttributeValue(childElement, 'color'),
+              defaultX: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'default-x'),
+              defaultY: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'default-y'),
+              fontFamily:
+                  XmlHelper.getAttributeValue(childElement, 'font-family'),
+              fontSize: XmlHelper.getAttributeValue(childElement, 'font-size'),
+              fontStyle:
+                  XmlHelper.getAttributeValue(childElement, 'font-style'),
+              fontWeight:
+                  XmlHelper.getAttributeValue(childElement, 'font-weight'),
+              halign: XmlHelper.getAttributeValue(childElement, 'halign'),
+              id: XmlHelper.getAttributeValue(childElement, 'id'),
+              relativeX: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'relative-x'),
+              relativeY: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'relative-y'),
+              smufl: XmlHelper.getAttributeValue(childElement, 'smufl'),
+              valign: XmlHelper.getAttributeValue(childElement, 'valign'),
             ));
             break;
           case 'coda':
             directionTypeElements.add(Coda(
-              color: XmlHelper.getAttribute(childElement, 'color'),
-              defaultX:
-                  XmlHelper.getAttributeAsDouble(childElement, 'default-x'),
-              defaultY:
-                  XmlHelper.getAttributeAsDouble(childElement, 'default-y'),
-              fontFamily: XmlHelper.getAttribute(childElement, 'font-family'),
-              fontSize: XmlHelper.getAttribute(childElement, 'font-size'),
-              fontStyle: XmlHelper.getAttribute(childElement, 'font-style'),
-              fontWeight: XmlHelper.getAttribute(childElement, 'font-weight'),
-              halign: XmlHelper.getAttribute(childElement, 'halign'),
-              id: XmlHelper.getAttribute(childElement, 'id'),
-              relativeX:
-                  XmlHelper.getAttributeAsDouble(childElement, 'relative-x'),
-              relativeY:
-                  XmlHelper.getAttributeAsDouble(childElement, 'relative-y'),
-              smufl: XmlHelper.getAttribute(childElement, 'smufl'),
-              valign: XmlHelper.getAttribute(childElement, 'valign'),
+              color: XmlHelper.getAttributeValue(childElement, 'color'),
+              defaultX: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'default-x'),
+              defaultY: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'default-y'),
+              fontFamily:
+                  XmlHelper.getAttributeValue(childElement, 'font-family'),
+              fontSize: XmlHelper.getAttributeValue(childElement, 'font-size'),
+              fontStyle:
+                  XmlHelper.getAttributeValue(childElement, 'font-style'),
+              fontWeight:
+                  XmlHelper.getAttributeValue(childElement, 'font-weight'),
+              halign: XmlHelper.getAttributeValue(childElement, 'halign'),
+              id: XmlHelper.getAttributeValue(childElement, 'id'),
+              relativeX: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'relative-x'),
+              relativeY: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'relative-y'),
+              smufl: XmlHelper.getAttributeValue(childElement, 'smufl'),
+              valign: XmlHelper.getAttributeValue(childElement, 'valign'),
             ));
             break;
           case 'dynamics':
@@ -394,31 +405,33 @@ class MeasureParser {
             }
             directionTypeElements.add(Dynamics(
               values: dynamicValues,
-              color: XmlHelper.getAttribute(childElement, 'color'),
-              defaultX:
-                  XmlHelper.getAttributeAsDouble(childElement, 'default-x'),
-              defaultY:
-                  XmlHelper.getAttributeAsDouble(childElement, 'default-y'),
-              enclosure: XmlHelper.getAttribute(childElement, 'enclosure'),
+              color: XmlHelper.getAttributeValue(childElement, 'color'),
+              defaultX: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'default-x'),
+              defaultY: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'default-y'),
+              enclosure: XmlHelper.getAttributeValue(childElement, 'enclosure'),
               fontFamily:
-                  XmlHelper.getAttribute(childElement, 'font-family'),
-              fontSize: XmlHelper.getAttribute(childElement, 'font-size'),
-              fontStyle: XmlHelper.getAttribute(childElement, 'font-style'),
+                  XmlHelper.getAttributeValue(childElement, 'font-family'),
+              fontSize: XmlHelper.getAttributeValue(childElement, 'font-size'),
+              fontStyle:
+                  XmlHelper.getAttributeValue(childElement, 'font-style'),
               fontWeight:
-                  XmlHelper.getAttribute(childElement, 'font-weight'),
-              halign: XmlHelper.getAttribute(childElement, 'halign'),
-              id: XmlHelper.getAttribute(childElement, 'id'),
-              lineThrough:
-                  XmlHelper.getAttributeAsInt(childElement, 'line-through'),
-              overline: XmlHelper.getAttributeAsInt(childElement, 'overline'),
-              placement: XmlHelper.getAttribute(childElement, 'placement'),
-              relativeX:
-                  XmlHelper.getAttributeAsDouble(childElement, 'relative-x'),
-              relativeY:
-                  XmlHelper.getAttributeAsDouble(childElement, 'relative-y'),
+                  XmlHelper.getAttributeValue(childElement, 'font-weight'),
+              halign: XmlHelper.getAttributeValue(childElement, 'halign'),
+              id: XmlHelper.getAttributeValue(childElement, 'id'),
+              lineThrough: XmlHelper.getAttributeValueAsInt(
+                  childElement, 'line-through'),
+              overline:
+                  XmlHelper.getAttributeValueAsInt(childElement, 'overline'),
+              placement: XmlHelper.getAttributeValue(childElement, 'placement'),
+              relativeX: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'relative-x'),
+              relativeY: XmlHelper.getAttributeValueAsDouble(
+                  childElement, 'relative-y'),
               underline:
-                  XmlHelper.getAttributeAsInt(childElement, 'underline'),
-              valign: XmlHelper.getAttribute(childElement, 'valign'),
+                  XmlHelper.getAttributeValueAsInt(childElement, 'underline'),
+              valign: XmlHelper.getAttributeValue(childElement, 'valign'),
             ));
             break;
         }
@@ -432,7 +445,7 @@ class MeasureParser {
       if (value != null) {
         parsedOffset = Offset(
           value: value,
-          sound: XmlHelper.getAttribute(offsetElement, 'sound') == 'yes',
+          sound: XmlHelper.getAttributeValue(offsetElement, 'sound') == 'yes',
         );
       }
     }
@@ -447,40 +460,38 @@ class MeasureParser {
 
     final soundElement = directionElement.findElements('sound').firstOrNull;
     if (soundElement != null) {
-      // Basic sound parsing, can be expanded
+      final timeOnlyValue =
+          XmlHelper.getAttributeValue(soundElement, 'time-only');
       parsedSound = Sound(
-        tempo: XmlHelper.getAttributeAsDouble(soundElement, 'tempo'),
-        dynamics: XmlHelper.getAttributeAsDouble(soundElement, 'dynamics'),
-        dacapo: XmlHelper.getAttribute(soundElement, 'dacapo') == 'yes',
-        segno: XmlHelper.getAttribute(soundElement, 'segno'),
-        coda: XmlHelper.getAttribute(soundElement, 'coda'),
-        fine: XmlHelper.getAttribute(soundElement, 'fine'),
-        timeOnly: XmlHelper.getAttribute(soundElement, 'time-only'),
-        pizzicato: XmlHelper.getAttribute(soundElement, 'pizzicato') == 'yes',
-        pan: XmlHelper.getAttributeAsDouble(soundElement, 'pan'),
-        elevation: XmlHelper.getAttributeAsDouble(soundElement, 'elevation'),
-        // TODO: Parse <offset> child of <sound> if needed
+        tempo: XmlHelper.getAttributeValueAsDouble(soundElement, 'tempo'),
+        dynamics: XmlHelper.getAttributeValueAsDouble(soundElement, 'dynamics'),
+        dacapo: XmlHelper.getAttributeValue(soundElement, 'dacapo') == 'yes',
+        segno: XmlHelper.getAttributeValue(soundElement, 'segno'),
+        coda: XmlHelper.getAttributeValue(soundElement, 'coda'),
+        fine: XmlHelper.getAttributeValue(soundElement, 'fine'),
+        timeOnly: timeOnlyValue == null ? null : timeOnlyValue == 'yes',
+        pizzicato:
+            XmlHelper.getAttributeValue(soundElement, 'pizzicato') == 'yes',
+        pan: XmlHelper.getAttributeValueAsDouble(soundElement, 'pan'),
+        elevation:
+            XmlHelper.getAttributeValueAsDouble(soundElement, 'elevation'),
       );
     }
 
-    if (directionTypeElements.isEmpty &&
-        parsedOffset == null &&
-        parsedStaff == null &&
-        parsedSound == null) {
-      // If no meaningful content was found within <direction>, return null
-      // or log a warning, depending on strictness.
-      // For now, let's return null if there are no direction types,
-      // as <direction> must contain at least one <direction-type>.
-      // The other elements (<offset>, <staff>, <sound>) are optional.
-      if (directionTypeElements.isEmpty) {
-        warningSystem.addWarning(
-          'Direction element without any direction-type children.',
-          category: WarningCategories.structure,
-          line: XmlHelper.getLineNumber(directionElement),
-          context: {'part': partId, 'measure': measureNumber},
-        );
-        return null;
-      }
+    // A <direction> element MUST have at least one <direction-type> child
+    // to be considered valid by this parser.
+    // Other elements like <offset>, <staff>, <sound>, or attributes on <direction> itself
+    // are considered supplementary if <direction-type> is present, but do not
+    // make a <direction> valid on their own without a <direction-type>.
+    if (directionTypeElements.isEmpty) {
+      warningSystem.addWarning(
+        'Direction element without any <direction-type> children. Skipping this direction.', // Positional message
+        category: WarningCategories.structure,
+        element: directionElement.name.local, // Corrected parameter name
+        line: XmlHelper.getLineNumber(directionElement),
+        context: {'part': partId, 'measure': measureNumber},
+      );
+      return null;
     }
 
     return Direction(
@@ -488,19 +499,22 @@ class MeasureParser {
       offset: parsedOffset,
       staff: parsedStaff,
       sound: parsedSound,
-      placement: XmlHelper.getAttribute(directionElement, 'placement'),
-      directive: XmlHelper.getAttribute(directionElement, 'directive'),
-      system: XmlHelper.getAttribute(directionElement, 'system'),
-      id: XmlHelper.getAttribute(directionElement, 'id'),
+      placement: XmlHelper.getAttributeValue(directionElement, 'placement'),
+      directive: XmlHelper.getAttributeValue(directionElement, 'directive'),
+      system: XmlHelper.getAttributeValue(directionElement, 'system'),
+      id: XmlHelper.getAttributeValue(directionElement, 'id'),
     );
   }
 
   /// Parses a <print> element.
   PrintObject _parsePrint(XmlElement printElement) {
-    final newPageAttr = printElement.getAttribute('new-page');
-    final newSystemAttr = printElement.getAttribute('new-system');
-    final blankPageStr = printElement.getAttribute('blank-page');
-    final pageNumberStr = printElement.getAttribute('page-number');
+    final newPageAttr = XmlHelper.getAttributeValue(printElement, 'new-page');
+    final newSystemAttr =
+        XmlHelper.getAttributeValue(printElement, 'new-system');
+    final blankPageStr =
+        XmlHelper.getAttributeValue(printElement, 'blank-page');
+    final pageNumberStr =
+        XmlHelper.getAttributeValue(printElement, 'page-number');
 
     final newPage = newPageAttr == 'yes';
     final newSystem = newSystemAttr == 'yes';
@@ -548,32 +562,34 @@ class MeasureParser {
       measureNumbering = MeasureNumbering(
         value: MeasureNumbering.parseValue(
             measureNumberingElement.innerText.trim()),
-        color: XmlHelper.getAttribute(measureNumberingElement, 'color'),
-        defaultX:
-            XmlHelper.getAttributeAsDouble(measureNumberingElement, 'default-x'),
-        defaultY:
-            XmlHelper.getAttributeAsDouble(measureNumberingElement, 'default-y'),
+        color: XmlHelper.getAttributeValue(measureNumberingElement, 'color'),
+        defaultX: XmlHelper.getAttributeValueAsDouble(
+            measureNumberingElement, 'default-x'),
+        defaultY: XmlHelper.getAttributeValueAsDouble(
+            measureNumberingElement, 'default-y'),
         fontFamily:
-            XmlHelper.getAttribute(measureNumberingElement, 'font-family'),
-        fontSize: XmlHelper.getAttribute(measureNumberingElement, 'font-size'),
+            XmlHelper.getAttributeValue(measureNumberingElement, 'font-family'),
+        fontSize:
+            XmlHelper.getAttributeValue(measureNumberingElement, 'font-size'),
         fontStyle:
-            XmlHelper.getAttribute(measureNumberingElement, 'font-style'),
+            XmlHelper.getAttributeValue(measureNumberingElement, 'font-style'),
         fontWeight:
-            XmlHelper.getAttribute(measureNumberingElement, 'font-weight'),
-        halign: XmlHelper.getAttribute(measureNumberingElement, 'halign'),
-        multipleRestAlways:
-            XmlHelper.getAttribute(measureNumberingElement, 'multiple-rest-always') ==
-                'yes',
-        multipleRestRange:
-            XmlHelper.getAttribute(measureNumberingElement, 'multiple-rest-range') ==
-                'yes',
-        relativeX: XmlHelper.getAttributeAsDouble(
+            XmlHelper.getAttributeValue(measureNumberingElement, 'font-weight'),
+        halign: XmlHelper.getAttributeValue(measureNumberingElement, 'halign'),
+        multipleRestAlways: XmlHelper.getAttributeValue(
+                measureNumberingElement, 'multiple-rest-always') ==
+            'yes',
+        multipleRestRange: XmlHelper.getAttributeValue(
+                measureNumberingElement, 'multiple-rest-range') ==
+            'yes',
+        relativeX: XmlHelper.getAttributeValueAsDouble(
             measureNumberingElement, 'relative-x'),
-        relativeY: XmlHelper.getAttributeAsDouble(
+        relativeY: XmlHelper.getAttributeValueAsDouble(
             measureNumberingElement, 'relative-y'),
-        staff: XmlHelper.getAttributeAsInt(measureNumberingElement, 'staff'),
-        system: XmlHelper.getAttribute(measureNumberingElement, 'system'),
-        valign: XmlHelper.getAttribute(measureNumberingElement, 'valign'),
+        staff:
+            XmlHelper.getAttributeValueAsInt(measureNumberingElement, 'staff'),
+        system: XmlHelper.getAttributeValue(measureNumberingElement, 'system'),
+        valign: XmlHelper.getAttributeValue(measureNumberingElement, 'valign'),
       );
     }
 

@@ -172,4 +172,37 @@ class XmlHelper {
     if (text == 'no') return false;
     return defaultValue;
   }
+
+  /// Gets the value of an attribute by [attributeName] from an [element].
+  ///
+  /// Returns the attribute value as a `String?`, or `null` if the element is `null`
+  /// or the attribute does not exist.
+  static String? getAttributeValue(XmlElement? element, String attributeName) {
+    if (element == null) return null;
+    return element.getAttribute(attributeName);
+  }
+
+  /// Gets the value of an attribute by [attributeName] from an [element] and parses it as a double.
+  ///
+  /// Returns the attribute value as a `double?`, or `null` if the element is `null`,
+  /// the attribute does not exist, or its value is not a valid double.
+  static double? getAttributeValueAsDouble(
+      XmlElement? element, String attributeName) {
+    if (element == null) return null;
+    final attributeValue = element.getAttribute(attributeName);
+    if (attributeValue == null) return null;
+    return double.tryParse(attributeValue);
+  }
+
+  /// Gets the value of an attribute by [attributeName] from an [element] and parses it as an integer.
+  ///
+  /// Returns the attribute value as an `int?`, or `null` if the element is `null`,
+  /// the attribute does not exist, or its value is not a valid integer.
+  static int? getAttributeValueAsInt(
+      XmlElement? element, String attributeName) {
+    if (element == null) return null;
+    final attributeValue = element.getAttribute(attributeName);
+    if (attributeValue == null) return null;
+    return int.tryParse(attributeValue);
+  }
 }
