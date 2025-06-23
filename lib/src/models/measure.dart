@@ -2,6 +2,7 @@ import 'package:meta/meta.dart';
 import 'package:collection/collection.dart'; // For DeepCollectionEquality
 import 'package:musicxml_parser/src/models/barline.dart';
 import 'package:musicxml_parser/src/models/beam.dart';
+import 'package:musicxml_parser/src/models/clef.dart';
 import 'package:musicxml_parser/src/models/ending.dart';
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/note.dart';
@@ -12,7 +13,7 @@ import 'print_object.dart';
 /// Represents a single measure in a musical score.
 ///
 /// A measure contains a sequence of [notes], and can also define attributes
-/// like [keySignature], [timeSignature], [barlines], and [width].
+/// like [keySignature], [timeSignature], [clefs], [barlines], and [width].
 /// It is identified by a [number] (measure number).
 ///
 /// Instances are typically created via [MeasureBuilder].
@@ -30,6 +31,11 @@ class Measure {
 
   /// The time signature active at the beginning of this measure, if specified.
   final TimeSignature? timeSignature;
+
+  /// A list of [Clef] objects active at the beginning of this measure.
+  /// MusicXML allows for multiple clefs per measure (e.g., for different staves
+  /// or mid-measure clef changes if not handled by a separate attributes element).
+  final List<Clef>? clefs;
 
   /// The visual width of the measure in tenths.
   final double? width;
@@ -63,6 +69,7 @@ class Measure {
     required this.notes,
     this.keySignature,
     this.timeSignature,
+    this.clefs,
     this.isPickup = false,
     this.width,
     this.beams = const [],
@@ -81,6 +88,7 @@ class Measure {
           const DeepCollectionEquality().equals(notes, other.notes) &&
           keySignature == other.keySignature &&
           timeSignature == other.timeSignature &&
+          const DeepCollectionEquality().equals(clefs, other.clefs) &&
           width == other.width &&
           const DeepCollectionEquality().equals(beams, other.beams) &&
           const DeepCollectionEquality().equals(barlines, other.barlines) &&
@@ -94,6 +102,7 @@ class Measure {
       const DeepCollectionEquality().hash(notes) ^
       keySignature.hashCode ^
       timeSignature.hashCode ^
+      const DeepCollectionEquality().hash(clefs) ^
       (width?.hashCode ?? 0) ^
       const DeepCollectionEquality().hash(beams) ^
       (barlines != null ? const DeepCollectionEquality().hash(barlines!) : 0) ^
@@ -109,6 +118,7 @@ class Measure {
       if (beams.isNotEmpty) 'beams: ${beams.length}',
       if (keySignature != null) 'key: $keySignature',
       if (timeSignature != null) 'time: $timeSignature',
+      if (clefs != null && clefs!.isNotEmpty) 'clefs: $clefs',
       if (width != null) 'width: $width',
       if (isPickup) 'pickup',
       if (barlines != null && barlines!.isNotEmpty) 'barlines: $barlines',
@@ -123,7 +133,7 @@ class Measure {
 /// Builder for creating [Measure] objects incrementally.
 ///
 /// This builder is useful during the parsing process where measure properties
-/// (like notes, barlines, key/time signatures) are discovered and set step-by-step.
+/// (like notes, barlines, key/time signatures, clefs) are discovered and set step-by-step.
 /// The [build] method finalizes the measure construction.
 ///
 /// Example:
@@ -132,6 +142,7 @@ class Measure {
 /// measureBuilder
 ///   .addNote(aNote)
 ///   .setKeySignature(aKeySignature)
+///   .setClefs([aClef])
 ///   .addBarline(aBarline);
 /// final Measure measure = measureBuilder.build();
 /// ```
@@ -141,6 +152,7 @@ class MeasureBuilder {
   List<Note> _notes = [];
   KeySignature? _keySignature;
   TimeSignature? _timeSignature;
+  List<Clef>? _clefs;
   double? _width;
   List<Beam> _beams = [];
   bool _isPickup = false;
@@ -186,6 +198,12 @@ class MeasureBuilder {
   /// Sets the time signature for the measure.
   MeasureBuilder setTimeSignature(TimeSignature? timeSignature) {
     _timeSignature = timeSignature;
+    return this;
+  }
+
+  /// Sets the clefs for the measure.
+  MeasureBuilder setClefs(List<Clef>? clefs) {
+    _clefs = clefs;
     return this;
   }
 
@@ -276,6 +294,7 @@ class MeasureBuilder {
       notes: _notes,
       keySignature: _keySignature,
       timeSignature: _timeSignature,
+      clefs: _clefs,
       width: _width,
       beams: _beams,
       isPickup: _isPickup,

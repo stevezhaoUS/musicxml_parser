@@ -2,6 +2,7 @@ import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/models/barline.dart'; // Import for Barline
 import 'package:musicxml_parser/src/models/beam.dart';
+import 'package:musicxml_parser/src/models/clef.dart';
 import 'package:musicxml_parser/src/models/ending.dart'; // Import for Ending
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/measure.dart';
@@ -56,12 +57,14 @@ class MeasureParser {
   /// [inheritedDivisions] - The divisions value inherited from previous measures (if any).
   /// [inheritedKeySignature] - The key signature inherited from previous measures (if any).
   /// [inheritedTimeSignature] - The time signature inherited from previous measures (if any).
+  /// [inheritedClefs] - The list of clefs inherited from previous measures (if any).
   Measure parse(
     XmlElement element,
     String partId, {
     int? inheritedDivisions,
     KeySignature? inheritedKeySignature,
     TimeSignature? inheritedTimeSignature,
+    List<Clef>? inheritedClefs,
   }) {
     final line = XmlHelper.getLineNumber(element);
     final implicit = XmlHelper.getAttributeValue(element, 'implicit');
@@ -114,7 +117,8 @@ class MeasureParser {
         .setIsPickup(isPickup)
         .setWidth(width)
         .setKeySignature(inheritedKeySignature) // Set initial inherited values
-        .setTimeSignature(inheritedTimeSignature);
+        .setTimeSignature(inheritedTimeSignature)
+        .setClefs(inheritedClefs);
 
     int? currentDivisions = inheritedDivisions;
     final List<Beam> individualBeams =
@@ -133,6 +137,9 @@ class MeasureParser {
           }
           if (attributesData['timeSignature'] != null) {
             measureBuilder.setTimeSignature(attributesData['timeSignature']);
+          }
+          if (attributesData['clefs'] != null) {
+            measureBuilder.setClefs(attributesData['clefs'] as List<Clef>);
           }
           break;
         case 'note':
