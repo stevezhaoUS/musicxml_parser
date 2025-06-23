@@ -90,16 +90,16 @@ void main() {
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
           throwsA(isA<MusicXmlStructureException>().having((e) => e.message,
-              'message', contains("Key element missing required <fifths> child"))),
+              'message', contains("Required <fifths> element not found in <key>"))),
         );
       });
 
-      test('throws MusicXmlParseException for invalid fifths text in key', () {
+      test('throws MusicXmlValidationException for invalid fifths text in key', () {
         final xml = buildAttributesXml('<key><fifths>abc</fifths></key>');
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
-          throwsA(isA<MusicXmlParseException>().having(
-              (e) => e.message, 'message', contains('Invalid fifths value "abc"'))),
+          throwsA(isA<MusicXmlValidationException>().having(
+              (e) => e.message, 'message', contains('Invalid key signature fifths value: "abc". Must be an integer.'))),
         );
       });
     });
