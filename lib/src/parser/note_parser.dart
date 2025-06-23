@@ -190,6 +190,12 @@ class NoteParser {
         .setIsChordElementPresent(isChord)
         .setStemDirection(stemDirection);
 
+    // 解析 <accidental> 字段
+    final accidentalElement = element.getElement('accidental');
+    if (accidentalElement != null) {
+      noteBuilder.accidental = _parseAccidentalEnum(accidentalElement.text);
+    }
+
     try {
       return noteBuilder.build();
     } on MusicXmlValidationException catch (e) {
@@ -397,6 +403,31 @@ class NoteParser {
     }
     // Add a general catch if other unexpected errors could occur from Pitch.fromXmlElement
     // though it's designed to throw specific MusicXML exceptions.
+  }
+
+  Accidental _parseAccidentalEnum(String? text) {
+    switch (text) {
+      case 'sharp':
+        return Accidental.sharp;
+      case 'flat':
+        return Accidental.flat;
+      case 'natural':
+        return Accidental.natural;
+      case 'double-sharp':
+        return Accidental.doubleSharp;
+      case 'double-flat':
+        return Accidental.doubleFlat;
+      case 'sharp-sharp':
+        return Accidental.sharpSharp;
+      case 'flat-flat':
+        return Accidental.flatFlat;
+      case 'quarter-sharp':
+        return Accidental.quarterSharp;
+      case 'quarter-flat':
+        return Accidental.quarterFlat;
+      default:
+        return Accidental.other;
+    }
   }
 }
 

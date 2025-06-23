@@ -12,6 +12,20 @@ import 'package:musicxml_parser/src/utils/validation_utils.dart';
 /// 符干方向枚举
 enum StemDirection { up, down, doubleStem, none }
 
+/// Accidental枚举，表示音符的变音记号。
+enum Accidental {
+  sharp,
+  flat,
+  natural,
+  doubleSharp,
+  doubleFlat,
+  sharpSharp,
+  flatFlat,
+  quarterSharp,
+  quarterFlat,
+  other,
+}
+
 /// Represents a musical note or rest in a score.
 ///
 /// This class encapsulates all properties of a note, such as its [pitch] (if not a rest),
@@ -65,6 +79,9 @@ class Note {
   /// 符干方向，来自<stem>元素，可为up/down/double/none/null
   final StemDirection? stemDirection;
 
+  /// The accidental associated with the note (e.g., "sharp", "flat"). Null if none.
+  final Accidental? accidental;
+
   /// Creates a new [Note] instance.
   ///
   /// Basic structural validation (e.g., a rest cannot have a pitch) is
@@ -84,6 +101,7 @@ class Note {
     this.ties,
     this.isChordElementPresent = false,
     this.stemDirection,
+    this.accidental,
   }) : assert(isRest ? pitch == null : pitch != null,
             'A rest must not have a pitch, and a non-rest note must have a pitch.');
 
@@ -115,6 +133,7 @@ class Note {
     List<Tie>? ties,
     bool isChordElementPresent = false,
     StemDirection? stemDirection,
+    Accidental? accidental,
     int? line,
     Map<String, dynamic>? context,
   }) {
@@ -176,6 +195,7 @@ class Note {
       ties: ties,
       isChordElementPresent: isChordElementPresent,
       stemDirection: stemDirection,
+      accidental: accidental,
     );
   }
 
@@ -278,6 +298,7 @@ class NoteBuilder {
   bool _isChordElementPresent = false;
   int? _staff; // Added for staff support
   StemDirection? _stemDirection;
+  Accidental? accidental;
 
   final int? _line;
   final Map<String, dynamic>? _context;
@@ -368,6 +389,12 @@ class NoteBuilder {
     return this;
   }
 
+  /// Sets the accidental of the note.
+  NoteBuilder setAccidental(Accidental? accidental) {
+    this.accidental = accidental;
+    return this;
+  }
+
   /// Builds and validates the [Note] instance using [Note.validated].
   ///
   /// Throws [MusicXmlValidationException] if the constructed note violates
@@ -387,6 +414,7 @@ class NoteBuilder {
       ties: _ties,
       isChordElementPresent: _isChordElementPresent,
       stemDirection: _stemDirection,
+      accidental: accidental,
       line: _line,
       context: _context,
     );

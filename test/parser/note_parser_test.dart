@@ -5,6 +5,7 @@ import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
 import 'package:musicxml_parser/src/parser/note_parser.dart';
 import 'package:musicxml_parser/src/utils/warning_system.dart';
+import 'package:musicxml_parser/src/models/note.dart' show Accidental;
 
 void main() {
   group('NoteParser', () {
@@ -976,7 +977,7 @@ void main() {
                    we'd need to mock the count or construct TimeModification directly.
                    The parser itself won't produce a negative count from XML.
                    However, the test for TimeModification.validated already covers normalDotCount: -1.
-                   This test will verify parser correctly counts valid normal-dot elements.
+                   This test will verify parser correctly counts <valid> normal-dot elements.
                    Let's adjust this test to be a valid scenario for the parser. -->
             </time-modification>
           </note>
@@ -1434,6 +1435,76 @@ void main() {
         expect(result, isNotNull);
         expect(result!.isRest, isTrue);
         expect(result.isChordElementPresent, isTrue);
+      });
+    });
+
+    group('accidental parsing', () {
+      test('parses note with accidental (sharp)', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch>
+              <step>C</step>
+              <octave>4</octave>
+            </pitch>
+            <duration>480</duration>
+            <accidental>sharp</accidental>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.accidental, equals(Accidental.sharp));
+      });
+
+      test('parses note with accidental (natural)', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch>
+              <step>D</step>
+              <octave>4</octave>
+            </pitch>
+            <duration>480</duration>
+            <accidental>natural</accidental>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.accidental, equals(Accidental.natural));
+      });
+
+      test('parses note with accidental (double-flat)', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch>
+              <step>E</step>
+              <octave>4</octave>
+            </pitch>
+            <duration>480</duration>
+            <accidental>double-flat</accidental>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.accidental, equals(Accidental.doubleFlat));
+      });
+
+      test('parses note with unknown accidental', () {
+        final xml = XmlDocument.parse('''
+          <note>
+            <pitch>
+              <step>F</step>
+              <octave>4</octave>
+            </pitch>
+            <duration>480</duration>
+            <accidental>foobar</accidental>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.accidental, equals(Accidental.other));
       });
     });
   });
