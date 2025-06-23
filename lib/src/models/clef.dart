@@ -1,5 +1,5 @@
-import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
+import 'package:collection/collection.dart'; // For list equality
 
 /// Represents a clef in MusicXML.
 ///
@@ -7,7 +7,7 @@ import 'package:meta/meta.dart';
 /// It consists of a sign (e.g., G, F, C), a line number on the staff,
 /// and an optional octave change.
 @immutable
-class Clef extends Equatable {
+class Clef {
   /// The clef sign (e.g., "G", "F", "C", "percussion", "TAB", "jianpu", "none").
   final String sign;
 
@@ -33,7 +33,23 @@ class Clef extends Equatable {
   });
 
   @override
-  List<Object?> get props => [sign, line, octaveChange, number];
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other.runtimeType != runtimeType) return false;
+    return other is Clef &&
+        other.sign == sign &&
+        other.line == line &&
+        other.octaveChange == octaveChange &&
+        other.number == number;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        sign,
+        line,
+        octaveChange,
+        number,
+      );
 
   @override
   String toString() {
