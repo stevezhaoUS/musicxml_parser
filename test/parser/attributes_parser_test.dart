@@ -335,8 +335,8 @@ void main() {
 
         final time = attributes['timeSignature'] as TimeSignature?;
         expect(time, isNotNull);
-        expect(time!.beats, ['3']);
-        expect(time.beatTypes, ['8']);
+        expect(time!.beats, 3); // Corrected: int, not List<String>
+        expect(time.beatType, 8); // Corrected: beatType, not beatTypes, and int
 
         final clefs = attributes['clefs'] as List<Clef>?;
         expect(clefs, isNotNull);
