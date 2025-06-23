@@ -203,7 +203,26 @@ This document provides essential MusicXML format knowledge for accurate parsing 
   <sign>C</sign>
   <line>3</line>
 </clef>
+
+<!-- Treble clef, one octave down (e.g., for Tenor voice) -->
+<clef>
+  <sign>G</sign>
+  <line>2</line>
+  <clef-octave-change>-1</clef-octave-change>
+</clef>
+
+<!-- Percussion clef (line is optional) -->
+<clef>
+  <sign>percussion</sign>
+</clef>
+
+<!-- Clef for a specific staff (e.g., staff 2 in a piano part) -->
+<clef number="2">
+  <sign>F</sign>
+  <line>4</line>
+</clef>
 ```
+The `<clef>` element can also include a `number` attribute to specify which staff it applies to (useful for multi-staff instruments) and a `<clef-octave-change>` element (e.g., -1 for an octave lower, 1 for an octave higher).
 
 ## Lyrics
 ```xml

@@ -5,6 +5,7 @@ import 'package:xml/xml.dart';
 
 import 'package:musicxml_parser/src/exceptions/musicxml_structure_exception.dart'; // Added for backup/forward tests
 import 'package:musicxml_parser/src/exceptions/musicxml_validation_exception.dart';
+import 'package:musicxml_parser/src/models/clef.dart';
 import 'package:musicxml_parser/src/models/duration.dart';
 import 'package:musicxml_parser/src/models/key_signature.dart';
 import 'package:musicxml_parser/src/models/note.dart';
@@ -32,6 +33,13 @@ void main() {
       mockNoteParser = MockNoteParser();
       mockAttributesParser = MockAttributesParser();
       warningSystem = WarningSystem();
+
+      // Default behavior for mockAttributesParser to avoid null issues on 'clefs'
+      when(mockAttributesParser.parse(any, any, any, any)).thenReturn({
+        'divisions': 1, // Default divisions
+        // Ensure 'clefs' is handled, even if it's null or an empty list by default
+        // 'clefs': <Clef>[], // Example if you want to default to an empty list
+      });
     });
 
     group('constructor', () {
@@ -76,6 +84,11 @@ void main() {
           attributesParser: mockAttributesParser,
           warningSystem: warningSystem,
         );
+         // Reset specific mock behaviors for each test if necessary
+        when(mockAttributesParser.parse(any, any, any, any)).thenReturn({
+            'divisions': 1, // Default divisions
+        });
+        when(mockNoteParser.parse(any,any,any,any)).thenReturn(null); // Default no notes
       });
 
       test('parses basic measure with number', () {
@@ -89,6 +102,7 @@ void main() {
         expect(result.keySignature, isNull);
         expect(result.timeSignature, isNull);
         expect(result.width, isNull);
+        expect(result.clefs, isNull);
       });
 
       test('parses measure with width attribute', () {
@@ -119,6 +133,8 @@ void main() {
 
         final keySignature = const KeySignature(fifths: 2);
         final timeSignature = const TimeSignature(beats: 4, beatType: 4);
+        final clefs = [const Clef(sign: 'G', line: 2)];
+
 
         final result = measureParser.parse(
           element,
@@ -126,10 +142,12 @@ void main() {
           inheritedDivisions: 480,
           inheritedKeySignature: keySignature,
           inheritedTimeSignature: timeSignature,
+          inheritedClefs: clefs,
         );
 
         expect(result.keySignature, equals(keySignature));
         expect(result.timeSignature, equals(timeSignature));
+        expect(result.clefs, equals(clefs));
       });
 
       group('validation errors', () {
@@ -229,7 +247,7 @@ void main() {
           final keySignature = const KeySignature(fifths: 2);
 
           when(mockAttributesParser.parse(any, any, any, any))
-              .thenReturn({'keySignature': keySignature});
+              .thenReturn({'keySignature': keySignature, 'divisions': 1});
 
           final result = measureParser.parse(element, 'P1');
 
@@ -252,12 +270,57 @@ void main() {
           final timeSignature = const TimeSignature(beats: 3, beatType: 4);
 
           when(mockAttributesParser.parse(any, any, any, any))
-              .thenReturn({'timeSignature': timeSignature});
+              .thenReturn({'timeSignature': timeSignature, 'divisions': 1});
 
           final result = measureParser.parse(element, 'P1');
 
           expect(result.timeSignature, equals(timeSignature));
           verify(mockAttributesParser.parse(any, 'P1', '1', null)).called(1);
+        });
+
+        test('processes attributes and updates clefs', () {
+          final xml = XmlDocument.parse('''
+            <measure number="1">
+              <attributes>
+                <clef><sign>G</sign><line>2</line></clef>
+              </attributes>
+            </measure>
+          ''');
+          final element = xml.rootElement;
+          final clefs = [const Clef(sign: 'G', line: 2)];
+
+          when(mockAttributesParser.parse(any, any, any, any))
+              .thenReturn({'clefs': clefs, 'divisions': 1});
+
+          final result = measureParser.parse(element, 'P1');
+
+          expect(result.clefs, equals(clefs));
+          verify(mockAttributesParser.parse(any, 'P1', '1', null)).called(1);
+        });
+
+        test('overrides inherited clef with new clef from attributes', () {
+          final inheritedClefs = [const Clef(sign: 'F', line: 4, number: 1)];
+          final newClefs = [const Clef(sign: 'G', line: 2, number: 1)];
+          final xml = XmlDocument.parse('''
+            <measure number="1">
+              <attributes>
+                <clef number="1"><sign>G</sign><line>2</line></clef>
+              </attributes>
+            </measure>
+          ''');
+          final element = xml.rootElement;
+
+          when(mockAttributesParser.parse(any, any, any, any))
+              .thenReturn({'clefs': newClefs, 'divisions': 1});
+
+          final result = measureParser.parse(
+            element,
+            'P1',
+            inheritedClefs: inheritedClefs
+          );
+
+          expect(result.clefs, isNotNull);
+          expect(result.clefs, equals(newClefs));
         });
 
         test('processes multiple attributes elements', () {
@@ -281,7 +344,7 @@ void main() {
             callCount++;
             return callCount == 1
                 ? {'divisions': 480}
-                : {'keySignature': keySignature};
+                : {'keySignature': keySignature, 'divisions': 480};
           });
 
           final result = measureParser.parse(element, 'P1');
@@ -302,7 +365,7 @@ void main() {
           ''');
           final element = xml.rootElement;
 
-          when(mockAttributesParser.parse(any, any, any, any)).thenReturn({});
+          when(mockAttributesParser.parse(any, any, any, 240)).thenReturn({'divisions': 240});
 
           measureParser.parse(element, 'P1', inheritedDivisions: 240);
 
@@ -327,17 +390,20 @@ void main() {
 
           final note = const Note(
             pitch: const Pitch(step: 'C', octave: 4),
-            duration: const Duration(value: 480, divisions: 480),
+            duration: const Duration(value: 480, divisions: 1), // Assuming default divisions 1 from mock
             isRest: false,
           );
 
-          when(mockNoteParser.parse(any, any, any, any)).thenReturn(note);
+          // Ensure attributes parser returns some divisions
+          when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': 1});
+          when(mockNoteParser.parse(any, 1, 'P1', '1')).thenReturn(note);
+
 
           final result = measureParser.parse(element, 'P1');
 
           expect(result.notes, hasLength(1));
           expect(result.notes.first, equals(note));
-          verify(mockNoteParser.parse(any, null, 'P1', '1')).called(1);
+          verify(mockNoteParser.parse(any, 1, 'P1', '1')).called(1);
         });
 
         test('processes multiple notes', () {
@@ -360,18 +426,19 @@ void main() {
 
           final note1 = const Note(
             pitch: const Pitch(step: 'C', octave: 4),
-            duration: const Duration(value: 480, divisions: 480),
+            duration: const Duration(value: 480, divisions: 1),
             isRest: false,
           );
 
           final note2 = const Note(
             pitch: null,
-            duration: const Duration(value: 480, divisions: 480),
+            duration: const Duration(value: 480, divisions: 1),
             isRest: true,
           );
 
+          when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': 1});
           var callCount = 0;
-          when(mockNoteParser.parse(any, any, any, any)).thenAnswer((_) {
+          when(mockNoteParser.parse(any, 1, 'P1', '1')).thenAnswer((_) {
             callCount++;
             return callCount == 1 ? note1 : note2;
           });
@@ -381,7 +448,7 @@ void main() {
           expect(result.notes, hasLength(2));
           expect(result.notes[0], equals(note1));
           expect(result.notes[1], equals(note2));
-          verify(mockNoteParser.parse(any, null, 'P1', '1')).called(2);
+          verify(mockNoteParser.parse(any, 1, 'P1', '1')).called(2);
         });
 
         test('filters out null notes', () {
@@ -403,12 +470,13 @@ void main() {
 
           final note = const Note(
             pitch: const Pitch(step: 'C', octave: 4),
-            duration: const Duration(value: 480, divisions: 480),
+            duration: const Duration(value: 480, divisions: 1),
             isRest: false,
           );
 
+          when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': 1});
           var callCount = 0;
-          when(mockNoteParser.parse(any, any, any, any)).thenAnswer((_) {
+          when(mockNoteParser.parse(any, 1, 'P1', '1')).thenAnswer((_) {
             callCount++;
             return callCount == 1 ? note : null;
           });
@@ -417,7 +485,7 @@ void main() {
 
           expect(result.notes, hasLength(1));
           expect(result.notes.first, equals(note));
-          verify(mockNoteParser.parse(any, null, 'P1', '1')).called(2);
+          verify(mockNoteParser.parse(any, 1, 'P1', '1')).called(2);
         });
 
         test('passes divisions to note parser', () {
@@ -445,7 +513,7 @@ void main() {
 
           when(mockAttributesParser.parse(any, any, any, any))
               .thenReturn({'divisions': 240});
-          when(mockNoteParser.parse(any, any, any, any)).thenReturn(note);
+          when(mockNoteParser.parse(any, 240, 'P1', '1')).thenReturn(note);
 
           measureParser.parse(element, 'P1');
 
@@ -457,6 +525,9 @@ void main() {
         test('handles empty measure', () {
           final xml = XmlDocument.parse('<measure number="1"></measure>');
           final element = xml.rootElement;
+          // Ensure mockAttributesParser.parse returns a map that includes 'divisions'
+          when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': null});
+
 
           final result = measureParser.parse(element, 'P1');
 
@@ -474,6 +545,8 @@ void main() {
             </measure>
           ''');
           final element = xml.rootElement;
+          when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': null});
+
 
           final result = measureParser.parse(element, 'P1');
 
@@ -517,7 +590,7 @@ void main() {
 
           when(mockAttributesParser.parse(any, any, any, any))
               .thenReturn({'divisions': 480});
-          when(mockNoteParser.parse(any, any, any, any)).thenReturn(note);
+          when(mockNoteParser.parse(any, 480, 'P1', '1')).thenReturn(note);
 
           final result = measureParser.parse(element, 'P1');
 
@@ -530,7 +603,7 @@ void main() {
       });
 
       group('complex scenarios', () {
-        test('processes measure with all elements and inheritance', () {
+        test('processes measure with all elements and inheritance including clef', () {
           final xml = XmlDocument.parse('''
             <measure number="42" width="150.0">
               <attributes>
@@ -542,6 +615,7 @@ void main() {
                   <beats>6</beats>
                   <beat-type>8</beat-type>
                 </time>
+                <clef number="1"><sign>G</sign><line>2</line></clef>
               </attributes>
               <note>
                 <pitch>
@@ -560,8 +634,11 @@ void main() {
 
           final inheritedKey = const KeySignature(fifths: 1);
           final inheritedTime = const TimeSignature(beats: 4, beatType: 4);
+          final inheritedClefs = [const Clef(sign: 'F', line: 4, number: 1)];
           final newKey = const KeySignature(fifths: 3);
           final newTime = const TimeSignature(beats: 6, beatType: 8);
+          final newClefs = [const Clef(sign: 'G', line: 2, number: 1)];
+
 
           final note1 = const Note(
             pitch: const Pitch(step: 'A', octave: 4),
@@ -579,10 +656,11 @@ void main() {
             'divisions': 960,
             'keySignature': newKey,
             'timeSignature': newTime,
+            'clefs': newClefs,
           });
 
           var callCount = 0;
-          when(mockNoteParser.parse(any, any, any, any)).thenAnswer((_) {
+          when(mockNoteParser.parse(any, 960, 'P1', '42')).thenAnswer((_) {
             callCount++;
             return callCount == 1 ? note1 : note2;
           });
@@ -593,15 +671,16 @@ void main() {
             inheritedDivisions: 480,
             inheritedKeySignature: inheritedKey,
             inheritedTimeSignature: inheritedTime,
+            inheritedClefs: inheritedClefs,
           );
 
           expect(result.number, equals('42'));
           expect(result.width, equals(150.0));
           expect(result.notes, hasLength(2));
-          expect(
-              result.keySignature, equals(newKey)); // Updated from attributes
-          expect(
-              result.timeSignature, equals(newTime)); // Updated from attributes
+          expect(result.keySignature, equals(newKey));
+          expect(result.timeSignature, equals(newTime));
+          expect(result.clefs, equals(newClefs));
+
 
           verify(mockAttributesParser.parse(any, 'P1', '42', 480)).called(1);
           verify(mockNoteParser.parse(any, 960, 'P1', '42')).called(2);
@@ -611,15 +690,8 @@ void main() {
 
     group('backup and forward parsing', () {
       setUp(() {
-        // Re-initialize warningSystem for each test in this group to isolate warnings
         warningSystem = WarningSystem();
-        // Use a NoteParser that can actually parse notes if they are part of the test XML
-        // For these specific tests, we might not need complex note parsing, so a mock
-        // that returns a simple note or null would also work.
-        // Using a real NoteParser with its own warning system or passing the main one.
-        // For simplicity, and since backup/forward are side-effects, keeping existing mock setup.
-        mockNoteParser =
-            MockNoteParser(); // Reset or use fresh mock if needed for specific interactions
+        mockNoteParser = MockNoteParser();
         mockAttributesParser = MockAttributesParser();
 
         measureParser = MeasureParser(
@@ -628,14 +700,10 @@ void main() {
           warningSystem: warningSystem,
         );
 
-        // Default behavior for mocks if notes/attributes are present in test XMLs
-        // to avoid NullPointerExceptions if they are accessed.
         when(mockAttributesParser.parse(any, any, any, any)).thenReturn({
-          'divisions': 1 // Default divisions if attributes are parsed
+          'divisions': 1
         });
         when(mockNoteParser.parse(any, any, any, any)).thenAnswer((invocation) {
-          // Return a simple valid note if a note element is parsed
-          // This helps ensure the measure parsing doesn't fail due to note parsing in backup/forward tests
           final argElement = invocation.positionalArguments[0] as XmlElement;
           final pitchElement = argElement.findElements('pitch').firstOrNull;
           if (pitchElement != null) {
@@ -646,7 +714,7 @@ void main() {
                     "4");
             return Note(
                 pitch: Pitch(step: step ?? 'C', octave: octave ?? 4),
-                duration: Duration(value: 1, divisions: 1), // Dummy duration
+                duration: Duration(value: 1, divisions: 1),
                 isRest: false);
           } else if (argElement.findElements('rest').isNotEmpty) {
             return Note(
@@ -669,7 +737,7 @@ void main() {
 
         final result = measureParser.parse(element, 'P1');
 
-        expect(result.notes, hasLength(2)); // C and D
+        expect(result.notes, hasLength(2));
         expect(result.notes[0].pitch!.step, 'C');
         expect(result.notes[1].pitch!.step, 'D');
 
@@ -695,7 +763,7 @@ void main() {
 
         final result = measureParser.parse(element, 'P1');
 
-        expect(result.notes, hasLength(2)); // E and F
+        expect(result.notes, hasLength(2));
         expect(result.notes[0].pitch!.step, 'E');
         expect(result.notes[1].pitch!.step, 'F');
 
@@ -786,10 +854,6 @@ void main() {
     group('barline and ending parsing', () {
       setUp(() {
         warningSystem = WarningSystem();
-        // Using real NoteParser and AttributesParser for simplicity in these tests,
-        // as mocking their interactions for every measure structure can be complex.
-        // Alternatively, ensure existing mocks provide basic valid objects if notes/attributes are in test XML.
-        // The existing mock setup for backup/forward tests might be sufficient if notes are simple.
         mockNoteParser = MockNoteParser();
         mockAttributesParser = MockAttributesParser();
         measureParser = MeasureParser(
@@ -797,11 +861,10 @@ void main() {
             attributesParser: mockAttributesParser,
             warningSystem: warningSystem);
 
-        // Default mock behaviors
         when(mockAttributesParser.parse(any, any, any, any))
             .thenReturn({'divisions': 1});
         when(mockNoteParser.parse(any, any, any, any)).thenAnswer(
-            (_) => null); // Default to no notes unless specified by test
+            (_) => null);
       });
 
       test('parses measure with no explicit barlines or endings', () {
@@ -972,7 +1035,6 @@ void main() {
             attributesParser: mockAttributesParser,
             warningSystem: warningSystem);
 
-        // Default mock behaviors
         when(mockAttributesParser.parse(any, any, any, any))
             .thenReturn({'divisions': 1});
         when(mockNoteParser.parse(any, any, any, any)).thenAnswer((_) => null);
@@ -1064,7 +1126,6 @@ void main() {
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
 
-        // Debugging assertions from previous attempt (which failed on result.directions.length):
         expect(result.directions, isA<List<Direction>>(), reason: "result.directions should be List<Direction>");
         expect(result.directions.length, 2, reason: "Should parse two <direction> elements into Measure.directions. Actual: ${result.directions.length}");
 
@@ -1089,8 +1150,6 @@ void main() {
 
         final warnings =
             warningSystem.getWarningsByCategory(WarningCategories.structure);
-        // We expect one warning for empty <words>.
-        // The "Direction element without any <direction-type> children" should NOT be generated for this XML with the current parser logic.
         expect(warnings, hasLength(1), reason: "Should have exactly one warning for the empty <words> element. Actual warnings count: ${warnings.length}. Warnings: ${warnings.map((w)=>w.message).toList()}");
         if (warnings.isNotEmpty) {
           expect(warnings.first.message, contains('Empty <words> element'));
@@ -1171,7 +1230,6 @@ void main() {
             </direction>
           </measure>
         ''');
-        // Note: The space around "جدا" should be trimmed by .trim()
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
         expect(result.directions, hasLength(1));
@@ -1195,21 +1253,20 @@ void main() {
         expect(result.directions, hasLength(1));
         expect(result.directions[0].directionTypes, hasLength(1));
         expect((result.directions[0].directionTypes[0] as WordsDirection).text,
-            'Tempo  Primo'); // .trim() only removes leading/trailing
+            'Tempo  Primo');
       });
     });
 
     group('print object parsing', () {
       setUp(() {
         warningSystem = WarningSystem();
-        mockNoteParser = MockNoteParser(); // Re-initialize mocks for safety
+        mockNoteParser = MockNoteParser();
         mockAttributesParser = MockAttributesParser();
         measureParser = MeasureParser(
             noteParser: mockNoteParser,
             attributesParser: mockAttributesParser,
             warningSystem: warningSystem);
 
-        // Default behavior for mocks
         when(mockAttributesParser.parse(any, any, any, any))
             .thenReturn({'divisions': 1});
         when(mockNoteParser.parse(any, any, any, any)).thenReturn(null);
@@ -1307,8 +1364,8 @@ void main() {
         final result = measureParser.parse(element, 'P1');
 
         expect(result.printObject, isNotNull);
-        expect(result.printObject!.newPage, isFalse); // Defaults
-        expect(result.printObject!.newSystem, isFalse); // Defaults
+        expect(result.printObject!.newPage, isFalse);
+        expect(result.printObject!.newSystem, isFalse);
         expect(result.printObject!.localPageLayout, isNull);
         expect(result.printObject!.localSystemLayout, isNull);
         expect(result.printObject!.localStaffLayouts, isEmpty);
@@ -1421,7 +1478,7 @@ void main() {
         expect(direction.directionTypes, hasLength(1));
         final dynamics = direction.directionTypes[0] as Dynamics;
         expect(dynamics.values, equals(['f']));
-        expect(dynamics.placement, 'below'); // This placement is on dynamics itself
+        expect(dynamics.placement, 'below');
         expect(dynamics.defaultY, 20);
       });
 
@@ -1513,7 +1570,7 @@ void main() {
 
         expect(direction.offset, isNotNull);
         expect(direction.offset!.value, 240);
-        expect(direction.offset!.sound, isFalse); // default
+        expect(direction.offset!.sound, isFalse);
 
         expect(direction.staff, isNotNull);
         expect(direction.staff!.value, 1);
@@ -1533,7 +1590,7 @@ void main() {
         ''');
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
-        expect(result.directions, isEmpty); // No direction should be added
+        expect(result.directions, isEmpty);
 
         final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
         expect(warnings, hasLength(1));
@@ -1564,7 +1621,6 @@ void main() {
         final result = measureParser.parse(element, 'P1');
         expect(result.directions, hasLength(3));
 
-        // Check first direction
         final dir1 = result.directions[0];
         expect(dir1.id, 'd1');
         expect(dir1.directionTypes, hasLength(1));
@@ -1573,7 +1629,6 @@ void main() {
         expect(dir1.offset, isNull);
         expect(dir1.sound, isNull);
 
-        // Check second direction
         final dir2 = result.directions[1];
         expect(dir2.id, 'd2');
         expect(dir2.directionTypes, hasLength(1));
@@ -1582,7 +1637,6 @@ void main() {
         expect(dir2.staff, isNull);
         expect(dir2.offset, isNull);
 
-         // Check third direction
         final dir3 = result.directions[2];
         expect(dir3.id, 'd3');
         expect(dir3.directionTypes, hasLength(1));
