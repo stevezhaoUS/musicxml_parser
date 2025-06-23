@@ -211,7 +211,6 @@ class AttributesParser {
       );
     }
 
-
     return Clef(
       sign: sign,
       line: line,

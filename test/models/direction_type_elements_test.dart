@@ -61,7 +61,7 @@ void main() {
         // ... (add expects for all properties)
         expect(coda.smufl, 'codaSmufl');
       });
-       // Add equality tests like Segno
+      // Add equality tests like Segno
     });
 
     group('Dynamics', () {

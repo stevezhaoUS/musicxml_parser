@@ -170,7 +170,8 @@ class Dynamics extends DirectionTypeElement {
   final double? relativeY;
   final int? underline;
   final String? valign;
-  final List<String> values; // e.g. ["p", "f", "sfz"] or ["other-dynamics"] content
+  final List<String>
+      values; // e.g. ["p", "f", "sfz"] or ["other-dynamics"] content
 
   const Dynamics({
     this.color,

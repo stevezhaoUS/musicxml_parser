@@ -30,8 +30,8 @@ void main() {
         final xml = buildAttributesXml('<divisions>abc</divisions>');
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
-          throwsA(isA<MusicXmlParseException>().having(
-              (e) => e.message, 'message', contains('Invalid divisions value "abc"'))),
+          throwsA(isA<MusicXmlParseException>().having((e) => e.message,
+              'message', contains('Invalid divisions value "abc"'))),
         );
       });
 
@@ -46,8 +46,10 @@ void main() {
         final xmlNegative = buildAttributesXml('<divisions>-10</divisions>');
         expect(
           () => parser.parse(xmlNegative, partId, measureNumber, null),
-          throwsA(isA<MusicXmlValidationException>().having((e) => e.message,
-              'message', contains('Divisions value must be positive, got -10'))),
+          throwsA(isA<MusicXmlValidationException>().having(
+              (e) => e.message,
+              'message',
+              contains('Divisions value must be positive, got -10'))),
         );
       });
 
@@ -67,8 +69,8 @@ void main() {
 
     group('key signature', () {
       test('parses valid key signature', () {
-        final xml =
-            buildAttributesXml('<key><fifths>2</fifths><mode>major</mode></key>');
+        final xml = buildAttributesXml(
+            '<key><fifths>2</fifths><mode>major</mode></key>');
         final attributes = parser.parse(xml, partId, measureNumber, null);
         final key = attributes['keySignature'] as KeySignature?;
         expect(key, isNotNull);
@@ -85,21 +87,27 @@ void main() {
       test(
           'throws MusicXmlStructureException for incomplete key (missing fifths)',
           () {
-        final xml =
-            buildAttributesXml('<key><mode>major</mode></key>'); // Missing <fifths>
+        final xml = buildAttributesXml(
+            '<key><mode>major</mode></key>'); // Missing <fifths>
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
-          throwsA(isA<MusicXmlStructureException>().having((e) => e.message,
-              'message', contains("Required <fifths> element not found in <key>"))),
+          throwsA(isA<MusicXmlStructureException>().having(
+              (e) => e.message,
+              'message',
+              contains("Required <fifths> element not found in <key>"))),
         );
       });
 
-      test('throws MusicXmlValidationException for invalid fifths text in key', () {
+      test('throws MusicXmlValidationException for invalid fifths text in key',
+          () {
         final xml = buildAttributesXml('<key><fifths>abc</fifths></key>');
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
           throwsA(isA<MusicXmlValidationException>().having(
-              (e) => e.message, 'message', contains('Invalid key signature fifths value: "abc". Must be an integer.'))),
+              (e) => e.message,
+              'message',
+              contains(
+                  'Invalid key signature fifths value: "abc". Must be an integer.'))),
         );
       });
     });
@@ -124,47 +132,54 @@ void main() {
         expect(attributes['timeSignature'], isNull);
       });
 
-      test(
-          'throws MusicXmlStructureException for time missing beats',
-          () {
+      test('throws MusicXmlStructureException for time missing beats', () {
         final xml = buildAttributesXml('<time><beat-type>4</beat-type></time>');
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
-          throwsA(isA<MusicXmlStructureException>().having((e) => e.message,
+          throwsA(isA<MusicXmlStructureException>().having(
+              (e) => e.message,
               'message',
               contains("Required <beats> element not found in <time>"))),
         );
       });
 
-      test(
-          'throws MusicXmlStructureException for time missing beat-type',
-          () {
+      test('throws MusicXmlStructureException for time missing beat-type', () {
         final xml = buildAttributesXml('<time><beats>4</beats></time>');
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
-          throwsA(isA<MusicXmlStructureException>().having((e) => e.message,
+          throwsA(isA<MusicXmlStructureException>().having(
+              (e) => e.message,
               'message',
               contains("Required <beat-type> element not found in <time>"))),
         );
       });
 
-
-      test('throws MusicXmlValidationException for invalid beats text in time', () {
+      test('throws MusicXmlValidationException for invalid beats text in time',
+          () {
         final xml = buildAttributesXml(
             '<time><beats>abc</beats><beat-type>4</beat-type></time>');
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
-          throwsA(isA<MusicXmlValidationException>().having( // Changed from MusicXmlParseException based on TimeSignature.fromXmlElement
-              (e) => e.message, 'message', contains('Invalid time signature beats (numerator) value: "abc"'))),
+          throwsA(isA<MusicXmlValidationException>().having(
+              // Changed from MusicXmlParseException based on TimeSignature.fromXmlElement
+              (e) => e.message,
+              'message',
+              contains(
+                  'Invalid time signature beats (numerator) value: "abc"'))),
         );
       });
-       test('throws MusicXmlValidationException for invalid beat-type text in time', () {
+      test(
+          'throws MusicXmlValidationException for invalid beat-type text in time',
+          () {
         final xml = buildAttributesXml(
             '<time><beats>4</beats><beat-type>xyz</beat-type></time>');
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
           throwsA(isA<MusicXmlValidationException>().having(
-              (e) => e.message, 'message', contains('Invalid time signature beat-type (denominator) value: "xyz"'))),
+              (e) => e.message,
+              'message',
+              contains(
+                  'Invalid time signature beat-type (denominator) value: "xyz"'))),
         );
       });
     });
@@ -250,7 +265,6 @@ void main() {
         expect(clefs.first.line, isNull);
       });
 
-
       test('returns null for clefs key if not present', () {
         final xml = buildAttributesXml(''); // No clef element
         final attributes = parser.parse(xml, partId, measureNumber, null);
@@ -261,13 +275,16 @@ void main() {
         final xml = buildAttributesXml('<clef><line>2</line></clef>');
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
-          throwsA(isA<MusicXmlStructureException>().having((e) => e.message,
-              'message', contains('Clef element missing required <sign> child'))),
+          throwsA(isA<MusicXmlStructureException>().having(
+              (e) => e.message,
+              'message',
+              contains('Clef element missing required <sign> child'))),
         );
       });
 
       test('throws MusicXmlValidationException for clef with empty sign', () {
-        final xml = buildAttributesXml('<clef><sign></sign><line>2</line></clef>');
+        final xml =
+            buildAttributesXml('<clef><sign></sign><line>2</line></clef>');
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
           throwsA(isA<MusicXmlValidationException>().having((e) => e.message,
@@ -275,7 +292,8 @@ void main() {
         );
       });
 
-      test('throws MusicXmlValidationException for G/F/C clef missing line', () {
+      test('throws MusicXmlValidationException for G/F/C clef missing line',
+          () {
         final xml = buildAttributesXml('<clef><sign>G</sign></clef>');
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
@@ -300,19 +318,18 @@ void main() {
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
           throwsA(isA<MusicXmlParseException>().having((e) => e.message,
-              'message',
-              contains('Invalid clef-octave-change value "xyz"'))),
+              'message', contains('Invalid clef-octave-change value "xyz"'))),
         );
       });
 
-      test('throws MusicXmlParseException for invalid clef number attribute', () {
+      test('throws MusicXmlParseException for invalid clef number attribute',
+          () {
         final xml = buildAttributesXml(
             '<clef number="abc"><sign>G</sign><line>2</line></clef>');
         expect(
           () => parser.parse(xml, partId, measureNumber, null),
           throwsA(isA<MusicXmlParseException>().having((e) => e.message,
-              'message',
-              contains('Invalid clef number attribute "abc"'))),
+              'message', contains('Invalid clef number attribute "abc"'))),
         );
       });
     });
@@ -347,7 +364,8 @@ void main() {
       });
 
       test('handles missing attributes gracefully', () {
-        final xml = buildAttributesXml('<divisions>72</divisions>'); // Only divisions
+        final xml =
+            buildAttributesXml('<divisions>72</divisions>'); // Only divisions
         final attributes = parser.parse(xml, partId, measureNumber, null);
 
         expect(attributes['divisions'], 72);

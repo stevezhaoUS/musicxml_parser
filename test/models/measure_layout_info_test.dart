@@ -52,21 +52,28 @@ void main() {
 
       test('parseValue works correctly', () {
         expect(MeasureNumbering.parseValue('none'), MeasureNumberingValue.none);
-        expect(MeasureNumbering.parseValue('measure'), MeasureNumberingValue.measure);
-        expect(MeasureNumbering.parseValue('system'), MeasureNumberingValue.system);
-        expect(MeasureNumbering.parseValue('invalid'), MeasureNumberingValue.measure); // Default
-        expect(MeasureNumbering.parseValue(null), MeasureNumberingValue.measure); // Default
+        expect(MeasureNumbering.parseValue('measure'),
+            MeasureNumberingValue.measure);
+        expect(MeasureNumbering.parseValue('system'),
+            MeasureNumberingValue.system);
+        expect(MeasureNumbering.parseValue('invalid'),
+            MeasureNumberingValue.measure); // Default
+        expect(MeasureNumbering.parseValue(null),
+            MeasureNumberingValue.measure); // Default
       });
 
       test('equality', () {
-        const n1 = MeasureNumbering(value: MeasureNumberingValue.measure, staff: 1);
-        const n2 = MeasureNumbering(value: MeasureNumberingValue.measure, staff: 1);
-        const n3 = MeasureNumbering(value: MeasureNumberingValue.none, staff: 1);
-        const n4 = MeasureNumbering(value: MeasureNumberingValue.measure, staff: 2);
+        const n1 =
+            MeasureNumbering(value: MeasureNumberingValue.measure, staff: 1);
+        const n2 =
+            MeasureNumbering(value: MeasureNumberingValue.measure, staff: 1);
+        const n3 =
+            MeasureNumbering(value: MeasureNumberingValue.none, staff: 1);
+        const n4 =
+            MeasureNumbering(value: MeasureNumberingValue.measure, staff: 2);
         expect(n1, equals(n2));
         expect(n1, isNot(equals(n3)));
         expect(n1, isNot(equals(n4)));
-
       });
     });
   });

@@ -91,23 +91,19 @@ void main() {
       // Add equality tests
       test('equality with lists and nested objects', () {
         const dir1 = Direction(
-          directionTypes: [WordsDirection(text: 'Hi')],
-          offset: Offset(value: 1.0),
-          id: 'd1'
-        );
+            directionTypes: [WordsDirection(text: 'Hi')],
+            offset: Offset(value: 1.0),
+            id: 'd1');
         const dir2 = Direction(
-          directionTypes: [WordsDirection(text: 'Hi')],
-          offset: Offset(value: 1.0),
-          id: 'd1'
-        );
-         const dir3 = Direction(
-          directionTypes: [WordsDirection(text: 'Ho')],
-          offset: Offset(value: 1.0),
-          id: 'd1'
-        );
+            directionTypes: [WordsDirection(text: 'Hi')],
+            offset: Offset(value: 1.0),
+            id: 'd1');
+        const dir3 = Direction(
+            directionTypes: [WordsDirection(text: 'Ho')],
+            offset: Offset(value: 1.0),
+            id: 'd1');
         expect(dir1, equals(dir2));
         expect(dir1, isNot(equals(dir3)));
-
       });
     });
   });

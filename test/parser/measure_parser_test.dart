@@ -84,11 +84,12 @@ void main() {
           attributesParser: mockAttributesParser,
           warningSystem: warningSystem,
         );
-         // Reset specific mock behaviors for each test if necessary
+        // Reset specific mock behaviors for each test if necessary
         when(mockAttributesParser.parse(any, any, any, any)).thenReturn({
-            'divisions': 1, // Default divisions
+          'divisions': 1, // Default divisions
         });
-        when(mockNoteParser.parse(any,any,any,any)).thenReturn(null); // Default no notes
+        when(mockNoteParser.parse(any, any, any, any))
+            .thenReturn(null); // Default no notes
       });
 
       test('parses basic measure with number', () {
@@ -134,7 +135,6 @@ void main() {
         final keySignature = const KeySignature(fifths: 2);
         final timeSignature = const TimeSignature(beats: 4, beatType: 4);
         final clefs = [const Clef(sign: 'G', line: 2)];
-
 
         final result = measureParser.parse(
           element,
@@ -313,11 +313,8 @@ void main() {
           when(mockAttributesParser.parse(any, any, any, any))
               .thenReturn({'clefs': newClefs, 'divisions': 1});
 
-          final result = measureParser.parse(
-            element,
-            'P1',
-            inheritedClefs: inheritedClefs
-          );
+          final result = measureParser.parse(element, 'P1',
+              inheritedClefs: inheritedClefs);
 
           expect(result.clefs, isNotNull);
           expect(result.clefs, equals(newClefs));
@@ -365,7 +362,8 @@ void main() {
           ''');
           final element = xml.rootElement;
 
-          when(mockAttributesParser.parse(any, any, any, 240)).thenReturn({'divisions': 240});
+          when(mockAttributesParser.parse(any, any, any, 240))
+              .thenReturn({'divisions': 240});
 
           measureParser.parse(element, 'P1', inheritedDivisions: 240);
 
@@ -396,16 +394,23 @@ void main() {
           );
 
           // Specific mock for this test's attribute parsing
-          when(mockAttributesParser.parse(element.findElements('attributes').first, 'P1', '1', null))
+          when(mockAttributesParser.parse(
+                  element.findElements('attributes').first, 'P1', '1', null))
               .thenReturn({'divisions': 480});
-          when(mockNoteParser.parse(element.findElements('note').first, 480, 'P1', '1')).thenReturn(note);
+          when(mockNoteParser.parse(
+                  element.findElements('note').first, 480, 'P1', '1'))
+              .thenReturn(note);
 
           final result = measureParser.parse(element, 'P1');
 
           expect(result.notes, hasLength(1));
           expect(result.notes.first, equals(note));
-          verify(mockAttributesParser.parse(element.findElements('attributes').first, 'P1', '1', null)).called(1);
-          verify(mockNoteParser.parse(element.findElements('note').first, 480, 'P1', '1')).called(1);
+          verify(mockAttributesParser.parse(
+                  element.findElements('attributes').first, 'P1', '1', null))
+              .called(1);
+          verify(mockNoteParser.parse(
+                  element.findElements('note').first, 480, 'P1', '1'))
+              .called(1);
         });
 
         test('processes multiple notes', () {
@@ -443,17 +448,22 @@ void main() {
 
           when(mockAttributesParser.parse(attributesElement, 'P1', '1', null))
               .thenReturn({'divisions': 240});
-          when(mockNoteParser.parse(noteElements[0], 240, 'P1', '1')).thenReturn(note1);
-          when(mockNoteParser.parse(noteElements[1], 240, 'P1', '1')).thenReturn(note2);
+          when(mockNoteParser.parse(noteElements[0], 240, 'P1', '1'))
+              .thenReturn(note1);
+          when(mockNoteParser.parse(noteElements[1], 240, 'P1', '1'))
+              .thenReturn(note2);
 
           final result = measureParser.parse(element, 'P1');
 
           expect(result.notes, hasLength(2));
           expect(result.notes[0], equals(note1));
           expect(result.notes[1], equals(note2));
-          verify(mockAttributesParser.parse(attributesElement, 'P1', '1', null)).called(1);
-          verify(mockNoteParser.parse(noteElements[0], 240, 'P1', '1')).called(1);
-          verify(mockNoteParser.parse(noteElements[1], 240, 'P1', '1')).called(1);
+          verify(mockAttributesParser.parse(attributesElement, 'P1', '1', null))
+              .called(1);
+          verify(mockNoteParser.parse(noteElements[0], 240, 'P1', '1'))
+              .called(1);
+          verify(mockNoteParser.parse(noteElements[1], 240, 'P1', '1'))
+              .called(1);
         });
 
         test('filters out null notes', () {
@@ -484,16 +494,21 @@ void main() {
 
           when(mockAttributesParser.parse(attributesElement, 'P1', '1', null))
               .thenReturn({'divisions': 120});
-          when(mockNoteParser.parse(noteElements[0], 120, 'P1', '1')).thenReturn(note);
-          when(mockNoteParser.parse(noteElements[1], 120, 'P1', '1')).thenReturn(null); // This note is filtered
+          when(mockNoteParser.parse(noteElements[0], 120, 'P1', '1'))
+              .thenReturn(note);
+          when(mockNoteParser.parse(noteElements[1], 120, 'P1', '1'))
+              .thenReturn(null); // This note is filtered
 
           final result = measureParser.parse(element, 'P1');
 
           expect(result.notes, hasLength(1));
           expect(result.notes.first, equals(note));
-          verify(mockAttributesParser.parse(attributesElement, 'P1', '1', null)).called(1);
-          verify(mockNoteParser.parse(noteElements[0], 120, 'P1', '1')).called(1);
-          verify(mockNoteParser.parse(noteElements[1], 120, 'P1', '1')).called(1);
+          verify(mockAttributesParser.parse(attributesElement, 'P1', '1', null))
+              .called(1);
+          verify(mockNoteParser.parse(noteElements[0], 120, 'P1', '1'))
+              .called(1);
+          verify(mockNoteParser.parse(noteElements[1], 120, 'P1', '1'))
+              .called(1);
         });
 
         test('passes divisions to note parser', () {
@@ -534,8 +549,8 @@ void main() {
           final xml = XmlDocument.parse('<measure number="1"></measure>');
           final element = xml.rootElement;
           // Ensure mockAttributesParser.parse returns a map that includes 'divisions'
-          when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': null});
-
+          when(mockAttributesParser.parse(any, any, any, any))
+              .thenReturn({'divisions': null});
 
           final result = measureParser.parse(element, 'P1');
 
@@ -553,8 +568,8 @@ void main() {
             </measure>
           ''');
           final element = xml.rootElement;
-          when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': null});
-
+          when(mockAttributesParser.parse(any, any, any, any))
+              .thenReturn({'divisions': null});
 
           final result = measureParser.parse(element, 'P1');
 
@@ -611,7 +626,9 @@ void main() {
       });
 
       group('complex scenarios', () {
-        test('processes measure with all elements and inheritance including clef', () {
+        test(
+            'processes measure with all elements and inheritance including clef',
+            () {
           final xml = XmlDocument.parse('''
             <measure number="42" width="150.0">
               <attributes>
@@ -646,7 +663,6 @@ void main() {
           final newKey = const KeySignature(fifths: 3);
           final newTime = const TimeSignature(beats: 6, beatType: 8);
           final newClefs = [const Clef(sign: 'G', line: 2, number: 1)];
-
 
           final note1 = const Note(
             pitch: const Pitch(step: 'A', octave: 4),
@@ -689,7 +705,6 @@ void main() {
           expect(result.timeSignature, equals(newTime));
           expect(result.clefs, equals(newClefs));
 
-
           verify(mockAttributesParser.parse(any, 'P1', '42', 480)).called(1);
           verify(mockNoteParser.parse(any, 960, 'P1', '42')).called(2);
         });
@@ -708,9 +723,8 @@ void main() {
           warningSystem: warningSystem,
         );
 
-        when(mockAttributesParser.parse(any, any, any, any)).thenReturn({
-          'divisions': 1
-        });
+        when(mockAttributesParser.parse(any, any, any, any))
+            .thenReturn({'divisions': 1});
         when(mockNoteParser.parse(any, any, any, any)).thenAnswer((invocation) {
           final argElement = invocation.positionalArguments[0] as XmlElement;
           final pitchElement = argElement.findElements('pitch').firstOrNull;
@@ -871,8 +885,7 @@ void main() {
 
         when(mockAttributesParser.parse(any, any, any, any))
             .thenReturn({'divisions': 1});
-        when(mockNoteParser.parse(any, any, any, any)).thenAnswer(
-            (_) => null);
+        when(mockNoteParser.parse(any, any, any, any)).thenAnswer((_) => null);
       });
 
       test('parses measure with no explicit barlines or endings', () {
@@ -1063,7 +1076,8 @@ void main() {
         expect(result.directions, hasLength(1));
         expect(result.directions[0].directionTypes, hasLength(1));
         expect(result.directions[0].directionTypes[0], isA<WordsDirection>());
-        expect((result.directions[0].directionTypes[0] as WordsDirection).text, 'Allegro');
+        expect((result.directions[0].directionTypes[0] as WordsDirection).text,
+            'Allegro');
       });
 
       test(
@@ -1084,9 +1098,11 @@ void main() {
         expect(result.directions, hasLength(1));
         expect(result.directions[0].directionTypes, hasLength(2));
         expect(result.directions[0].directionTypes[0], isA<WordsDirection>());
-        expect((result.directions[0].directionTypes[0] as WordsDirection).text, 'Vivace');
+        expect((result.directions[0].directionTypes[0] as WordsDirection).text,
+            'Vivace');
         expect(result.directions[0].directionTypes[1], isA<WordsDirection>());
-        expect((result.directions[0].directionTypes[1] as WordsDirection).text, 'assai');
+        expect((result.directions[0].directionTypes[1] as WordsDirection).text,
+            'assai');
       });
 
       test('parses multiple direction elements with words', () {
@@ -1111,12 +1127,15 @@ void main() {
         final result = measureParser.parse(element, 'P1');
         expect(result.directions, hasLength(2));
         expect(result.directions[0].directionTypes, hasLength(1));
-        expect((result.directions[0].directionTypes[0] as WordsDirection).text, 'Andante');
+        expect((result.directions[0].directionTypes[0] as WordsDirection).text,
+            'Andante');
         expect(result.directions[1].directionTypes, hasLength(1));
-        expect((result.directions[1].directionTypes[0] as WordsDirection).text, 'Fine');
+        expect((result.directions[1].directionTypes[0] as WordsDirection).text,
+            'Fine');
       });
 
-      test('handles empty words element and logs warning, processes valid one', () {
+      test('handles empty words element and logs warning, processes valid one',
+          () {
         final xml = XmlDocument.parse('''
           <measure number="1">
             <direction>
@@ -1134,37 +1153,64 @@ void main() {
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
 
-        expect(result.directions, isA<List<Direction>>(), reason: "result.directions should be List<Direction>");
-        expect(result.directions.length, 2, reason: "Should parse two <direction> elements into Measure.directions. Actual: ${result.directions.length}");
+        expect(result.directions, isA<List<Direction>>(),
+            reason: "result.directions should be List<Direction>");
+        expect(result.directions.length, 2,
+            reason:
+                "Should parse two <direction> elements into Measure.directions. Actual: ${result.directions.length}");
 
         if (result.directions.length == 2) {
-          expect(result.directions[0], isA<Direction>(), reason: "First element in Measure.directions should be a Direction object");
-          expect(result.directions[0].directionTypes, isNotEmpty, reason: "First Direction object should have directionTypes");
+          expect(result.directions[0], isA<Direction>(),
+              reason:
+                  "First element in Measure.directions should be a Direction object");
+          expect(result.directions[0].directionTypes, isNotEmpty,
+              reason: "First Direction object should have directionTypes");
           if (result.directions[0].directionTypes.isNotEmpty) {
-            expect(result.directions[0].directionTypes[0], isA<WordsDirection>(), reason: "First Direction's type should be WordsDirection");
-            expect((result.directions[0].directionTypes[0] as WordsDirection).text, isEmpty, reason: "First WordsDirection should have empty text");
+            expect(
+                result.directions[0].directionTypes[0], isA<WordsDirection>(),
+                reason: "First Direction's type should be WordsDirection");
+            expect(
+                (result.directions[0].directionTypes[0] as WordsDirection).text,
+                isEmpty,
+                reason: "First WordsDirection should have empty text");
           }
 
-          expect(result.directions[1], isA<Direction>(), reason: "Second element in Measure.directions should be a Direction object");
-          expect(result.directions[1].directionTypes, isNotEmpty, reason: "Second Direction object should have directionTypes");
+          expect(result.directions[1], isA<Direction>(),
+              reason:
+                  "Second element in Measure.directions should be a Direction object");
+          expect(result.directions[1].directionTypes, isNotEmpty,
+              reason: "Second Direction object should have directionTypes");
           if (result.directions[1].directionTypes.isNotEmpty) {
-            expect(result.directions[1].directionTypes[0], isA<WordsDirection>(), reason: "Second Direction's type should be WordsDirection");
-            expect((result.directions[1].directionTypes[0] as WordsDirection).text, 'Non-empty', reason: "Second WordsDirection should have 'Non-empty' text");
+            expect(
+                result.directions[1].directionTypes[0], isA<WordsDirection>(),
+                reason: "Second Direction's type should be WordsDirection");
+            expect(
+                (result.directions[1].directionTypes[0] as WordsDirection).text,
+                'Non-empty',
+                reason: "Second WordsDirection should have 'Non-empty' text");
           }
         }
 
-        final validDirections = result.directions.where((d) => d.directionTypes.any((dt) => dt is WordsDirection && (dt as WordsDirection).text.isNotEmpty)).toList();
-        expect(validDirections, hasLength(1), reason: "validDirections should filter to 1 item containing the 'Non-empty' direction. Actual length: ${validDirections.length}");
+        final validDirections = result.directions
+            .where((d) => d.directionTypes.any((dt) =>
+                dt is WordsDirection && (dt as WordsDirection).text.isNotEmpty))
+            .toList();
+        expect(validDirections, hasLength(1),
+            reason:
+                "validDirections should filter to 1 item containing the 'Non-empty' direction. Actual length: ${validDirections.length}");
 
         final warnings =
             warningSystem.getWarningsByCategory(WarningCategories.structure);
-        expect(warnings, hasLength(1), reason: "Should have exactly one warning for the empty <words> element. Actual warnings count: ${warnings.length}. Warnings: ${warnings.map((w)=>w.message).toList()}");
+        expect(warnings, hasLength(1),
+            reason:
+                "Should have exactly one warning for the empty <words> element. Actual warnings count: ${warnings.length}. Warnings: ${warnings.map((w) => w.message).toList()}");
         if (warnings.isNotEmpty) {
           expect(warnings.first.message, contains('Empty <words> element'));
         }
       });
 
-      test('ignores direction without words element, parses one with words', () {
+      test('ignores direction without words element, parses one with words',
+          () {
         final xml = XmlDocument.parse('''
           <measure number="1">
             <direction>
@@ -1214,7 +1260,10 @@ void main() {
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');
 
-        final allWords = result.directions.expand((d) => d.directionTypes).whereType<WordsDirection>().toList();
+        final allWords = result.directions
+            .expand((d) => d.directionTypes)
+            .whereType<WordsDirection>()
+            .toList();
         expect(allWords, hasLength(2));
         expect(allWords[0].text, 'Largo');
         expect(allWords[1].text, 'rit.');
@@ -1242,8 +1291,10 @@ void main() {
         final result = measureParser.parse(element, 'P1');
         expect(result.directions, hasLength(1));
         expect(result.directions[0].directionTypes, hasLength(2));
-        expect((result.directions[0].directionTypes[0] as WordsDirection).text, 'Slow');
-        expect((result.directions[0].directionTypes[1] as WordsDirection).text, 'جدا');
+        expect((result.directions[0].directionTypes[0] as WordsDirection).text,
+            'Slow');
+        expect((result.directions[0].directionTypes[1] as WordsDirection).text,
+            'جدا');
       });
 
       test('parses words with various text content including spaces', () {
@@ -1507,7 +1558,8 @@ void main() {
         expect(direction.offset!.value, 120.5);
         expect(direction.offset!.sound, isTrue);
         expect(direction.directionTypes, hasLength(1));
-        expect((direction.directionTypes[0] as WordsDirection).text, 'Offset Text');
+        expect((direction.directionTypes[0] as WordsDirection).text,
+            'Offset Text');
       });
 
       test('parses direction with Staff element', () {
@@ -1546,7 +1598,9 @@ void main() {
         expect(direction.sound!.pizzicato, isTrue);
       });
 
-      test('parses direction with all optional elements (offset, staff, sound) and attributes', () {
+      test(
+          'parses direction with all optional elements (offset, staff, sound) and attributes',
+          () {
         final xml = XmlDocument.parse('''
           <measure number="1">
             <direction placement="below" directive="yes" system="other" id="dir-full">
@@ -1573,7 +1627,8 @@ void main() {
         expect(direction.id, 'dir-full');
 
         expect(direction.directionTypes, hasLength(2));
-        expect((direction.directionTypes[0] as WordsDirection).text, 'Full Direction');
+        expect((direction.directionTypes[0] as WordsDirection).text,
+            'Full Direction');
         expect((direction.directionTypes[1] as Segno).smufl, 'segnoIcon');
 
         expect(direction.offset, isNotNull);
@@ -1588,8 +1643,9 @@ void main() {
         expect(direction.sound!.fine, 'Fine Text');
       });
 
-      test('returns null for direction with no direction-type and logs warning', () {
-          final xml = XmlDocument.parse('''
+      test('returns null for direction with no direction-type and logs warning',
+          () {
+        final xml = XmlDocument.parse('''
           <measure number="1">
             <direction>
               <offset>100</offset>
@@ -1600,9 +1656,13 @@ void main() {
         final result = measureParser.parse(element, 'P1');
         expect(result.directions, isEmpty);
 
-        final warnings = warningSystem.getWarningsByCategory(WarningCategories.structure);
+        final warnings =
+            warningSystem.getWarningsByCategory(WarningCategories.structure);
         expect(warnings, hasLength(1));
-        expect(warnings.first.message, contains('Direction element without any <direction-type> children. Skipping this direction.'));
+        expect(
+            warnings.first.message,
+            contains(
+                'Direction element without any <direction-type> children. Skipping this direction.'));
       });
 
       test('parses multiple direction elements with various contents', () {
@@ -1623,7 +1683,7 @@ void main() {
             </direction>
           </measure>
         ''');
-         when(mockNoteParser.parse(any, any, any, any)).thenReturn(
+        when(mockNoteParser.parse(any, any, any, any)).thenReturn(
             Note(duration: Duration(value: 4, divisions: 1), isRest: true));
         final element = xml.rootElement;
         final result = measureParser.parse(element, 'P1');

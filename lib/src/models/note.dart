@@ -9,6 +9,9 @@ import 'package:musicxml_parser/src/models/tie.dart';
 import 'package:musicxml_parser/src/models/time_modification.dart';
 import 'package:musicxml_parser/src/utils/validation_utils.dart';
 
+/// 符干方向枚举
+enum StemDirection { up, down, doubleStem, none }
+
 /// Represents a musical note or rest in a score.
 ///
 /// This class encapsulates all properties of a note, such as its [pitch] (if not a rest),
@@ -59,6 +62,9 @@ class Note {
   /// indicating it shares a stem with the preceding note.
   final bool isChordElementPresent;
 
+  /// 符干方向，来自<stem>元素，可为up/down/double/none/null
+  final StemDirection? stemDirection;
+
   /// Creates a new [Note] instance.
   ///
   /// Basic structural validation (e.g., a rest cannot have a pitch) is
@@ -77,6 +83,7 @@ class Note {
     this.articulations,
     this.ties,
     this.isChordElementPresent = false,
+    this.stemDirection,
   }) : assert(isRest ? pitch == null : pitch != null,
             'A rest must not have a pitch, and a non-rest note must have a pitch.');
 
@@ -107,6 +114,7 @@ class Note {
     List<Articulation>? articulations,
     List<Tie>? ties,
     bool isChordElementPresent = false,
+    StemDirection? stemDirection,
     int? line,
     Map<String, dynamic>? context,
   }) {
@@ -167,6 +175,7 @@ class Note {
       articulations: articulations,
       ties: ties,
       isChordElementPresent: isChordElementPresent,
+      stemDirection: stemDirection,
     );
   }
 
@@ -268,6 +277,7 @@ class NoteBuilder {
   List<Tie>? _ties;
   bool _isChordElementPresent = false;
   int? _staff; // Added for staff support
+  StemDirection? _stemDirection;
 
   final int? _line;
   final Map<String, dynamic>? _context;
@@ -352,6 +362,12 @@ class NoteBuilder {
     return this;
   }
 
+  /// Sets the stem direction of the note.
+  NoteBuilder setStemDirection(StemDirection? stemDirection) {
+    _stemDirection = stemDirection;
+    return this;
+  }
+
   /// Builds and validates the [Note] instance using [Note.validated].
   ///
   /// Throws [MusicXmlValidationException] if the constructed note violates
@@ -370,6 +386,7 @@ class NoteBuilder {
       articulations: _articulations,
       ties: _ties,
       isChordElementPresent: _isChordElementPresent,
+      stemDirection: _stemDirection,
       line: _line,
       context: _context,
     );

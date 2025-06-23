@@ -38,7 +38,8 @@ class MeasureNumbering {
   final double? relativeX;
   final double? relativeY;
   final int? staff; // staff-number
-  final String? system; // system-relation-number (can be 'none', 'other', 'default', or a number)
+  final String?
+      system; // system-relation-number (can be 'none', 'other', 'default', or a number)
   final String? valign;
 
   const MeasureNumbering({
@@ -76,7 +77,6 @@ class MeasureNumbering {
         return MeasureNumberingValue.measure; // Or throw an exception.
     }
   }
-
 
   @override
   bool operator ==(Object other) =>

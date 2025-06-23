@@ -150,7 +150,30 @@ class NoteParser {
 
     // Parse staff (should be before noteBuilder.setStaff)
     final staffElement = element.findElements('staff').firstOrNull;
-    final staffNum = staffElement != null ? int.tryParse(staffElement.innerText.trim()) : null;
+    final staffNum = staffElement != null
+        ? int.tryParse(staffElement.innerText.trim())
+        : null;
+
+    // Parse stem direction
+    final stemElement = element.findElements('stem').firstOrNull;
+    final stemStr = stemElement?.innerText.trim();
+    StemDirection? stemDirection;
+    switch (stemStr) {
+      case 'up':
+        stemDirection = StemDirection.up;
+        break;
+      case 'down':
+        stemDirection = StemDirection.down;
+        break;
+      case 'double':
+        stemDirection = StemDirection.doubleStem;
+        break;
+      case 'none':
+        stemDirection = StemDirection.none;
+        break;
+      default:
+        stemDirection = null;
+    }
 
     noteBuilder
         .setIsRest(isRest)
@@ -164,7 +187,8 @@ class NoteParser {
         .setSlurs(notations.slurs)
         .setArticulations(notations.articulations)
         .setTies(notations.ties)
-        .setIsChordElementPresent(isChord);
+        .setIsChordElementPresent(isChord)
+        .setStemDirection(stemDirection);
 
     try {
       return noteBuilder.build();
