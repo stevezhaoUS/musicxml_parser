@@ -34,6 +34,9 @@ class Note {
   /// The voice number for multi-voice music within a staff.
   final int? voice;
 
+  /// The staff number for multi-staff music (e.g., piano grand staff). Null if not specified.
+  final int? staff;
+
   /// The graphical type of the note (e.g., "quarter", "eighth", "whole").
   final String? type;
 
@@ -66,6 +69,7 @@ class Note {
     this.duration,
     this.isRest = false,
     this.voice,
+    this.staff,
     this.type,
     this.dots,
     this.timeModification,
@@ -95,6 +99,7 @@ class Note {
     Duration? duration,
     bool isRest = false,
     int? voice,
+    int? staff,
     String? type,
     int? dots,
     TimeModification? timeModification,
@@ -154,6 +159,7 @@ class Note {
       duration: duration,
       isRest: isRest,
       voice: voice,
+      staff: staff,
       type: type,
       dots: dots,
       timeModification: timeModification,
@@ -173,6 +179,7 @@ class Note {
           duration == other.duration &&
           isRest == other.isRest &&
           voice == other.voice &&
+          staff == other.staff &&
           type == other.type &&
           dots == other.dots &&
           timeModification == other.timeModification &&
@@ -188,6 +195,7 @@ class Note {
       (duration?.hashCode ?? 0) ^
       isRest.hashCode ^
       (voice?.hashCode ?? 0) ^
+      (staff?.hashCode ?? 0) ^
       (type?.hashCode ?? 0) ^
       (dots?.hashCode ?? 0) ^
       (timeModification?.hashCode ?? 0) ^
@@ -205,6 +213,9 @@ class Note {
       sb.write('Rest{duration: $duration');
     } else {
       sb.write('Note{pitch: $pitch, duration: $duration');
+    }
+    if (staff != null) {
+      sb.write(', staff: $staff');
     }
     if (dots != null && dots! > 0) {
       sb.write(', dots: $dots');
@@ -256,6 +267,7 @@ class NoteBuilder {
   List<Articulation>? _articulations;
   List<Tie>? _ties;
   bool _isChordElementPresent = false;
+  int? _staff; // Added for staff support
 
   final int? _line;
   final Map<String, dynamic>? _context;
@@ -267,6 +279,12 @@ class NoteBuilder {
   NoteBuilder({int? line, Map<String, dynamic>? context})
       : _line = line,
         _context = context;
+
+  /// Sets the staff number for the note.
+  NoteBuilder setStaff(int? staff) {
+    _staff = staff;
+    return this;
+  }
 
   /// Sets the pitch of the note.
   NoteBuilder setPitch(Pitch? pitch) {
@@ -344,6 +362,7 @@ class NoteBuilder {
       duration: _duration,
       isRest: _isRest,
       voice: _voice,
+      staff: _staff, // Pass staff to Note
       type: _type,
       dots: _dots,
       timeModification: _timeModification,

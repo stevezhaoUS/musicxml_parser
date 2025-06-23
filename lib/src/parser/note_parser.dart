@@ -148,12 +148,17 @@ class NoteParser {
       'measure': measureNumber,
     });
 
+    // Parse staff (should be before noteBuilder.setStaff)
+    final staffElement = element.findElements('staff').firstOrNull;
+    final staffNum = staffElement != null ? int.tryParse(staffElement.innerText.trim()) : null;
+
     noteBuilder
         .setIsRest(isRest)
         .setPitch(pitch) // Will be null if isRest is true
         .setDuration(duration)
         .setType(type)
         .setVoice(voiceNum)
+        .setStaff(staffNum)
         .setDots(dotsCount)
         .setTimeModification(timeModification)
         .setSlurs(notations.slurs)
