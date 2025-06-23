@@ -377,6 +377,7 @@ void main() {
         test('processes notes and adds them to measure', () {
           final xml = XmlDocument.parse('''
             <measure number="1">
+              <attributes><divisions>480</divisions></attributes>
               <note>
                 <pitch>
                   <step>C</step>
@@ -390,76 +391,81 @@ void main() {
 
           final note = const Note(
             pitch: const Pitch(step: 'C', octave: 4),
-            duration: const Duration(value: 480, divisions: 1), // Assuming default divisions 1 from mock
+            duration: const Duration(value: 480, divisions: 480),
             isRest: false,
           );
 
-          // Ensure attributes parser returns some divisions
-          when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': 1});
-          when(mockNoteParser.parse(any, 1, 'P1', '1')).thenReturn(note);
-
+          // Specific mock for this test's attribute parsing
+          when(mockAttributesParser.parse(element.findElements('attributes').first, 'P1', '1', null))
+              .thenReturn({'divisions': 480});
+          when(mockNoteParser.parse(element.findElements('note').first, 480, 'P1', '1')).thenReturn(note);
 
           final result = measureParser.parse(element, 'P1');
 
           expect(result.notes, hasLength(1));
           expect(result.notes.first, equals(note));
-          verify(mockNoteParser.parse(any, 1, 'P1', '1')).called(1);
+          verify(mockAttributesParser.parse(element.findElements('attributes').first, 'P1', '1', null)).called(1);
+          verify(mockNoteParser.parse(element.findElements('note').first, 480, 'P1', '1')).called(1);
         });
 
         test('processes multiple notes', () {
           final xml = XmlDocument.parse('''
             <measure number="1">
+              <attributes><divisions>240</divisions></attributes>
               <note>
                 <pitch>
                   <step>C</step>
                   <octave>4</octave>
                 </pitch>
-                <duration>480</duration>
+                <duration>240</duration>
               </note>
               <note>
                 <rest/>
-                <duration>480</duration>
+                <duration>240</duration>
               </note>
             </measure>
           ''');
           final element = xml.rootElement;
+          final attributesElement = element.findElements('attributes').first;
+          final noteElements = element.findElements('note').toList();
 
           final note1 = const Note(
             pitch: const Pitch(step: 'C', octave: 4),
-            duration: const Duration(value: 480, divisions: 1),
+            duration: const Duration(value: 240, divisions: 240),
             isRest: false,
           );
 
           final note2 = const Note(
             pitch: null,
-            duration: const Duration(value: 480, divisions: 1),
+            duration: const Duration(value: 240, divisions: 240),
             isRest: true,
           );
 
-          when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': 1});
-          var callCount = 0;
-          when(mockNoteParser.parse(any, 1, 'P1', '1')).thenAnswer((_) {
-            callCount++;
-            return callCount == 1 ? note1 : note2;
-          });
+          when(mockAttributesParser.parse(attributesElement, 'P1', '1', null))
+              .thenReturn({'divisions': 240});
+          when(mockNoteParser.parse(noteElements[0], 240, 'P1', '1')).thenReturn(note1);
+          when(mockNoteParser.parse(noteElements[1], 240, 'P1', '1')).thenReturn(note2);
 
           final result = measureParser.parse(element, 'P1');
 
           expect(result.notes, hasLength(2));
           expect(result.notes[0], equals(note1));
           expect(result.notes[1], equals(note2));
-          verify(mockNoteParser.parse(any, 1, 'P1', '1')).called(2);
+          verify(mockAttributesParser.parse(attributesElement, 'P1', '1', null)).called(1);
+          verify(mockNoteParser.parse(noteElements[0], 240, 'P1', '1')).called(1);
+          verify(mockNoteParser.parse(noteElements[1], 240, 'P1', '1')).called(1);
         });
 
         test('filters out null notes', () {
           final xml = XmlDocument.parse('''
             <measure number="1">
+              <attributes><divisions>120</divisions></attributes>
               <note>
                 <pitch>
                   <step>C</step>
                   <octave>4</octave>
                 </pitch>
-                <duration>480</duration>
+                <duration>120</duration>
               </note>
               <note>
                 <!-- Invalid note that returns null -->
@@ -467,25 +473,27 @@ void main() {
             </measure>
           ''');
           final element = xml.rootElement;
+          final attributesElement = element.findElements('attributes').first;
+          final noteElements = element.findElements('note').toList();
 
           final note = const Note(
             pitch: const Pitch(step: 'C', octave: 4),
-            duration: const Duration(value: 480, divisions: 1),
+            duration: const Duration(value: 120, divisions: 120),
             isRest: false,
           );
 
-          when(mockAttributesParser.parse(any, any, any, any)).thenReturn({'divisions': 1});
-          var callCount = 0;
-          when(mockNoteParser.parse(any, 1, 'P1', '1')).thenAnswer((_) {
-            callCount++;
-            return callCount == 1 ? note : null;
-          });
+          when(mockAttributesParser.parse(attributesElement, 'P1', '1', null))
+              .thenReturn({'divisions': 120});
+          when(mockNoteParser.parse(noteElements[0], 120, 'P1', '1')).thenReturn(note);
+          when(mockNoteParser.parse(noteElements[1], 120, 'P1', '1')).thenReturn(null); // This note is filtered
 
           final result = measureParser.parse(element, 'P1');
 
           expect(result.notes, hasLength(1));
           expect(result.notes.first, equals(note));
-          verify(mockNoteParser.parse(any, 1, 'P1', '1')).called(2);
+          verify(mockAttributesParser.parse(attributesElement, 'P1', '1', null)).called(1);
+          verify(mockNoteParser.parse(noteElements[0], 120, 'P1', '1')).called(1);
+          verify(mockNoteParser.parse(noteElements[1], 120, 'P1', '1')).called(1);
         });
 
         test('passes divisions to note parser', () {
