@@ -194,7 +194,7 @@ class AttributesParser {
         throw MusicXmlParseException(
           'Invalid clef number attribute "$numberStr"',
           element: 'clef',
-          attribute: 'number',
+          // attribute: 'number', // This named parameter does not exist
           line: XmlHelper.getLineNumber(element),
           context: context,
         );
