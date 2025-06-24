@@ -86,7 +86,7 @@ This document provides essential MusicXML format knowledge for accurate parsing 
 ### Notes
 ```xml
 <!-- Pitched note -->
-<note>
+<note default-x="100.0" default-y="-80.0">
   <pitch>
     <step>C</step>
     <octave>4</octave>
@@ -95,6 +95,11 @@ This document provides essential MusicXML format knowledge for accurate parsing 
   <voice>1</voice>
   <type>quarter</type>
   <stem>up</stem>
+  <notations>
+    <dynamics>
+      <p /> <!-- Example: piano -->
+    </dynamics>
+  </notations>
 </note>
 
 <!-- Rest -->
@@ -103,6 +108,20 @@ This document provides essential MusicXML format knowledge for accurate parsing 
   <duration>480</duration>
   <voice>1</voice>
   <type>quarter</type>
+</note>
+
+<!-- Chord note -->
+<!-- The <chord/> element indicates this note is part of a chord with the preceding note -->
+<note>
+  <chord/>
+  <pitch>
+    <step>E</step>
+    <octave>4</octave>
+  </pitch>
+  <duration>480</duration> <!-- Duration is often the same as the first note in the chord -->
+  <voice>1</voice>
+  <type>quarter</type>
+  <stem>up</stem> <!-- Stem direction usually matches the first note of the chord -->
 </note>
 
 <!-- Chord note -->

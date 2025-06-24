@@ -85,6 +85,12 @@ class Note {
   /// Default X position
   final double? defaultX;
 
+  /// Default Y position
+  final double? defaultY;
+
+  /// Dynamics value
+  final double? dynamics;
+
   /// Creates a new [Note] instance.
   ///
   /// Basic structural validation (e.g., a rest cannot have a pitch) is
@@ -106,6 +112,8 @@ class Note {
     this.stemDirection,
     this.accidental,
     this.defaultX,
+    this.defaultY,
+    this.dynamics,
   }) : assert(isRest ? pitch == null : pitch != null,
             'A rest must not have a pitch, and a non-rest note must have a pitch.');
 
@@ -139,6 +147,8 @@ class Note {
     StemDirection? stemDirection,
     Accidental? accidental,
     double? defaultX,
+    double? defaultY,
+    double? dynamics,
     int? line,
     Map<String, dynamic>? context,
   }) {
@@ -202,6 +212,8 @@ class Note {
       stemDirection: stemDirection,
       accidental: accidental,
       defaultX: defaultX,
+      defaultY: defaultY,
+      dynamics: dynamics,
     );
   }
 
@@ -223,7 +235,9 @@ class Note {
               .equals(articulations, other.articulations) &&
           const DeepCollectionEquality().equals(ties, other.ties) &&
           isChordElementPresent == other.isChordElementPresent &&
-          defaultX == other.defaultX;
+           defaultX == other.defaultX &&
+           defaultY == other.defaultY &&
+           dynamics == other.dynamics;
 
   @override
   int get hashCode =>
@@ -241,7 +255,9 @@ class Note {
           : 0) ^
       (ties != null ? const DeepCollectionEquality().hash(ties!) : 0) ^
       isChordElementPresent.hashCode ^
-      (defaultX?.hashCode ?? 0);
+      (defaultX?.hashCode ?? 0) ^
+      (defaultY?.hashCode ?? 0) ^
+      (dynamics?.hashCode ?? 0);
 
   @override
   String toString() {
@@ -274,6 +290,12 @@ class Note {
     }
     if (defaultX != null) {
       sb.write(', defaultX: $defaultX');
+    }
+    if (defaultY != null) {
+      sb.write(', defaultY: $defaultY');
+    }
+    if (dynamics != null) {
+      sb.write(', dynamics: $dynamics');
     }
     sb.write('}');
     return sb.toString();
@@ -311,6 +333,8 @@ class NoteBuilder {
   StemDirection? _stemDirection;
   Accidental? accidental;
   double? defaultX;
+  double? _defaultY;
+  double? _dynamics;
 
   final int? _line;
   final Map<String, dynamic>? _context;
@@ -413,6 +437,18 @@ class NoteBuilder {
     return this;
   }
 
+  /// Sets the default Y position of the note.
+  NoteBuilder setDefaultY(double? y) {
+    _defaultY = y;
+    return this;
+  }
+
+  /// Sets the dynamics of the note.
+  NoteBuilder setDynamics(double? dynamics) {
+    _dynamics = dynamics;
+    return this;
+  }
+
   /// Builds and validates the [Note] instance using [Note.validated].
   ///
   /// Throws [MusicXmlValidationException] if the constructed note violates
@@ -434,6 +470,8 @@ class NoteBuilder {
       stemDirection: _stemDirection,
       accidental: accidental,
       defaultX: defaultX,
+      defaultY: _defaultY,
+      dynamics: _dynamics,
       line: _line,
       context: _context,
     );

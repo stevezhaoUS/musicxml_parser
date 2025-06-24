@@ -58,6 +58,28 @@ void main() {
         expect(result.duration!.divisions, equals(480));
         expect(result.type, equals('quarter'));
         expect(result.voice, equals(1));
+        expect(result.defaultX, isNull);
+        expect(result.defaultY, isNull);
+        expect(result.dynamics, isNull);
+      });
+
+      test('parses note with default-x, default-y, and dynamics attributes', () {
+        final xml = XmlDocument.parse('''
+          <note default-x="10.5" default-y="-20.25" dynamics="46.67">
+            <pitch>
+              <step>C</step>
+              <octave>4</octave>
+            </pitch>
+            <duration>960</duration>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+
+        expect(result, isNotNull);
+        expect(result!.defaultX, equals(10.5));
+        expect(result.defaultY, equals(-20.25));
+        expect(result.dynamics, equals(46.67));
       });
 
       test('parses note with altered pitch', () {
@@ -1435,6 +1457,22 @@ void main() {
         expect(result, isNotNull);
         expect(result!.isRest, isTrue);
         expect(result.isChordElementPresent, isTrue);
+      });
+
+      test('parses note with <chord/> and default attributes', () {
+        final xml = XmlDocument.parse('''
+          <note default-x="15.0">
+            <chord/>
+            <pitch><step>G</step><octave>4</octave></pitch>
+            <duration>480</duration>
+          </note>
+        ''');
+        final element = xml.rootElement;
+        final result = noteParser.parse(element, 480, 'P1', '1');
+        expect(result, isNotNull);
+        expect(result!.isChordElementPresent, isTrue);
+        expect(result.defaultX, equals(15.0));
+        expect(result.defaultY, isNull);
       });
     });
 
