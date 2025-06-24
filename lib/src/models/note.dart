@@ -82,6 +82,9 @@ class Note {
   /// The accidental associated with the note (e.g., "sharp", "flat"). Null if none.
   final Accidental? accidental;
 
+  /// Default X position
+  final double? defaultX;
+
   /// Creates a new [Note] instance.
   ///
   /// Basic structural validation (e.g., a rest cannot have a pitch) is
@@ -102,6 +105,7 @@ class Note {
     this.isChordElementPresent = false,
     this.stemDirection,
     this.accidental,
+    this.defaultX,
   }) : assert(isRest ? pitch == null : pitch != null,
             'A rest must not have a pitch, and a non-rest note must have a pitch.');
 
@@ -134,6 +138,7 @@ class Note {
     bool isChordElementPresent = false,
     StemDirection? stemDirection,
     Accidental? accidental,
+    double? defaultX,
     int? line,
     Map<String, dynamic>? context,
   }) {
@@ -196,6 +201,7 @@ class Note {
       isChordElementPresent: isChordElementPresent,
       stemDirection: stemDirection,
       accidental: accidental,
+      defaultX: defaultX,
     );
   }
 
@@ -216,7 +222,8 @@ class Note {
           const DeepCollectionEquality()
               .equals(articulations, other.articulations) &&
           const DeepCollectionEquality().equals(ties, other.ties) &&
-          isChordElementPresent == other.isChordElementPresent;
+          isChordElementPresent == other.isChordElementPresent &&
+          defaultX == other.defaultX;
 
   @override
   int get hashCode =>
@@ -233,7 +240,8 @@ class Note {
           ? const DeepCollectionEquality().hash(articulations!)
           : 0) ^
       (ties != null ? const DeepCollectionEquality().hash(ties!) : 0) ^
-      isChordElementPresent.hashCode;
+      isChordElementPresent.hashCode ^
+      (defaultX?.hashCode ?? 0);
 
   @override
   String toString() {
@@ -263,6 +271,9 @@ class Note {
     }
     if (isChordElementPresent) {
       sb.write(', isChordNote: true');
+    }
+    if (defaultX != null) {
+      sb.write(', defaultX: $defaultX');
     }
     sb.write('}');
     return sb.toString();
@@ -299,6 +310,7 @@ class NoteBuilder {
   int? _staff; // Added for staff support
   StemDirection? _stemDirection;
   Accidental? accidental;
+  double? defaultX;
 
   final int? _line;
   final Map<String, dynamic>? _context;
@@ -395,6 +407,12 @@ class NoteBuilder {
     return this;
   }
 
+  /// Sets the default X position of the note.
+  NoteBuilder setDefaultX(double? x) {
+    defaultX = x;
+    return this;
+  }
+
   /// Builds and validates the [Note] instance using [Note.validated].
   ///
   /// Throws [MusicXmlValidationException] if the constructed note violates
@@ -415,6 +433,7 @@ class NoteBuilder {
       isChordElementPresent: _isChordElementPresent,
       stemDirection: _stemDirection,
       accidental: accidental,
+      defaultX: defaultX,
       line: _line,
       context: _context,
     );

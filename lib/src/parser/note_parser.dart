@@ -175,6 +175,10 @@ class NoteParser {
         stemDirection = null;
     }
 
+    // 解析 default-x 属性
+    final defaultX = XmlHelper.getAttributeValueAsDouble(element, 'default-x');
+    noteBuilder.setDefaultX(defaultX);
+
     noteBuilder
         .setIsRest(isRest)
         .setPitch(pitch) // Will be null if isRest is true
