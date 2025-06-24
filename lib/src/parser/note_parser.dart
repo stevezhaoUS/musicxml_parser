@@ -179,6 +179,14 @@ class NoteParser {
     final defaultX = XmlHelper.getAttributeValueAsDouble(element, 'default-x');
     noteBuilder.setDefaultX(defaultX);
 
+    // 解析 default-y 属性
+    final defaultY = XmlHelper.getAttributeValueAsDouble(element, 'default-y');
+    noteBuilder.setDefaultY(defaultY);
+
+    // 解析 dynamics 属性
+    final dynamics = XmlHelper.getAttributeValueAsDouble(element, 'dynamics');
+    noteBuilder.setDynamics(dynamics);
+
     noteBuilder
         .setIsRest(isRest)
         .setPitch(pitch) // Will be null if isRest is true
@@ -388,9 +396,10 @@ class NoteParser {
       }
     }
     return _NotationsData(
-        slurs: slurs.isNotEmpty ? slurs : null,
-        articulations: articulations.isNotEmpty ? articulations : null,
-        ties: ties.isNotEmpty ? ties : null);
+      slurs: slurs.isNotEmpty ? slurs : null,
+      articulations: articulations.isNotEmpty ? articulations : null,
+      ties: ties.isNotEmpty ? ties : null,
+    );
   }
 
   /// Parses a pitch element into a [Pitch] object using the Pitch.fromXmlElement factory.

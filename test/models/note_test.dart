@@ -49,6 +49,28 @@ void main() {
         expect(rest.isRest, isTrue);
         expect(rest.pitch, isNull);
       });
+
+      test('creates a note with defaultX, defaultY, and dynamics', () {
+        const note = Note(
+          pitch: pitchC4,
+          duration: durationQuarter,
+          defaultX: 10.0,
+          defaultY: 20.0,
+          dynamics: 0.75,
+        );
+        expect(note.defaultX, 10.0);
+        expect(note.defaultY, 20.0);
+        expect(note.dynamics, 0.75);
+      });
+
+      test('creates a chord note', () {
+        const note = Note(
+          pitch: pitchC4,
+          duration: durationQuarter,
+          isChordElementPresent: true,
+        );
+        expect(note.isChordElementPresent, isTrue);
+      });
     });
 
     group('equality and hashCode', () {
@@ -105,6 +127,53 @@ void main() {
         final note2 = Note(duration: durationQuarter, isRest: true, dots: 1);
         expect(note1 == note2, isFalse);
       });
+
+      test(
+          'notes with same defaultX, defaultY, dynamics, and chord are equal and have same hashCode',
+          () {
+        const note1 = Note(
+          pitch: pitchC4,
+          duration: durationQuarter,
+          defaultX: 10.0,
+          defaultY: 20.0,
+          dynamics: 0.75,
+          isChordElementPresent: true,
+        );
+        const note2 = Note(
+          pitch: pitchC4,
+          duration: durationQuarter,
+          defaultX: 10.0,
+          defaultY: 20.0,
+          dynamics: 0.75,
+          isChordElementPresent: true,
+        );
+        expect(note1 == note2, isTrue);
+        expect(note1.hashCode == note2.hashCode, isTrue);
+      });
+
+      test('notes with different defaultX are not equal', () {
+        const note1 = Note(pitch: pitchC4, duration: durationQuarter, defaultX: 10.0);
+        const note2 = Note(pitch: pitchC4, duration: durationQuarter, defaultX: 11.0);
+        expect(note1 == note2, isFalse);
+      });
+
+      test('notes with different defaultY are not equal', () {
+        const note1 = Note(pitch: pitchC4, duration: durationQuarter, defaultY: 10.0);
+        const note2 = Note(pitch: pitchC4, duration: durationQuarter, defaultY: 11.0);
+        expect(note1 == note2, isFalse);
+      });
+
+      test('notes with different dynamics are not equal', () {
+        const note1 = Note(pitch: pitchC4, duration: durationQuarter, dynamics: 0.5);
+        const note2 = Note(pitch: pitchC4, duration: durationQuarter, dynamics: 0.75);
+        expect(note1 == note2, isFalse);
+      });
+
+      test('notes with different isChordElementPresent are not equal', () {
+        const note1 = Note(pitch: pitchC4, duration: durationQuarter, isChordElementPresent: true);
+        const note2 = Note(pitch: pitchC4, duration: durationQuarter, isChordElementPresent: false);
+        expect(note1 == note2, isFalse);
+      });
     });
 
     group('toString representation', () {
@@ -148,6 +217,21 @@ void main() {
         final rest = Note(duration: durationQuarter, isRest: true, dots: null);
         expect(rest.toString(),
             equals('Rest{duration: Duration{value: 480, divisions: 480}}'));
+      });
+
+      test('toString includes defaultX, defaultY, dynamics, and isChordNote', () {
+        const note = Note(
+          pitch: pitchC4,
+          duration: durationQuarter,
+          defaultX: 10.0,
+          defaultY: 20.0,
+          dynamics: 0.75,
+          isChordElementPresent: true,
+        );
+        expect(note.toString(), contains('defaultX: 10.0'));
+        expect(note.toString(), contains('defaultY: 20.0'));
+        expect(note.toString(), contains('dynamics: 0.75'));
+        expect(note.toString(), contains('isChordNote: true'));
       });
     });
 
@@ -210,6 +294,28 @@ void main() {
                 isRest: true, duration: durationQuarter, dots: -1),
             throwsA(isA<MusicXmlValidationException>().having((e) => e.message,
                 'message', 'Note dots must be non-negative, got -1')));
+      });
+
+      test('Note.validated creates a note with defaultX, defaultY, and dynamics', () {
+        final note = Note.validated(
+          pitch: pitchC4,
+          duration: durationQuarter,
+          defaultX: 10.0,
+          defaultY: 20.0,
+          dynamics: 0.75,
+        );
+        expect(note.defaultX, 10.0);
+        expect(note.defaultY, 20.0);
+        expect(note.dynamics, 0.75);
+      });
+
+      test('Note.validated creates a chord note', () {
+        final note = Note.validated(
+          pitch: pitchC4,
+          duration: durationQuarter,
+          isChordElementPresent: true,
+        );
+        expect(note.isChordElementPresent, isTrue);
       });
     });
   });
