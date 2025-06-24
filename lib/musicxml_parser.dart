@@ -13,8 +13,14 @@ export 'src/exceptions/musicxml_structure_exception.dart';
 export 'src/exceptions/musicxml_validation_exception.dart';
 // Export models
 export 'src/models/appearance.dart';
+export 'src/models/barline.dart';
 export 'src/models/beam.dart';
+export 'src/models/clef.dart';
+export 'src/models/credit.dart';
+export 'src/models/direction.dart' hide ListEquality;
+export 'src/models/direction_type_elements.dart';
 export 'src/models/duration.dart';
+export 'src/models/ending.dart';
 export 'src/models/key_signature.dart';
 export 'src/models/measure.dart';
 export 'src/models/note.dart';
