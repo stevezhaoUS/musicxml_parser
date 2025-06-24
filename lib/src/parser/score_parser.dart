@@ -71,6 +71,14 @@ class ScoreParser {
             XmlHelper.findOptionalTextElement(element, 'movement-title');
     final composer = XmlHelper.findOptionalTextElement(
         element, 'identification/creator[@type="composer"]');
+    final arranger = XmlHelper.findOptionalTextElement(
+        element, 'identification/creator[@type="arranger"]');
+    final lyricist = XmlHelper.findOptionalTextElement(
+        element, 'identification/creator[@type="lyricist"]');
+    final rights = XmlHelper.findOptionalTextElement(
+        element, 'identification/rights');
+    final source = XmlHelper.findOptionalTextElement(
+        element, 'identification/source');
     final version = element.getAttribute('version');
 
     // Find part-list
@@ -118,8 +126,17 @@ class ScoreParser {
     if (title != null) {
       scoreBuilder.setWork(Work(title: title));
     }
-    if (composer != null) {
-      scoreBuilder.setIdentification(Identification(composer: composer));
+    
+    // Create identification with all available creator information
+    if (composer != null || arranger != null || lyricist != null || rights != null || source != null) {
+      final identification = Identification(
+        composer: composer,
+        arranger: arranger,
+        lyricist: lyricist,
+        rights: rights,
+        source: source,
+      );
+      scoreBuilder.setIdentification(identification);
     }
 
     // Set credits
