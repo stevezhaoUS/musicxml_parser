@@ -162,10 +162,10 @@ class MeasureBuilder {
   PrintObject? _printObject;
 
   /// Line number in the XML for error reporting context.
-  final int? _line;
+  // final int? _line; // Unused
 
   /// Additional context for error reporting.
-  final Map<String, dynamic>? _context;
+  // final Map<String, dynamic>? _context; // Unused
 
   /// Creates a [MeasureBuilder] for a measure with the given [number].
   ///
@@ -174,8 +174,9 @@ class MeasureBuilder {
   /// perform extensive validation itself, it would pass this to a
   /// hypothetical `Measure.validated` factory).
   MeasureBuilder(this._number, {int? line, Map<String, dynamic>? context})
-      : _line = line,
-        _context = context;
+  // : _line = line, // Unused
+  //   _context = context // Unused
+  ;
 
   /// Sets all notes for the measure.
   MeasureBuilder setNotes(List<Note> notes) {

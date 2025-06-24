@@ -1,5 +1,5 @@
 import 'package:meta/meta.dart';
-import 'package:collection/collection.dart'; // For list equality
+// import 'package:collection/collection.dart'; // For list equality - no longer needed as Object.hash is used
 
 /// Represents a clef in MusicXML.
 ///

@@ -78,15 +78,6 @@ class MockAttributesParser extends _i1.Mock implements _i6.AttributesParser {
   }
 
   @override
-  _i2.WarningSystem get warningSystem => (super.noSuchMethod(
-        Invocation.getter(#warningSystem),
-        returnValue: _FakeWarningSystem_0(
-          this,
-          Invocation.getter(#warningSystem),
-        ),
-      ) as _i2.WarningSystem);
-
-  @override
   Map<String, dynamic> parse(
     _i5.XmlElement? element,
     String? partId,

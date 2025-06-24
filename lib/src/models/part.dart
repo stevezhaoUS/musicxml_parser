@@ -68,18 +68,19 @@ class PartBuilder {
   List<Measure> _measures = [];
 
   /// Line number in the XML for error reporting context.
-  final int? _line;
+  // final int? _line; // Unused
 
   /// Additional context for error reporting.
-  final Map<String, dynamic>? _context;
+  // final Map<String, dynamic>? _context; // Unused
 
   /// Creates a [PartBuilder] for a part with the given [id].
   ///
   /// [line] and [context] can be provided for more detailed error
   /// messages if validation (not currently implemented in builder) were to fail.
   PartBuilder(this._id, {int? line, Map<String, dynamic>? context})
-      : _line = line,
-        _context = context;
+  // : _line = line, // Unused
+  //   _context = context // Unused
+  ;
 
   /// Sets the name of the part.
   PartBuilder setName(String? name) {

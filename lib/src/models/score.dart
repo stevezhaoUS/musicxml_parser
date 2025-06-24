@@ -182,19 +182,20 @@ class ScoreBuilder {
   List<Credit>? _credits;
 
   /// Line number in the XML for error reporting context.
-  final int? _line;
+  // final int? _line; // Unused
 
   /// Additional context for error reporting.
-  final Map<String, dynamic>? _context;
+  // final Map<String, dynamic>? _context; // Unused
 
   /// Creates a [ScoreBuilder].
   ///
   /// [version] is the MusicXML version. Defaults to "3.0" if not provided or empty.
   /// [line] and [context] can be provided for more detailed error messages.
   ScoreBuilder({String? version, int? line, Map<String, dynamic>? context})
-      : _version = (version != null && version.isNotEmpty) ? version : "3.0",
-        _line = line,
-        _context = context;
+      : _version = (version != null && version.isNotEmpty) ? version : "3.0"
+  // , _line = line // Unused
+  // , _context = context // Unused
+  ;
 
   /// Sets the MusicXML version. Defaults to "3.0" if [version] is empty.
   ScoreBuilder setVersion(String version) {
