@@ -1454,10 +1454,11 @@ void main() {
         expect(result.printObject!.localPageLayout!.pageWidth, 1000);
         expect(result.printObject!.localSystemLayout, isNull);
         expect(result.printObject!.localStaffLayouts, hasLength(1));
-        expect(result.printObject!.localStaffLayouts[0].staffDistance, 75);
+        expect(result.printObject!.localStaffLayouts![0].staffDistance, 75); // Removed unnecessary cast
         expect(result.notes, hasLength(1));
       });
     });
+
 
     group('Direction element parsing', () {
       setUp(() {

@@ -205,7 +205,7 @@ class NoteParser {
     // 解析 <accidental> 字段
     final accidentalElement = element.getElement('accidental');
     if (accidentalElement != null) {
-      noteBuilder.accidental = _parseAccidentalEnum(accidentalElement.text);
+      noteBuilder.accidental = _parseAccidentalEnum(accidentalElement.innerText);
     }
 
     try {

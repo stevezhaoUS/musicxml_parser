@@ -1,5 +1,5 @@
 import 'package:musicxml_parser/src/models/direction.dart';
-import 'package:musicxml_parser/src/models/direction_type_elements.dart';
+// import 'package:musicxml_parser/src/models/direction_type_elements.dart'; // Not used directly
 import 'package:musicxml_parser/src/models/direction_words.dart';
 import 'package:test/test.dart';
 
