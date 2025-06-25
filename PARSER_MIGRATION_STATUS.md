@@ -9,22 +9,22 @@ The count of methods is an estimation focusing on the main public functions in e
 
 | Dart File (`lib/src/parser/`) | Dart Class(es) (Est. Methods) | C# File (`csharp/MusicXMLParser/Parser/`) | C# Class(es) (Est. Methods) | Migration Status                                       |
 |-------------------------------|---------------------------------|-------------------------------------------|-------------------------------|--------------------------------------------------------|
-| `attributes_parser.dart`      | `AttributesParser` (1)          | N/A                                       | N/A (0)                       | Not Started                                            |
-| `beam_parser.dart`            | `BeamParser` (2)                | N/A                                       | N/A (0)                       | Not Started                                            |
-| `measure_parser.dart`         | `MeasureParser` (1)             | N/A                                       | N/A (0)                       | Not Started                                            |
-| `musicxml_parser.dart`        | `MusicXmlParser` (6)            | N/A                                       | N/A (0)                       | Not Started                                            |
-| `note_parser.dart`            | `NoteParser` (1)                | N/A                                       | N/A (0)                       | Not Started                                            |
-| `page_layout_parser.dart`     | `PageLayoutParser` (1), `ScalingParser` (1) | N/A                               | N/A (0)                       | Not Started                                            |
-| `part_parser.dart`            | `PartParser` (1)                | N/A                                       | N/A (0)                       | Not Started                                            |
-| `score_parser.dart`           | `ScoreParser` (1)               | `ScoreParser.cs`                          | `ScoreParser` (1)             | Partially Migrated (Stub for demonstrating TimeSignature integration. Does not match Dart version's scope.) |
-| `staff_layout_parser.dart`    | `StaffLayoutParser` (1)         | N/A                                       | N/A (0)                       | Not Started                                            |
-| `system_layout_parser.dart`   | `SystemLayoutParser` (1)        | N/A                                       | N/A (0)                       | Not Started                                            |
+| `attributes_parser.dart`      | `AttributesParser` (1)          | `AttributesParser.cs`                     | `AttributesParser` (1)        | Migrated                                               |
+| `beam_parser.dart`            | `BeamParser` (2)                | `BeamParser.cs`                           | `BeamParser` (2)              | Migrated                                               |
+| `measure_parser.dart`         | `MeasureParser` (1)             | `MeasureParser.cs`                        | `MeasureParser` (1)           | Migrated                                               |
+| `musicxml_parser.dart`        | `MusicXmlParser` (6)            | `MusicXmlParser.cs`                       | `MusicXmlParser` (5)          | Migrated (parseFromFile combined into ParseFileAsync)    |
+| `note_parser.dart`            | `NoteParser` (1)                | `NoteParser.cs`                           | `NoteParser` (1)              | Migrated                                               |
+| `page_layout_parser.dart`     | `PageLayoutParser` (1), `ScalingParser` (1) | `PageLayoutParser.cs`, `ScalingParser.cs` | `PageLayoutParser` (1), `ScalingParser` (1) | Migrated                                               |
+| `part_parser.dart`            | `PartParser` (1)                | `PartParser.cs`                           | `PartParser` (1)              | Migrated                                               |
+| `score_parser.dart`           | `ScoreParser` (1)               | `ScoreParser.cs`                          | `ScoreParser` (1)             | Migrated                                               |
+| `staff_layout_parser.dart`    | `StaffLayoutParser` (1)         | `StaffLayoutParser.cs`                    | `StaffLayoutParser` (1)       | Migrated                                               |
+| `system_layout_parser.dart`   | `SystemLayoutParser` (1)        | `SystemLayoutParser.cs`                   | `SystemLayoutParser` (1)      | Migrated                                               |
 
 ## Summary Totals
 
 *   **Total Dart Parser Files Analyzed:** 10
 *   **Total Estimated Dart Primary Public Parsing Methods:** 17
-*   **Total C# Parser Files Implemented:** 1
-*   **Total Estimated C# Primary Public Parsing Methods Implemented (includes stubs):** 1
+*   **Total C# Parser Files Implemented:** 11
+*   **Total Estimated C# Primary Public Parsing Methods Implemented (includes stubs):** 16
 
 This report reflects the status as of the last analysis. Further migration work will update these numbers.

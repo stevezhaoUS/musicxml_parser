@@ -17,12 +17,12 @@ namespace MusicXMLParser.Exceptions
         /// <summary>
         /// The specific validation rule that was violated.
         /// </summary>
-        public string Rule { get; }
+        public string? Rule { get; }
 
         /// <summary>
         /// Additional context information about the validation failure.
         /// </summary>
-        public Dictionary<string, string> Context { get; }
+        public Dictionary<string, object>? Context { get; } // Changed to Dictionary<string, object>
 
         /// <summary>
         /// Creates a new <see cref="MusicXmlValidationException"/> with the given message.
@@ -30,18 +30,18 @@ namespace MusicXMLParser.Exceptions
         /// <param name="message">A descriptive error message.</param>
         /// <param name="rule">The validation rule that was violated (optional).</param>
         /// <param name="line">The line number where the error occurred (optional).</param>
-        /// <param name="node">The XML node where the error occurred (optional).</param>
+        /// <param name="node">The XML node where the error occurred (optional). For validation, this might be less relevant than context.</param>
         /// <param name="context">Additional context information (optional).</param>
         public MusicXmlValidationException(
             string message,
-            string rule = null,
-            string line = null, // Changed to string
-            string node = null,
-            Dictionary<string, string> context = null)
-            : base(message, line, node)
+            string? rule = null,
+            int line = -1, // Changed to int
+            string? node = null, // Made node nullable
+            Dictionary<string, object>? context = null) // Context is Dictionary<string, object>
+            : base(message, line.ToString(), node)
         {
             Rule = rule;
-            Context = context;
+            Context = context ?? new Dictionary<string, object>();
         }
 
         public override string ToString()
