@@ -43,16 +43,20 @@ namespace MusicXMLParser.Models
         public double? DefaultX { get; }
         public double? DefaultY { get; }
         public double? Dynamics { get; }
+        public bool IsUnpitched { get; } // Added property
 
         public Note(Pitch pitch = null, Duration duration = null, bool isRest = false, int? voice = null, int? staff = null,
                     string type = null, int? dots = null, TimeModification timeModification = null, List<Slur> slurs = null,
                     List<Articulation> articulations = null, List<Tie> ties = null, bool isChordElementPresent = false,
-                    StemDirection? stemDirection = null, Accidental? accidental = null, double? defaultX = null, double? defaultY = null, double? dynamics = null)
+                    StemDirection? stemDirection = null, Accidental? accidental = null, double? defaultX = null, double? defaultY = null, double? dynamics = null,
+                    bool isUnpitched = false) // Added parameter
         {
             if (isRest && pitch != null)
                 throw new ArgumentException("A rest must not have a pitch.");
-            if (!isRest && pitch == null)
-                throw new ArgumentException("A non-rest note must have a pitch.");
+            if (!isRest && !isUnpitched && pitch == null) // Adjusted condition
+                throw new ArgumentException("A non-rest, pitched note must have a pitch.");
+            if (isUnpitched && pitch != null) // Added condition
+                throw new ArgumentException("An unpitched note must not have a pitch.");
 
             Pitch = pitch;
             Duration = duration;
@@ -71,53 +75,10 @@ namespace MusicXMLParser.Models
             DefaultX = defaultX;
             DefaultY = defaultY;
             Dynamics = dynamics;
+            IsUnpitched = isUnpitched; // Assign new property
         }
 
-        public static Note Validated(Pitch pitch = null, Duration duration = null, bool isRest = false, int? voice = null, int? staff = null,
-                                     string type = null, int? dots = null, TimeModification timeModification = null, List<Slur> slurs = null,
-                                     List<Articulation> articulations = null, List<Tie> ties = null, bool isChordElementPresent = false,
-                                     StemDirection? stemDirection = null, Accidental? accidental = null, double? defaultX = null, double? defaultY = null,
-                                     double? dynamics = null, int? line = null, Dictionary<string, object> context = null)
-        {
-            var currentContext = context ?? new Dictionary<string, object>();
-            if (duration != null)
-            {
-                ValidationUtils.ValidateDuration(duration, line, currentContext);
-            }
-            if (!isRest && pitch != null)
-            {
-                ValidationUtils.ValidatePitch(pitch, line, currentContext);
-            }
-
-            if (voice.HasValue && voice <= 0)
-            {
-                currentContext["voice"] = voice;
-                currentContext["isRest"] = isRest;
-                throw new MusicXmlValidationException($"Note voice must be positive, got {voice}", "note_voice_validation", line, currentContext);
-            }
-
-            if (dots.HasValue && dots < 0)
-            {
-                currentContext["dots"] = dots;
-                throw new MusicXmlValidationException($"Note dots must be non-negative, got {dots}", "note_dots_validation", line, currentContext);
-            }
-
-            if (isRest && pitch != null)
-            {
-                currentContext["isRest"] = isRest;
-                currentContext["hasPitch"] = true;
-                throw new MusicXmlValidationException("Rest notes should not have pitch information.", "rest_no_pitch_validation", line, currentContext);
-            }
-
-            if (!isRest && pitch == null)
-            {
-                currentContext["isRest"] = isRest;
-                currentContext["hasPitch"] = false;
-                throw new MusicXmlValidationException("Non-rest notes must have pitch information.", "note_pitch_required_validation", line, currentContext);
-            }
-
-            return new Note(pitch, duration, isRest, voice, staff, type, dots, timeModification, slurs, articulations, ties, isChordElementPresent, stemDirection, accidental, defaultX, defaultY, dynamics);
-        }
+        // Removed Validated method as per user request to defer validation
 
         public override bool Equals(object obj) => Equals(obj as Note);
 
@@ -139,7 +100,8 @@ namespace MusicXMLParser.Models
             Accidental == other.Accidental &&
             DefaultX == other.DefaultX &&
             DefaultY == other.DefaultY &&
-            Dynamics == other.Dynamics;
+            Dynamics == other.Dynamics &&
+            IsUnpitched == other.IsUnpitched; // Added to Equals
 
         public override int GetHashCode()
         {
@@ -161,6 +123,7 @@ namespace MusicXMLParser.Models
             hashCode.Add(DefaultX);
             hashCode.Add(DefaultY);
             hashCode.Add(Dynamics);
+            hashCode.Add(IsUnpitched); // Added to GetHashCode
             return hashCode.ToHashCode();
         }
 
@@ -187,6 +150,7 @@ namespace MusicXMLParser.Models
             if (DefaultX.HasValue) sb.Append($", defaultX: {DefaultX}");
             if (DefaultY.HasValue) sb.Append($", defaultY: {DefaultY}");
             if (Dynamics.HasValue) sb.Append($", dynamics: {Dynamics}");
+            if (IsUnpitched) sb.Append(", isUnpitched: true"); // Added to ToString
             sb.Append("}");
             return sb.ToString();
         }
@@ -194,54 +158,59 @@ namespace MusicXMLParser.Models
 
     public class NoteBuilder
     {
-        private Pitch _pitch;
-        private Duration _duration;
+        private Pitch? _pitch;
+        private Duration? _duration;
         private bool _isRest = false;
         private int? _voice;
-        private string _type;
+        private string? _type;
         private int? _dots;
-        private TimeModification _timeModification;
-        private List<Slur> _slurs;
-        private List<Articulation> _articulations;
-        private List<Tie> _ties;
+        private TimeModification? _timeModification;
+        private List<Slur>? _slurs;
+        private List<Articulation>? _articulations;
+        private List<Tie>? _ties;
         private bool _isChordElementPresent = false;
         private int? _staff;
         private StemDirection? _stemDirection;
-        private Accidental? _accidental;
+        private Accidental? _accidental; // Keep this name for the property being set
         private double? _defaultX;
         private double? _defaultY;
         private double? _dynamics;
+        private bool _isUnpitched = false; // Added field
 
         private readonly int? _line;
         private readonly Dictionary<string, object> _context;
 
-        public NoteBuilder(int? line = null, Dictionary<string, object> context = null)
+        public NoteBuilder(int? line = null, Dictionary<string, object>? context = null) // context can be null
         {
             _line = line;
             _context = context ?? new Dictionary<string, object>();
         }
 
         public NoteBuilder SetStaff(int? staff) { _staff = staff; return this; }
-        public NoteBuilder SetPitch(Pitch pitch) { _pitch = pitch; return this; }
-        public NoteBuilder SetDuration(Duration duration) { _duration = duration; return this; }
+        public NoteBuilder SetPitch(Pitch? pitch) { _pitch = pitch; return this; } // Parameter to nullable
+        public NoteBuilder SetDuration(Duration? duration) { _duration = duration; return this; } // Parameter to nullable
         public NoteBuilder SetIsRest(bool isRest) { _isRest = isRest; return this; }
         public NoteBuilder SetVoice(int? voice) { _voice = voice; return this; }
-        public NoteBuilder SetType(string type) { _type = type; return this; }
+        public NoteBuilder SetType(string? type) { _type = type; return this; } // Parameter to nullable
         public NoteBuilder SetDots(int? dots) { _dots = dots; return this; }
-        public NoteBuilder SetTimeModification(TimeModification timeModification) { _timeModification = timeModification; return this; }
-        public NoteBuilder SetSlurs(List<Slur> slurs) { _slurs = slurs; return this; }
-        public NoteBuilder SetArticulations(List<Articulation> articulations) { _articulations = articulations; return this; }
-        public NoteBuilder SetTies(List<Tie> ties) { _ties = ties; return this; }
+        public NoteBuilder SetTimeModification(TimeModification? timeModification) { _timeModification = timeModification; return this; } // Parameter to nullable
+        public NoteBuilder SetSlurs(List<Slur>? slurs) { _slurs = slurs; return this; } // Parameter to nullable
+        public NoteBuilder SetArticulations(List<Articulation>? articulations) { _articulations = articulations; return this; } // Parameter to nullable
+        public NoteBuilder SetTies(List<Tie>? ties) { _ties = ties; return this; } // Parameter to nullable
         public NoteBuilder SetIsChordElementPresent(bool isChordElementPresent) { _isChordElementPresent = isChordElementPresent; return this; }
         public NoteBuilder SetStemDirection(StemDirection? stemDirection) { _stemDirection = stemDirection; return this; }
-        public NoteBuilder SetAccidental(Accidental? accidental) { _accidental = accidental; return this; }
+        public NoteBuilder SetAccidental(Accidental? accidental) { _accidental = accidental; return this; } // Setter for Accidental
         public NoteBuilder SetDefaultX(double? x) { _defaultX = x; return this; }
         public NoteBuilder SetDefaultY(double? y) { _defaultY = y; return this; }
         public NoteBuilder SetDynamics(double? dynamics) { _dynamics = dynamics; return this; }
+        public NoteBuilder SetIsUnpitched(bool isUnpitched) { _isUnpitched = isUnpitched; return this; } // Added setter
 
         public Note Build()
         {
-            return Note.Validated(
+            // Calls new Note directly, bypassing the removed Note.Validated method
+            // The Note constructor itself contains basic argument checks (e.g., rest with pitch)
+            // More complex validation is deferred as per user request.
+            return new Note(
                 pitch: _pitch,
                 duration: _duration,
                 isRest: _isRest,
@@ -259,8 +228,9 @@ namespace MusicXMLParser.Models
                 defaultX: _defaultX,
                 defaultY: _defaultY,
                 dynamics: _dynamics,
-                line: _line,
-                context: _context
+                // line: _line, // Not part of Note constructor
+                // context: _context, // Not part of Note constructor
+                isUnpitched: _isUnpitched
             );
         }
     }

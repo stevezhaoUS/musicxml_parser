@@ -55,54 +55,8 @@ namespace MusicXMLParser.Models
             NormalDotCount = normalDotCount;
         }
 
-        /// <summary>
-        /// Creates a new <see cref="TimeModification"/> instance with validation using MusicXML specific exceptions.
-        /// </summary>
-        public static TimeModification CreateValidated(
-            int actualNotes,
-            int normalNotes,
-            string normalType = null,
-            int? normalDotCount = null,
-            string line = null, // For error reporting
-            Dictionary<string, string> context = null) // For error reporting
-        {
-            if (actualNotes <= 0)
-            {
-                var errorContext = new Dictionary<string, string>(context ?? new Dictionary<string, string>());
-                errorContext["actualNotes"] = actualNotes.ToString();
-                throw new MusicXmlValidationException(
-                    $"TimeModification actualNotes must be positive, got {actualNotes}",
-                    rule: "time_modification_actual_notes_positive",
-                    line: line,
-                    context: errorContext
-                );
-            }
-            if (normalNotes <= 0)
-            {
-                var errorContext = new Dictionary<string, string>(context ?? new Dictionary<string, string>());
-                errorContext["normalNotes"] = normalNotes.ToString();
-                throw new MusicXmlValidationException(
-                    $"TimeModification normalNotes must be positive, got {normalNotes}",
-                    rule: "time_modification_normal_notes_positive",
-                    line: line,
-                    context: errorContext
-                );
-            }
-            if (normalDotCount.HasValue && normalDotCount.Value < 0)
-            {
-                var errorContext = new Dictionary<string, string>(context ?? new Dictionary<string, string>());
-                errorContext["normalDotCount"] = normalDotCount.Value.ToString();
-                throw new MusicXmlValidationException(
-                    $"TimeModification normalDotCount cannot be negative if specified, got {normalDotCount}",
-                    rule: "time_modification_normal_dot_count_non_negative",
-                    line: line,
-                    context: errorContext
-                );
-            }
-
-            return new TimeModification(actualNotes, normalNotes, normalType, normalDotCount);
-        }
-
+        // Removed CreateValidated static method as per user request to defer validation.
+        // Constructor with basic argument checks remains.
 
         public override bool Equals(object obj)
         {

@@ -73,7 +73,7 @@ namespace MusicXMLParser.Models
         /// <param name="measureNumber">The number of the measure, used for context in error messages.</param>
         public static Pitch FromXElement(XElement element, string partId, string measureNumber)
         {
-            var line = element.Attribute("line")?.Value; // Or however line numbers are accessed
+            var lineNum = XmlHelper.GetLineNumber(element);
 
             var stepElement = element.Element("step");
             if (stepElement == null)
@@ -81,8 +81,8 @@ namespace MusicXMLParser.Models
                 throw new MusicXmlStructureException(
                     "Required <step> element not found in <pitch>",
                     parentElement: "pitch",
-                    line: line,
-                    context: new Dictionary<string, string> { { "part", partId }, { "measure", measureNumber } }
+                    line: lineNum,
+                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } }
                 );
             }
             var step = stepElement.Value.Trim();
@@ -93,8 +93,8 @@ namespace MusicXMLParser.Models
                 throw new MusicXmlStructureException(
                     "Required <octave> element not found in <pitch>",
                     parentElement: "pitch",
-                    line: line,
-                    context: new Dictionary<string, string> { { "part", partId }, { "measure", measureNumber } }
+                    line: lineNum,
+                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } }
                 );
             }
             var octaveText = octaveElement.Value.Trim();
@@ -103,8 +103,8 @@ namespace MusicXMLParser.Models
                  throw new MusicXmlValidationException(
                     $"Invalid octave: \"{octaveText}\". Must be an integer.",
                     rule: "pitch_octave_invalid_format",
-                    line: line,
-                    context: new Dictionary<string, string> { { "part", partId }, { "measure", measureNumber }, {"parsedOctave", octaveText} }
+                    line: lineNum,
+                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber }, {"parsedOctave", octaveText} }
                 );
             }
 
@@ -119,8 +119,8 @@ namespace MusicXMLParser.Models
                     throw new MusicXmlValidationException(
                         $"Invalid alter value: \"{alterText}\". If present, must be an integer.",
                         rule: "pitch_alter_invalid_format",
-                        line: line,
-                        context: new Dictionary<string, string> { { "part", partId }, { "measure", measureNumber }, {"parsedAlter", alterText} }
+                        line: lineNum,
+                        context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber }, {"parsedAlter", alterText} }
                     );
                 }
                 alter = parsedAlter;
@@ -132,8 +132,8 @@ namespace MusicXMLParser.Models
                 throw new MusicXmlValidationException(
                     $"Invalid pitch step: \"{step}\". Must be one of {string.Join(", ", ValidationUtils.ValidPitchSteps)}.",
                     rule: "pitch_step_invalid",
-                    line: line,
-                    context: new Dictionary<string, string> { { "part", partId }, { "measure", measureNumber }, { "parsedStep", step } }
+                    line: lineNum,
+                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber }, { "parsedStep", step } }
                 );
             }
 
@@ -142,8 +142,8 @@ namespace MusicXMLParser.Models
                 throw new MusicXmlValidationException(
                     $"Invalid octave: \"{octaveText}\". Must be an integer between {ValidationUtils.MinOctave} and {ValidationUtils.MaxOctave}.",
                     rule: "pitch_octave_invalid_range",
-                    line: line,
-                    context: new Dictionary<string, string> { { "part", partId }, { "measure", measureNumber }, { "parsedOctave", octaveText } }
+                    line: lineNum,
+                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber }, { "parsedOctave", octaveText } }
                 );
             }
 
@@ -152,8 +152,8 @@ namespace MusicXMLParser.Models
                 throw new MusicXmlValidationException(
                     $"Invalid alter value: \"{alterText}\". If present, must be an integer between -2 and 2.",
                     rule: "pitch_alter_invalid_range",
-                    line: line,
-                    context: new Dictionary<string, string> { { "part", partId }, { "measure", measureNumber }, { "parsedAlter", alterText } }
+                    line: lineNum,
+                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber }, { "parsedAlter", alterText ?? "null" } }
                 );
             }
 

@@ -32,20 +32,7 @@ namespace MusicXMLParser.Parser
                 string divisionsText = divisionsElement.Value.Trim();
                 if (int.TryParse(divisionsText, out int divisionsValue))
                 {
-                    if (divisionsValue <= 0)
-                    {
-                        throw new MusicXmlValidationException(
-                            message: $"Divisions value must be positive, got {divisionsValue}",
-                            rule: "divisions_positive_validation",
-                            line: MusicXMLParser.Utils.XmlHelper.GetLineNumber(divisionsElement),
-                            context: new Dictionary<string, object>
-                            {
-                                { "part", partId },
-                                { "measure", measureNumber },
-                                { "divisions", divisionsValue }
-                            }
-                        );
-                    }
+                    // Validation for divisionsValue <= 0 removed as per deferring validation.
                     divisions = divisionsValue;
                 }
                 else
@@ -101,8 +88,39 @@ namespace MusicXMLParser.Parser
             string partId,
             string measureNumber)
         {
-            // Assuming KeySignature.FromXElement exists and works similarly to the Dart version
-            return KeySignature.FromXElement(element, partId, measureNumber);
+            var line = XmlHelper.GetLineNumber(element);
+            var context = new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } };
+
+            var fifthsElement = element.Elements("fifths").FirstOrDefault();
+            if (fifthsElement == null)
+            {
+                throw new MusicXmlStructureException(
+                    "Required <fifths> element not found in <key>",
+                    requiredElement: "fifths",
+                    parentElement: "key",
+                    line: line,
+                    context: context
+                );
+            }
+            var fifthsText = fifthsElement.Value.Trim();
+            if (!int.TryParse(fifthsText, out var fifths))
+            {
+                throw new MusicXmlParseException(
+                    $"Invalid key signature fifths value: \"{fifthsText}\". Must be an integer.",
+                    elementName: "fifths",
+                    line: XmlHelper.GetLineNumber(fifthsElement),
+                    context: new Dictionary<string, object>(context) { { "parsedFifths", fifthsText } }
+                );
+            }
+
+            var modeElement = element.Elements("mode").FirstOrDefault();
+            var mode = modeElement?.Value.Trim();
+            if (string.IsNullOrEmpty(mode)) // Treat empty mode string as null
+            {
+                mode = null;
+            }
+
+            return new KeySignature(fifths, mode);
         }
 
         private TimeSignature ParseTimeSignature(
@@ -110,8 +128,56 @@ namespace MusicXMLParser.Parser
             string partId,
             string measureNumber)
         {
-            // Assuming TimeSignature.FromXElement exists and works similarly to the Dart version
-            return TimeSignature.FromXElement(element, partId, measureNumber);
+            var elementLineNumber = XmlHelper.GetLineNumber(element);
+            var context = new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } };
+
+            var beatsElement = element.Elements("beats").FirstOrDefault();
+            if (beatsElement == null)
+            {
+                throw new MusicXmlStructureException(
+                    "Required <beats> element not found in <time>",
+                    requiredElement: "beats",
+                    parentElement: "time",
+                    line: elementLineNumber,
+                    context: context
+                );
+            }
+            var beatsText = beatsElement.Value.Trim();
+            if (!int.TryParse(beatsText, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int beats))
+            {
+                // For now, throw a structure/parse exception. Warning and returning null could be an alternative.
+                throw new MusicXmlParseException(
+                    $"Invalid time signature beats (numerator) value: \"{beatsText}\". Must be an integer.",
+                    elementName: "beats",
+                    line: XmlHelper.GetLineNumber(beatsElement),
+                    context: new Dictionary<string, object>(context) { { "parsedBeats", beatsText } }
+                );
+            }
+
+            var beatTypeElement = element.Elements("beat-type").FirstOrDefault();
+            if (beatTypeElement == null)
+            {
+                throw new MusicXmlStructureException(
+                    "Required <beat-type> element not found in <time>",
+                    requiredElement: "beat-type",
+                    parentElement: "time",
+                    line: elementLineNumber,
+                    context: context
+                );
+            }
+            var beatTypeText = beatTypeElement.Value.Trim();
+            if (!int.TryParse(beatTypeText, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out int beatType))
+            {
+                // For now, throw a structure/parse exception.
+                throw new MusicXmlParseException(
+                    $"Invalid time signature beat-type (denominator) value: \"{beatTypeText}\". Must be an integer.",
+                    elementName: "beat-type",
+                    line: XmlHelper.GetLineNumber(beatTypeElement),
+                    context: new Dictionary<string, object>(context) { { "parsedBeatType", beatTypeText } }
+                );
+            }
+
+            return new TimeSignature(beats, beatType);
         }
 
         private Clef ParseClef(
@@ -137,15 +203,8 @@ namespace MusicXMLParser.Parser
                 );
             }
             string sign = signElement.Value.Trim();
-            if (string.IsNullOrEmpty(sign))
-            {
-                throw new MusicXmlValidationException(
-                    message: "Clef <sign> element cannot be empty.",
-                    rule: "clef_sign_not_empty",
-                    line: XmlHelper.GetLineNumber(signElement),
-                    context: context
-                );
-            }
+            // Validation for string.IsNullOrEmpty(sign) removed as per deferring validation.
+            // If sign is empty, it will be passed as such to the Clef constructor.
 
             int? line = null;
             var lineElement = element.Elements("line").FirstOrDefault();
@@ -206,15 +265,8 @@ namespace MusicXMLParser.Parser
                 }
             }
 
-            if (new[] { "G", "F", "C" }.Contains(sign) && line == null)
-            {
-                throw new MusicXmlValidationException(
-                    message: $"Clef sign \"{sign}\" requires a <line> element.",
-                    rule: "clef_line_required_for_sign",
-                    line: XmlHelper.GetLineNumber(element),
-                    context: new Dictionary<string, object>(context) { { "sign", sign } }
-                );
-            }
+            // Validation for G,F,C clefs requiring a line element removed.
+            // This will be handled by a later validation pass or by consuming logic if critical.
 
             return new Clef(sign, line, octaveChange, number);
         }

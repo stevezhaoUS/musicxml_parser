@@ -45,66 +45,6 @@ namespace MusicXMLParser.Models
             NoteIndices = noteIndices ?? new List<int>();
         }
 
-        /// <summary>
-        /// Creates a new <see cref="Beam"/> instance with validation.
-        /// Throws <see cref="MusicXmlValidationException"/> if invalid.
-        /// </summary>
-        public static Beam Validated(int number, string type, string measureNumber, List<int> noteIndices, int? line = null, Dictionary<string, object> context = null)
-        {
-            // Validate beam number
-            if (number <= 0)
-            {
-                var currentContext = context ?? new Dictionary<string, object>();
-                currentContext["number"] = number;
-                throw new MusicXmlValidationException(
-                    $"Beam number must be positive, got {number}",
-                    "beam_number_validation",
-                    line,
-                    currentContext
-                );
-            }
-
-            // Validate beam type
-            var validTypes = new List<string> { "begin", "continue", "end", "forward hook", "backward hook" };
-            if (!validTypes.Contains(type))
-            {
-                var currentContext = context ?? new Dictionary<string, object>();
-                currentContext["type"] = type;
-                throw new MusicXmlValidationException(
-                    $"Invalid beam type: {type}. Expected one of: {string.Join(", ", validTypes)}",
-                    "beam_type_validation",
-                    line,
-                    currentContext
-                );
-            }
-
-            // Validate measure number
-            if (string.IsNullOrEmpty(measureNumber))
-            {
-                throw new MusicXmlValidationException(
-                    "Measure number cannot be empty",
-                    "beam_measure_validation",
-                    line,
-                    context
-                );
-            }
-
-            // Validate note indices
-            if (noteIndices == null || noteIndices.Count < 2)
-            {
-                var currentContext = context ?? new Dictionary<string, object>();
-                currentContext["noteCount"] = noteIndices?.Count ?? 0;
-                throw new MusicXmlValidationException(
-                    $"A beam must connect at least 2 notes, got {noteIndices?.Count ?? 0}",
-                    "beam_notes_validation",
-                    line,
-                    currentContext
-                );
-            }
-
-            return new Beam(number, type, measureNumber, noteIndices);
-        }
-
         public override bool Equals(object obj)
         {
             return Equals(obj as Beam);

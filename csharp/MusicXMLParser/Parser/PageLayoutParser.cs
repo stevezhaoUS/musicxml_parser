@@ -26,23 +26,25 @@ namespace MusicXMLParser.Parser
                 var top = XmlHelper.GetElementTextAsDouble(marginElement.Elements("top-margin").FirstOrDefault());
                 var bottom = XmlHelper.GetElementTextAsDouble(marginElement.Elements("bottom-margin").FirstOrDefault());
 
-                // Assuming PageMargins constructor handles nulls appropriately or they are validated before this point.
-                // For now, let's assume the model PageMargins can handle nullable doubles if that's the design.
-                // If not, checks for null and default values or exceptions would be needed here.
-                margins.Add(new PageMargins(
-                    type: type,
-                    leftMargin: left,
-                    rightMargin: right,
-                    topMargin: top,
-                    bottomMargin: bottom
-                ));
+                // Using object initializer syntax as PageMargins relies on public setters
+                margins.Add(new PageMargins
+                {
+                    Type = type,
+                    LeftMargin = left,
+                    RightMargin = right,
+                    TopMargin = top,
+                    BottomMargin = bottom
+                });
             }
 
-            return new PageLayout(
-                pageHeight: pageHeight,
-                pageWidth: pageWidth,
-                pageMargins: margins.Any() ? margins : null // Return null if no margins found, or an empty list, based on model design
-            );
+            // Using object initializer syntax as PageLayout relies on public setters
+            return new PageLayout
+            {
+                PageHeight = pageHeight,
+                PageWidth = pageWidth,
+                // Ensure PageMargins is always initialized, even if empty, to avoid null reference on the list itself.
+                PageMargins = margins.Any() ? margins : new List<PageMargins>()
+            };
         }
     }
 }

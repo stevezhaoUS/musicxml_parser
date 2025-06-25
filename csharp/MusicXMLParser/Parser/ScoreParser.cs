@@ -76,9 +76,12 @@ namespace MusicXMLParser.Parser
             if (partListElement == null)
             {
                 WarningSystem.AddWarning(
-                    "Missing part-list element in score",
-                    category: "structure",
-                    context: new Dictionary<string, object> { { "line", XmlHelper.GetLineNumber(element) } }
+                    message: "Missing part-list element in score",
+                    category: WarningCategories.Structure, // Corrected category
+                    rule: "score_missing_part_list",
+                    line: XmlHelper.GetLineNumber(element),
+                    elementName: element.Name.LocalName,
+                    context: new Dictionary<string, object>() // No specific context beyond line and element
                 );
             }
 
@@ -88,7 +91,7 @@ namespace MusicXMLParser.Parser
 
             var defaultsData = ParseDefaults(element.Element("defaults"));
 
-            var scoreBuilder = new ScoreBuilder(version, XmlHelper.GetLineNumber(element))
+            var scoreBuilder = new ScoreBuilder(version) // Removed line number argument
                 .SetTitle(title) // Title can be set directly or via Work
                 .SetComposer(composer); // Composer can be set directly or via Identification
 
@@ -96,7 +99,7 @@ namespace MusicXMLParser.Parser
 
             scoreBuilder.SetPageLayout(defaultsData.PageLayout)
                         .SetDefaultSystemLayout(defaultsData.SystemLayout)
-                        .SetDefaultStaffLayouts(defaultsData.StaffLayouts)
+                        .setDefaultStaffLayouts(defaultsData.StaffLayouts) // Corrected method name casing
                         .SetScaling(defaultsData.Scaling)
                         .SetAppearance(defaultsData.Appearance);
 

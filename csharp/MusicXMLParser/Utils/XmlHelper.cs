@@ -8,13 +8,13 @@ namespace MusicXMLParser.Utils
 {
     public static class XmlHelper
     {
-        public static int GetLineNumber(XElement element)
+        public static int GetLineNumber(XElement? element)
         {
             if (element == null) return -1;
 
             // Standard way to get line info in System.Xml.Linq
-            IXmlLineInfo lineInfo = element;
-            if (lineInfo != null && lineInfo.HasLineInfo()) // Check if lineInfo is not null
+            IXmlLineInfo? lineInfo = element as IXmlLineInfo; // Use 'as' for safer casting
+            if (lineInfo != null && lineInfo.HasLineInfo())
             {
                 return lineInfo.LineNumber;
             }
@@ -28,11 +28,11 @@ namespace MusicXMLParser.Utils
             return -1;
         }
 
-        public static string FindOptionalTextElement(XElement element, string path)
+        public static string? FindOptionalTextElement(XElement? element, string path)
         {
             if (element == null || string.IsNullOrEmpty(path)) return null;
 
-            XElement currentContextNode = element;
+            XElement? currentContextNode = element; // currentContextNode can become null
             var pathSegments = path.Split('/');
 
             for (int i = 0; i < pathSegments.Length; i++)
@@ -60,8 +60,10 @@ namespace MusicXMLParser.Utils
             return currentContextNode?.Value.Trim();
         }
 
-        private static XElement FindElementFromSegment(XElement parent, string segment)
+        private static XElement? FindElementFromSegment(XElement? parent, string segment)
         {
+            if (parent == null) return null; // Added null check
+
             var predicateMatch = Regex.Match(segment, @"(.+?)\[(.+?)\]");
 
             if (predicateMatch.Success)
@@ -86,8 +88,10 @@ namespace MusicXMLParser.Utils
             }
         }
 
-        public static XElement GetRequiredElement(XElement parent, string name, string requiredElement = null)
+        public static XElement GetRequiredElement(XElement parent, string name, string? requiredElement = null)
         {
+            // parent is assumed to be non-null by contract of this method.
+            // If parent could be null, an ArgumentNullException or different handling is needed.
             var elements = parent.Elements(name);
             if (!elements.Any())
             {
@@ -95,25 +99,26 @@ namespace MusicXMLParser.Utils
                     $"Required element <{requiredElement ?? name}> not found as a child of <{parent.Name.LocalName}>.",
                     requiredElement ?? name,
                     parent.Name.LocalName,
-                    GetLineNumber(parent)
+                    GetLineNumber(parent),
+                    null // context can be null here
                 );
             }
             return elements.First();
         }
 
-        public static XElement FindOptionalElement(XElement parent, string name)
+        public static XElement? FindOptionalElement(XElement? parent, string name)
         {
-            return parent.Elements(name).FirstOrDefault();
+            return parent?.Elements(name).FirstOrDefault(); // Use null-conditional access
         }
 
-        public static int? GetElementTextAsInt(XElement element)
+        public static int? GetElementTextAsInt(XElement? element)
         {
             if (element == null) return null;
             var text = element.Value.Trim();
             return int.TryParse(text, out int result) ? result : (int?)null;
         }
 
-        public static double? GetElementTextAsDouble(XElement element)
+        public static double? GetElementTextAsDouble(XElement? element)
         {
             if (element == null) return null;
             var text = element.Value.Trim();
@@ -121,7 +126,7 @@ namespace MusicXMLParser.Utils
             return double.TryParse(text, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double result) ? result : (double?)null;
         }
 
-        public static bool GetElementTextAsBool(XElement element, bool defaultValue = false)
+        public static bool GetElementTextAsBool(XElement? element, bool defaultValue = false)
         {
             if (element == null) return defaultValue;
             var text = element.Value.Trim().ToLowerInvariant();
@@ -130,12 +135,12 @@ namespace MusicXMLParser.Utils
             return defaultValue;
         }
 
-        public static string GetAttributeValue(XElement element, string attributeName)
+        public static string? GetAttributeValue(XElement? element, string attributeName)
         {
             return element?.Attribute(attributeName)?.Value;
         }
 
-        public static double? GetAttributeValueAsDouble(XElement element, string attributeName)
+        public static double? GetAttributeValueAsDouble(XElement? element, string attributeName)
         {
             var attributeValue = element?.Attribute(attributeName)?.Value;
             if (attributeValue == null) return null;
@@ -143,7 +148,7 @@ namespace MusicXMLParser.Utils
             return double.TryParse(attributeValue, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double result) ? result : (double?)null;
         }
 
-        public static int? GetAttributeValueAsInt(XElement element, string attributeName)
+        public static int? GetAttributeValueAsInt(XElement? element, string attributeName)
         {
             var attributeValue = element?.Attribute(attributeName)?.Value;
             if (attributeValue == null) return null;

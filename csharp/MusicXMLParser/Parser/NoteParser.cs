@@ -57,11 +57,12 @@ namespace MusicXMLParser.Parser
                     if (!effectiveParentDivisions.HasValue || effectiveParentDivisions.Value <= 0)
                     {
                         WarningSystem.AddWarning(
-                            "No valid divisions specified for note with duration. Using default divisions value 1.",
-                            category: WarningCategories.NoteDivisions, // Assuming WarningCategories is an enum or static class
+                            message: "No valid divisions specified for note with duration. Using default divisions value 1.",
+                            category: WarningCategories.NoteDivisions,
+                            line: line,
                             context: new Dictionary<string, object>
                             {
-                                { "part", partId }, { "measure", measureNumber }, { "line", line },
+                                { "part", partId }, { "measure", measureNumber },
                                 { "original_divisions", parentDivisions }
                             }
                         );
@@ -72,11 +73,13 @@ namespace MusicXMLParser.Parser
                 else
                 {
                     WarningSystem.AddWarning(
-                        $"Invalid duration value: {durationValue} for note.",
-                        category: "note_duration",
+                        message: $"Invalid duration value: {durationValue} for note.",
+                        category: WarningCategories.Validation, // Corrected category
+                        rule: "note_duration_invalid",
+                        line: line,
                         context: new Dictionary<string, object>
                         {
-                            { "part", partId }, { "measure", measureNumber }, { "line", line }
+                            { "part", partId }, { "measure", measureNumber }, { "parsedDuration", durationValue?.ToString() }
                         }
                     );
                     return null;
@@ -84,14 +87,21 @@ namespace MusicXMLParser.Parser
             }
             else
             {
+                // This case should ideally not happen if XML is valid, as duration is required for a note.
+                // If it does, it's a structural issue, or the note should be skipped.
+                // For now, let's assume it's an error severe enough to not create a note.
                 WarningSystem.AddWarning(
-                    "Note without duration element present.",
-                     category: WarningCategories.Duration,
+                    message: "Note without duration element present. Skipping note.",
+                    category: WarningCategories.Structure, // Changed to Structure
+                    rule: "note_missing_duration",
+                    line: line,
+                    elementName: "note",
                     context: new Dictionary<string, object>
                     {
-                        { "part", partId }, { "measure", measureNumber }, { "line", line }
+                        { "part", partId }, { "measure", measureNumber }
                     }
                 );
+                return null; // Skip creating the note if duration is missing.
             }
 
             var typeElement = element.Elements("type").FirstOrDefault();
@@ -156,31 +166,18 @@ namespace MusicXMLParser.Parser
             var accidentalElement = element.Element("accidental");
             if (accidentalElement != null)
             {
-                noteBuilder.Accidental = ParseAccidentalEnum(accidentalElement.Value);
+                noteBuilder.SetAccidental(ParseAccidentalEnum(accidentalElement.Value)); // Changed to use setter
             }
 
-            try
-            {
-                return noteBuilder.Build();
-            }
-            catch (MusicXmlValidationException e)
-            {
-                WarningSystem.AddWarning(
-                    $"Invalid note constructed: {e.Message}",
-                    category: "note_validation",
-                    rule: e.Rule,
-                    line: line,
-                    context: new Dictionary<string, object>(e.Context)
-                    {
-                        { "part", partId }, { "measure", measureNumber }
-                    }
-                );
-                return null;
-            }
+            // Removed try-catch for MusicXmlValidationException as NoteBuilder.Build() now calls new Note() directly.
+            // Basic constructor argument checks in Note() will throw ArgumentException, which can be handled higher up if needed
+            // or allowed to propagate to indicate a fundamental issue.
+            // For now, letting ArgumentException propagate if basic invariants are violated.
+            return noteBuilder.Build();
         }
 
-        private TimeModification ParseTimeModification(
-            XElement timeModificationElement,
+        private TimeModification? ParseTimeModification( // Return type changed to nullable
+            XElement? timeModificationElement, // Parameter changed to nullable
             string partId, string measureNumber, int noteLine)
         {
             if (timeModificationElement == null) return null;
@@ -225,23 +222,39 @@ namespace MusicXMLParser.Parser
             var normalDotElements = timeModificationElement.Elements("normal-dot");
             int? normalDotCount = normalDotElements.Any() ? normalDotElements.Count() : (int?)null;
 
+            // Directly construct TimeModification. Basic validation is in its constructor.
+            // More complex MusicXML-specific validation is deferred.
+            // ArgumentOutOfRangeException from constructor will propagate if basic invariants are violated.
             try
             {
-                return TimeModification.Validated(
-                    actualNotes.Value, normalNotes.Value, normalType, normalDotCount,
-                    tmLine, new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber }, { "noteLine", noteLine } }
+                return new TimeModification(
+                    actualNotes.Value,
+                    normalNotes.Value,
+                    normalType,
+                    normalDotCount
                 );
             }
-            catch (MusicXmlValidationException e)
+            catch (ArgumentOutOfRangeException e)
             {
-                WarningSystem.AddWarning($"Invalid time-modification: {e.Message}", "time_modification_validation", e.Rule, tmLine,
-                    new Dictionary<string, object>(e.Context) { { "part", partId }, { "measure", measureNumber }, { "noteLine", noteLine } });
+                // Optionally, catch ArgumentOutOfRangeException and convert to a warning or a more specific MusicXML exception.
+                // For now, let it propagate or log a warning and return null.
+                WarningSystem.AddWarning(
+                    message: $"Invalid arguments for TimeModification: {e.Message}",
+                    category: WarningCategories.Validation,
+                    rule: "time_modification_invalid_arguments",
+                    line: tmLine,
+                    context: new Dictionary<string, object> {
+                        { "part", partId }, { "measure", measureNumber }, { "noteLine", noteLine },
+                        { "actualNotes", actualNotes.Value }, { "normalNotes", normalNotes.Value },
+                        { "normalType", normalType ?? "null" }, {"normalDotCount", normalDotCount?.ToString() ?? "null" }
+                    }
+                );
                 return null;
             }
         }
 
         private NotationsData ParseNotations(
-            XElement notationsElement,
+            XElement? notationsElement, // Parameter changed to nullable
             string partId, string measureNumber, int noteLine)
         {
             if (notationsElement == null) return new NotationsData();
@@ -283,8 +296,11 @@ namespace MusicXMLParser.Parser
                         var typeAttrTied = notationChild.Attribute("type")?.Value;
                         if (string.IsNullOrEmpty(typeAttrTied) || !new[] { "start", "stop", "continue" }.Contains(typeAttrTied))
                         {
-                            WarningSystem.AddWarning($"<tied> element has invalid or missing \"type\" attribute. Found: \"{typeAttrTied}\". Skipping tie.", WarningCategories.Structure, XmlHelper.GetLineNumber(notationChild),
-                                new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber }, { "noteLine", noteLine } });
+                            WarningSystem.AddWarning(
+                                message: $"<tied> element has invalid or missing \"type\" attribute. Found: \"{typeAttrTied}\". Skipping tie.",
+                                category: WarningCategories.Structure,
+                                line: XmlHelper.GetLineNumber(notationChild),
+                                context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber }, { "noteLine", noteLine } });
                         }
                         else
                         {
