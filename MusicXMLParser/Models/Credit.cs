@@ -18,7 +18,7 @@ namespace MusicXMLParser.Models
         /// The type of credit (e.g., "title", "subtitle", "composer").
         /// Corresponds to the text content of the <credit-type> element. Optional.
         /// </summary>
-        public string CreditType { get; }
+        public string? CreditType { get; }
 
         /// <summary>
         /// The words of the credit. A single <credit> can have multiple <credit-words> elements.
@@ -29,19 +29,19 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a new <see cref="Credit"/> instance.
         /// </summary>
-        public Credit(int? page = null, string creditType = null, List<string> creditWords = null)
+        public Credit(int? page = null, string? creditType = null, List<string> creditWords = null)
         {
             Page = page;
             CreditType = creditType;
             CreditWords = creditWords ?? new List<string>();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as Credit);
         }
 
-        public bool Equals(Credit other)
+        public bool Equals(Credit? other)
         {
             return other != null &&
                    Page == other.Page &&

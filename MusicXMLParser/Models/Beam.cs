@@ -21,12 +21,12 @@ namespace MusicXMLParser.Models
         /// The beam type indicating the beam's role
         /// (begin, continue, end, forward hook, backward hook, etc.)
         /// </summary>
-        public string Type { get; }
+        public string? Type { get; }
 
         /// <summary>
         /// The measure number this beam belongs to.
         /// </summary>
-        public string MeasureNumber { get; }
+        public string? MeasureNumber { get; }
 
         /// <summary>
         /// The indices of notes connected by this beam.
@@ -37,7 +37,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a new <see cref="Beam"/> instance.
         /// </summary>
-        public Beam(int number, string type, string measureNumber, List<int> noteIndices)
+        public Beam(int number, string? type, string? measureNumber, List<int> noteIndices)
         {
             Number = number;
             Type = type;
@@ -45,12 +45,12 @@ namespace MusicXMLParser.Models
             NoteIndices = noteIndices ?? new List<int>();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as Beam);
         }
 
-        public bool Equals(Beam other)
+        public bool Equals(Beam? other)
         {
             return other != null &&
                    Number == other.Number &&

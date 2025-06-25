@@ -22,17 +22,17 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// The version of the MusicXML format used for the score (e.g., "3.1", "4.0").
         /// </summary>
-        public string Version { get; }
+        public string? Version { get; }
 
         /// <summary>
         /// Information about the musical work itself (e.g., title).
         /// </summary>
-        public Work Work { get; } // Assuming Work class will be ported
+        public Work? Work { get; } // Assuming Work class will be ported
 
         /// <summary>
         /// Identification metadata for the score (e.g., composer, rights).
         /// </summary>
-        public Identification Identification { get; } // Assuming Identification class exists
+        public Identification? Identification { get; } // Assuming Identification class exists
 
         /// <summary>
         /// The list of <see cref="Part"/> objects that constitute the score.
@@ -42,12 +42,12 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Default page layout settings for the score.
         /// </summary>
-        public PageLayout PageLayout { get; } // Assuming PageLayout class exists
+        public PageLayout? PageLayout { get; } // Assuming PageLayout class exists
 
         /// <summary>
         /// Default system layout settings (e.g., margins, distances between systems).
         /// </summary>
-        public SystemLayout DefaultSystemLayout { get; } // Assuming SystemLayout placeholder exists
+        public SystemLayout? DefaultSystemLayout { get; } // Assuming SystemLayout placeholder exists
 
         /// <summary>
         /// List of default staff layout settings (e.g., staff distances).
@@ -57,24 +57,24 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Scaling information used for rendering (e.g., millimeters per tenth).
         /// </summary>
-        public Scaling Scaling { get; } // Assuming Scaling class exists (part of PageLayout.cs)
+        public Scaling? Scaling { get; } // Assuming Scaling class exists (part of PageLayout.cs)
 
         /// <summary>
         /// Default appearance settings (e.g., line widths, note sizes).
         /// </summary>
-        public Appearance Appearance { get; } // Assuming Appearance class exists
+        public Appearance? Appearance { get; } // Assuming Appearance class exists
 
         /// <summary>
         /// The primary title of the score.
         /// Often also found within <see cref="Work"/> or <see cref="Identification"/> elements.
         /// </summary>
-        public string Title { get; }
+        public string? Title { get; }
 
         /// <summary>
         /// The primary composer of the score.
         /// Often also found within <see cref="Identification"/> elements.
         /// </summary>
-        public string Composer { get; }
+        public string? Composer { get; }
 
         /// <summary>
         /// A list of <see cref="Credit"/> entries for the score (e.g., copyright, arranger).
@@ -90,18 +90,18 @@ namespace MusicXMLParser.Models
         /// during parsing.
         /// </remarks>
         public Score(
-            string version,
+            string? version,
             List<Part> parts,
-            Work work = null,
-            Identification identification = null,
-            PageLayout pageLayout = null,
-            SystemLayout defaultSystemLayout = null,
-            List<StaffLayout> defaultStaffLayouts = null,
-            Scaling scaling = null,
-            Appearance appearance = null,
-            string title = null,
-            string composer = null,
-            List<Credit> credits = null)
+            Work? work = null,
+            Identification? identification = null,
+            PageLayout? pageLayout = null,
+            SystemLayout? defaultSystemLayout = null,
+            List<StaffLayout>? defaultStaffLayouts = null,
+            Scaling? scaling = null,
+            Appearance? appearance = null,
+            string? title = null,
+            string? composer = null,
+            List<Credit>? credits = null)
         {
             if (string.IsNullOrEmpty(version))
                 throw new ArgumentException("Version cannot be null or empty.", nameof(version));
@@ -120,7 +120,7 @@ namespace MusicXMLParser.Models
             Credits = credits ?? new List<Credit>();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is Score other)
             {

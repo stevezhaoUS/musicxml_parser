@@ -11,7 +11,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// The type of line (e.g., "light barline", "heavy barline", "beam", etc.).
         /// </summary>
-        public string Type { get; }
+        public string? Type { get; }
 
         /// <summary>
         /// The width value.
@@ -21,7 +21,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a new <see cref="LineWidth"/> instance.
         /// </summary>
-        public LineWidth(string type, double width)
+        public LineWidth(string? type, double width)
         {
             Type = type;
             Width = width;
@@ -36,7 +36,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// The type of note (e.g., "cue", "grace", etc.).
         /// </summary>
-        public string Type { get; }
+        public string? Type { get; }
 
         /// <summary>
         /// The size value as a percentage.
@@ -46,7 +46,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a new <see cref="NoteSize"/> instance.
         /// </summary>
-        public NoteSize(string type, double size)
+        public NoteSize(string? type, double size)
         {
             Type = type;
             Size = size;

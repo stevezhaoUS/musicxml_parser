@@ -11,18 +11,18 @@ namespace MusicXMLParser.Models
         /// The type of articulation, corresponding to the MusicXML element name
         /// (e.g., "accent", "staccato", "tenuto").
         /// </summary>
-        public string Type { get; }
+        public string? Type { get; }
 
         /// <summary>
         /// The placement of the articulation relative to the note (e.g., "above", "below").
         /// Optional.
         /// </summary>
-        public string Placement { get; } // Consider an enum Placement in the future
+        public string? Placement { get; } // Consider an enum Placement in the future
 
         /// <summary>
         /// Creates a new <see cref="Articulation"/> instance.
         /// </summary>
-        public Articulation(string type, string placement = null)
+        public Articulation(string? type, string? placement = null)
         {
             Type = type;
             Placement = placement;

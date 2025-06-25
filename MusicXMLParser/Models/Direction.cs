@@ -16,8 +16,8 @@ namespace MusicXMLParser.Models
             Sound = sound;
         }
 
-        public override bool Equals(object obj) => Equals(obj as Offset);
-        public bool Equals(Offset other) => other != null && Value == other.Value && Sound == other.Sound;
+        public override bool Equals(object? obj) => Equals(obj as Offset);
+        public bool Equals(Offset? other) => other != null && Value == other.Value && Sound == other.Sound;
         public override int GetHashCode() => HashCode.Combine(Value, Sound);
         public override string ToString() => $"Offset{{value: {Value}, sound: {Sound}}}";
     }
@@ -31,8 +31,8 @@ namespace MusicXMLParser.Models
             Value = value;
         }
 
-        public override bool Equals(object obj) => Equals(obj as Staff);
-        public bool Equals(Staff other) => other != null && Value == other.Value;
+        public override bool Equals(object? obj) => Equals(obj as Staff);
+        public bool Equals(Staff? other) => other != null && Value == other.Value;
         public override int GetHashCode() => Value.GetHashCode();
         public override string ToString() => $"Staff{{value: {Value}}}";
     }
@@ -52,11 +52,11 @@ namespace MusicXMLParser.Models
         public double? Elevation { get; }
         // TODO: Add other sound attributes like pedal, etc. as needed
         // For <offset> child of <sound>
-        public Offset Offset { get; }
+        public Offset? Offset { get; }
 
         public Sound(double? tempo = null, double? dynamics = null, bool? dacapo = null, string? segno = null,
                      string? coda = null, string? fine = null, bool? timeOnly = null, bool? pizzicato = null,
-                     double? pan = null, double? elevation = null, Offset offset = null)
+                     double? pan = null, double? elevation = null, Offset? offset = null)
         {
             Tempo = tempo;
             Dynamics = dynamics;
@@ -71,8 +71,8 @@ namespace MusicXMLParser.Models
             Offset = offset;
         }
 
-        public override bool Equals(object obj) => Equals(obj as Sound);
-        public bool Equals(Sound other) =>
+        public override bool Equals(object? obj) => Equals(obj as Sound);
+        public bool Equals(Sound? other) =>
             other != null &&
             Tempo == other.Tempo &&
             Dynamics == other.Dynamics &&
@@ -84,7 +84,7 @@ namespace MusicXMLParser.Models
             Pizzicato == other.Pizzicato &&
             Pan == other.Pan &&
             Elevation == other.Elevation &&
-            EqualityComparer<Offset>.Default.Equals(Offset, other.Offset);
+            EqualityComparer<Offset?>.Default.Equals(Offset, other.Offset);
 
         public override int GetHashCode()
         {
@@ -110,17 +110,17 @@ namespace MusicXMLParser.Models
     public class Direction : IEquatable<Direction>
     {
         public List<IDirectionTypeElement> DirectionTypes { get; } // Changed to interface
-        public Offset Offset { get; }
-        public Staff Staff { get; }
-        public Sound Sound { get; }
+        public Offset? Offset { get; }
+        public Staff? Staff { get; }
+        public Sound? Sound { get; }
         // Attributes of <direction> element itself
-        public string Placement { get; } // above-below
-        public string Directive { get; } // yes-no
-        public string System { get; } // system-relation
-        public string Id { get; }
+        public string? Placement { get; } // above-below
+        public string? Directive { get; } // yes-no
+        public string? System { get; } // system-relation
+        public string? Id { get; }
 
-        public Direction(List<IDirectionTypeElement> directionTypes, Offset offset = null, Staff staff = null, Sound sound = null,
-                         string placement = null, string directive = null, string system = null, string id = null)
+        public Direction(List<IDirectionTypeElement> directionTypes, Offset? offset = null, Staff? staff = null, Sound? sound = null,
+                         string? placement = null, string? directive = null, string? system = null, string? id = null)
         {
             DirectionTypes = directionTypes ?? new List<IDirectionTypeElement>();
             Offset = offset;
@@ -132,13 +132,13 @@ namespace MusicXMLParser.Models
             Id = id;
         }
 
-        public override bool Equals(object obj) => Equals(obj as Direction);
-        public bool Equals(Direction other) =>
+        public override bool Equals(object? obj) => Equals(obj as Direction);
+        public bool Equals(Direction? other) =>
             other != null &&
             DirectionTypes.SequenceEqual(other.DirectionTypes) &&
-            EqualityComparer<Offset>.Default.Equals(Offset, other.Offset) &&
-            EqualityComparer<Staff>.Default.Equals(Staff, other.Staff) &&
-            EqualityComparer<Sound>.Default.Equals(Sound, other.Sound) &&
+            EqualityComparer<Offset?>.Default.Equals(Offset, other.Offset) &&
+            EqualityComparer<Staff?>.Default.Equals(Staff, other.Staff) &&
+            EqualityComparer<Sound?>.Default.Equals(Sound, other.Sound) &&
             Placement == other.Placement &&
             Directive == other.Directive &&
             System == other.System &&

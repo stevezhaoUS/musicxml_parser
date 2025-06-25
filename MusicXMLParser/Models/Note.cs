@@ -26,14 +26,14 @@ namespace MusicXMLParser.Models
     /// </summary>
     public class Note : IEquatable<Note>
     {
-        public Pitch Pitch { get; }
-        public Duration Duration { get; }
+        public Pitch? Pitch { get; }
+        public Duration? Duration { get; }
         public bool IsRest { get; }
         public int? Voice { get; }
         public int? Staff { get; }
-        public string Type { get; }
+        public string? Type { get; }
         public int? Dots { get; }
-        public TimeModification TimeModification { get; }
+        public TimeModification? TimeModification { get; }
         public List<Slur> Slurs { get; }
         public List<Articulation> Articulations { get; }
         public List<Tie> Ties { get; }
@@ -45,9 +45,9 @@ namespace MusicXMLParser.Models
         public double? Dynamics { get; }
         public bool IsUnpitched { get; } // Added property
 
-        public Note(Pitch pitch = null, Duration duration = null, bool isRest = false, int? voice = null, int? staff = null,
-                    string type = null, int? dots = null, TimeModification timeModification = null, List<Slur> slurs = null,
-                    List<Articulation> articulations = null, List<Tie> ties = null, bool isChordElementPresent = false,
+        public Note(Pitch? pitch = null, Duration? duration = null, bool isRest = false, int? voice = null, int? staff = null,
+                    string? type = null, int? dots = null, TimeModification? timeModification = null, List<Slur>? slurs = null,
+                    List<Articulation>? articulations = null, List<Tie>? ties = null, bool isChordElementPresent = false,
                     StemDirection? stemDirection = null, Accidental? accidental = null, double? defaultX = null, double? defaultY = null, double? dynamics = null,
                     bool isUnpitched = false) // Added parameter
         {
@@ -80,18 +80,18 @@ namespace MusicXMLParser.Models
 
         // Removed Validated method as per user request to defer validation
 
-        public override bool Equals(object obj) => Equals(obj as Note);
+        public override bool Equals(object? obj) => Equals(obj as Note);
 
-        public bool Equals(Note other) =>
+        public bool Equals(Note? other) =>
             other != null &&
-            EqualityComparer<Pitch>.Default.Equals(Pitch, other.Pitch) &&
-            EqualityComparer<Duration>.Default.Equals(Duration, other.Duration) &&
+            EqualityComparer<Pitch?>.Default.Equals(Pitch, other.Pitch) &&
+            EqualityComparer<Duration?>.Default.Equals(Duration, other.Duration) &&
             IsRest == other.IsRest &&
             Voice == other.Voice &&
             Staff == other.Staff &&
             Type == other.Type &&
             Dots == other.Dots &&
-            EqualityComparer<TimeModification>.Default.Equals(TimeModification, other.TimeModification) &&
+            EqualityComparer<TimeModification?>.Default.Equals(TimeModification, other.TimeModification) &&
             (Slurs == null ? other.Slurs == null : Slurs.SequenceEqual(other.Slurs ?? new List<Slur>())) &&
             (Articulations == null ? other.Articulations == null : Articulations.SequenceEqual(other.Articulations ?? new List<Articulation>())) &&
             (Ties == null ? other.Ties == null : Ties.SequenceEqual(other.Ties ?? new List<Tie>())) &&

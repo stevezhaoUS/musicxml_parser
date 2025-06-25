@@ -12,19 +12,19 @@ namespace MusicXMLParser.Models
         /// The location of the barline within the measure (e.g., "left", "right", "middle").
         /// Typically corresponds to the 'location' attribute of the <barline> element.
         /// </summary>
-        public string Location { get; }
+        public string? Location { get; }
 
         /// <summary>
         /// The style of the barline (e.g., "light-light", "light-heavy", "none").
         /// Corresponds to the text content of the <bar-style> child element.
         /// </summary>
-        public string BarStyle { get; }
+        public string? BarStyle { get; }
 
         /// <summary>
         /// The direction of a repeat mark (e.g., "forward", "backward").
         /// Corresponds to the 'direction' attribute of a <repeat> child element of <barline>.
         /// </summary>
-        public string RepeatDirection { get; }
+        public string? RepeatDirection { get; }
 
         /// <summary>
         /// The number of times a repeat is to be played.
@@ -35,7 +35,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a new <see cref="Barline"/> instance.
         /// </summary>
-        public Barline(string location = null, string barStyle = null, string repeatDirection = null, int? times = null)
+        public Barline(string? location = null, string? barStyle = null, string? repeatDirection = null, int? times = null)
         {
             Location = location;
             BarStyle = barStyle;
@@ -43,12 +43,12 @@ namespace MusicXMLParser.Models
             Times = times;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as Barline);
         }
 
-        public bool Equals(Barline other)
+        public bool Equals(Barline? other)
         {
             return other != null &&
                    Location == other.Location &&

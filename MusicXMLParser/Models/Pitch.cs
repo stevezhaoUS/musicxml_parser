@@ -20,7 +20,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// The musical step of the pitch, represented as a capital letter (C, D, E, F, G, A, B).
         /// </summary>
-        public string Step { get; }
+        public string? Step { get; }
 
         /// <summary>
         /// The octave number (0-9) in which the pitch resides.
@@ -40,7 +40,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a new <see cref="Pitch"/> instance.
         /// </summary>
-        public Pitch(string step, int octave, int? alter = null)
+        public Pitch(string? step, int octave, int? alter = null)
         {
             // Basic validation can be done here if desired, though more complex validation
             // is often handled by factory methods or dedicated validation utilities.
@@ -161,7 +161,7 @@ namespace MusicXMLParser.Models
         }
 
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is Pitch other)
             {

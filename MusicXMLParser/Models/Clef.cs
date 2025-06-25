@@ -14,7 +14,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// The clef sign (e.g., "G", "F", "C", "percussion", "TAB", "jianpu", "none").
         /// </summary>
-        public string Sign { get; }
+        public string? Sign { get; }
 
         /// <summary>
         /// The staff line number where the sign is centered (e.g., 2 for G clef).
@@ -38,7 +38,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a <see cref="Clef"/> instance.
         /// </summary>
-        public Clef(string sign, int? line = null, int? octaveChange = null, int? number = null)
+        public Clef(string? sign, int? line = null, int? octaveChange = null, int? number = null)
         {
             Sign = sign;
             Line = line;
@@ -46,12 +46,12 @@ namespace MusicXMLParser.Models
             Number = number;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as Clef);
         }
 
-        public bool Equals(Clef other)
+        public bool Equals(Clef? other)
         {
             return other != null &&
                    Sign == other.Sign &&
