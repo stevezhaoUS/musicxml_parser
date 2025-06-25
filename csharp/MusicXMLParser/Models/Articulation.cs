@@ -28,12 +28,12 @@ namespace MusicXMLParser.Models
             Placement = placement;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj) // Made obj nullable
         {
             return Equals(obj as Articulation);
         }
 
-        public bool Equals(Articulation other)
+        public bool Equals(Articulation? other) // Made other nullable
         {
             return other != null &&
                    Type == other.Type &&

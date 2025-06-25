@@ -17,22 +17,22 @@ namespace MusicXMLParser.Exceptions
         /// <summary>
         /// The required element that is missing or invalid.
         /// </summary>
-        public string RequiredElement { get; }
+        public string? RequiredElement { get; }
 
         /// <summary>
         /// The parent element where the structure problem occurred.
         /// </summary>
-        public string ParentElement { get; }
+        public string? ParentElement { get; }
 
         /// <summary>
         /// Additional context information about the structural problem.
         /// </summary>
-        public Dictionary<string, string> Context { get; }
+        public Dictionary<string, object>? Context { get; } // Changed to Dictionary<string, object>
 
         /// <summary>
         /// An optional rule identifier associated with this structural error.
         /// </summary>
-        public string Rule { get; }
+        public string? Rule { get; }
 
         /// <summary>
         /// Creates a new <see cref="MusicXmlStructureException"/> with the given message.
@@ -41,24 +41,44 @@ namespace MusicXMLParser.Exceptions
         /// <param name="requiredElement">The required element that is missing or invalid (optional).</param>
         /// <param name="parentElement">The parent element where the problem occurred (optional).</param>
         /// <param name="line">The line number where the error occurred (optional).</param>
-        /// <param name="node">The XML node where the error occurred (optional).</param>
         /// <param name="context">Additional context information (optional).</param>
         /// <param name="rule">An optional rule identifier (optional).</param>
         public MusicXmlStructureException(
             string message,
-            string requiredElement = null,
-            string parentElement = null,
-            string line = null, // Changed to string to match Pitch.cs
-            string node = null,
-            Dictionary<string, string> context = null,
-            string rule = null)
-            : base(message, line, node)
+            string? requiredElement = null,
+            string? parentElement = null,
+            int line = -1,
+            Dictionary<string, object>? context = null, // Changed to Dictionary<string, object>
+            string? rule = null)
+            : base(message, line.ToString(), parentElement)
         {
             RequiredElement = requiredElement;
             ParentElement = parentElement;
-            Context = context;
+            Context = context ?? new Dictionary<string, object>(); // Changed to Dictionary<string, object>
             Rule = rule;
         }
+
+        // Constructor matching the one used in XmlHelper.GetRequiredElement and other parser files
+        public MusicXmlStructureException(
+            string message,
+            string? requiredElement,
+            string? parentElement,
+            int line,
+            Dictionary<string, object>? context) // Added context here
+            : this(message, requiredElement, parentElement, line, context, null)
+        {
+        }
+
+        // Simplified constructor often used
+         public MusicXmlStructureException(
+            string message,
+            string? parentElement, // Typically the element being parsed
+            int line,
+            Dictionary<string, object>? context)
+            : this(message, null, parentElement, line, context, null)
+        {
+        }
+
 
         public override string ToString()
         {

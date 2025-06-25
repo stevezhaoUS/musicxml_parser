@@ -1,81 +1,153 @@
-using System.Xml; // Required for IXmlLineInfo
 using System.Xml.Linq;
+using System.Linq;
+using MusicXMLParser.Exceptions; // Assuming MusicXmlStructureException is in this namespace
+using System.Text.RegularExpressions; // For regex in FindOptionalTextElement
+using System.Xml; // For IXmlLineInfo
 
 namespace MusicXMLParser.Utils
 {
-    /// <summary>
-    /// Utility class providing helper methods for parsing MusicXML documents using System.Xml.Linq.
-    /// </summary>
     public static class XmlHelper
     {
-        /// <summary>
-        /// Gets the line number of an XML <see cref="XElement"/> by looking for a non-standard 'line' attribute.
-        /// This mimics the behavior of a similar helper in the original Dart parser.
-        /// </summary>
-        /// <param name="element">The XML element.</param>
-        /// <returns>The line number if the 'line' attribute is found and is a valid integer; otherwise, null.</returns>
-        public static int? GetLineNumberFromAttribute(XElement? element)
+        public static int GetLineNumber(XElement element)
         {
-            if (element == null)
-            {
-                return null;
-            }
+            if (element == null) return -1;
 
-            var lineAttribute = element.Attribute("line");
-            if (lineAttribute != null)
-            {
-                if (int.TryParse(lineAttribute.Value, out int lineNum))
-                {
-                    return lineNum;
-                }
-            }
-            return null; // Return null if attribute not found or not a valid int
-        }
-
-        /// <summary>
-        /// Gets the line number of an XML <see cref="XElement"/> using the standard <see cref="IXmlLineInfo"/> interface.
-        /// Note: The XML document must have been loaded with LoadOptions.SetLineInfo for this to work.
-        /// </summary>
-        /// <param name="element">The XML element.</param>
-        /// <returns>The line number if available; otherwise, null.</returns>
-        public static int? GetActualLineNumber(XElement? element)
-        {
-            if (element == null)
-            {
-                return null;
-            }
-
-            IXmlLineInfo? lineInfo = element as IXmlLineInfo;
-            if (lineInfo != null && lineInfo.HasLineInfo())
+            // Standard way to get line info in System.Xml.Linq
+            IXmlLineInfo lineInfo = element;
+            if (lineInfo != null && lineInfo.HasLineInfo()) // Check if lineInfo is not null
             {
                 return lineInfo.LineNumber;
             }
-            return null; // Return null if no line info is available
+
+            // Fallback for non-standard 'line' attribute (as in Dart version)
+            var lineAttribute = element.Attribute("line")?.Value;
+            if (lineAttribute != null && int.TryParse(lineAttribute, out int lineNum))
+            {
+                return lineNum;
+            }
+            return -1;
         }
 
-        /// <summary>
-        /// Gets a line number for an <see cref="XElement"/>.
-        /// It first attempts to get the line number from a non-standard 'line' attribute (for compatibility with Dart version).
-        /// If not found, it falls back to the standard <see cref="IXmlLineInfo"/> if available.
-        /// </summary>
-        /// <param name="element">The XML element.</param>
-        /// <returns>The line number as an int?, or null if not found through either method.</returns>
-        public static int? GetLineNumber(XElement? element)
+        public static string FindOptionalTextElement(XElement element, string path)
         {
-            if (element == null)
-            {
-                return null;
-            }
+            if (element == null || string.IsNullOrEmpty(path)) return null;
 
-            // First, try the custom 'line' attribute method (Dart compatibility)
-            int? lineNumber = GetLineNumberFromAttribute(element);
-            if (lineNumber.HasValue)
-            {
-                return lineNumber;
-            }
+            XElement currentContextNode = element;
+            var pathSegments = path.Split('/');
 
-            // Fallback to standard IXmlLineInfo
-            return GetActualLineNumber(element);
+            for (int i = 0; i < pathSegments.Length; i++)
+            {
+                if (currentContextNode == null) return null;
+                string segment = pathSegments[i];
+
+                if (segment.StartsWith("@"))
+                {
+                    if (i == pathSegments.Length - 1)
+                    {
+                        var attributeName = segment.Substring(1);
+                        return currentContextNode.Attribute(attributeName)?.Value;
+                    }
+                    else
+                    {
+                        return null; // Attribute selection in middle of path not supported
+                    }
+                }
+                else
+                {
+                    currentContextNode = FindElementFromSegment(currentContextNode, segment);
+                }
+            }
+            return currentContextNode?.Value.Trim();
+        }
+
+        private static XElement FindElementFromSegment(XElement parent, string segment)
+        {
+            var predicateMatch = Regex.Match(segment, @"(.+?)\[(.+?)\]");
+
+            if (predicateMatch.Success)
+            {
+                string elementName = predicateMatch.Groups[1].Value;
+                string predicate = predicateMatch.Groups[2].Value;
+
+                var attributePredicateMatch = Regex.Match(predicate, @"@(.+?)=""(.+?)""");
+                if (attributePredicateMatch.Success)
+                {
+                    string attributeName = attributePredicateMatch.Groups[1].Value;
+                    string attributeValue = attributePredicateMatch.Groups[2].Value;
+                    return parent.Elements(elementName)
+                                 .FirstOrDefault(el => el.Attribute(attributeName)?.Value == attributeValue);
+                }
+                // Fallback for unhandled or malformed predicate
+                return parent.Elements(elementName).FirstOrDefault();
+            }
+            else
+            {
+                return parent.Elements(segment).FirstOrDefault();
+            }
+        }
+
+        public static XElement GetRequiredElement(XElement parent, string name, string requiredElement = null)
+        {
+            var elements = parent.Elements(name);
+            if (!elements.Any())
+            {
+                throw new MusicXmlStructureException(
+                    $"Required element <{requiredElement ?? name}> not found as a child of <{parent.Name.LocalName}>.",
+                    requiredElement ?? name,
+                    parent.Name.LocalName,
+                    GetLineNumber(parent)
+                );
+            }
+            return elements.First();
+        }
+
+        public static XElement FindOptionalElement(XElement parent, string name)
+        {
+            return parent.Elements(name).FirstOrDefault();
+        }
+
+        public static int? GetElementTextAsInt(XElement element)
+        {
+            if (element == null) return null;
+            var text = element.Value.Trim();
+            return int.TryParse(text, out int result) ? result : (int?)null;
+        }
+
+        public static double? GetElementTextAsDouble(XElement element)
+        {
+            if (element == null) return null;
+            var text = element.Value.Trim();
+            // Use System.Globalization.CultureInfo.InvariantCulture for consistent parsing
+            return double.TryParse(text, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double result) ? result : (double?)null;
+        }
+
+        public static bool GetElementTextAsBool(XElement element, bool defaultValue = false)
+        {
+            if (element == null) return defaultValue;
+            var text = element.Value.Trim().ToLowerInvariant();
+            if (text == "yes") return true;
+            if (text == "no") return false;
+            return defaultValue;
+        }
+
+        public static string GetAttributeValue(XElement element, string attributeName)
+        {
+            return element?.Attribute(attributeName)?.Value;
+        }
+
+        public static double? GetAttributeValueAsDouble(XElement element, string attributeName)
+        {
+            var attributeValue = element?.Attribute(attributeName)?.Value;
+            if (attributeValue == null) return null;
+            // Use System.Globalization.CultureInfo.InvariantCulture for consistent parsing
+            return double.TryParse(attributeValue, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double result) ? result : (double?)null;
+        }
+
+        public static int? GetAttributeValueAsInt(XElement element, string attributeName)
+        {
+            var attributeValue = element?.Attribute(attributeName)?.Value;
+            if (attributeValue == null) return null;
+            return int.TryParse(attributeValue, out int result) ? result : (int?)null;
         }
     }
 }

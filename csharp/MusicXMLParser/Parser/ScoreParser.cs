@@ -1,115 +1,262 @@
 using System.Xml.Linq;
-using MusicXMLParser.Models; // For Score, TimeSignature, (and potentially Part, Measure, Attributes in a fuller implementation)
-using MusicXMLParser.Exceptions; // For exception handling
-using System.Collections.Generic; // For Dictionaries if used in models
-using System; // For Console.WriteLine for demo
+using MusicXMLParser.Models;
+using MusicXMLParser.Exceptions;
+using MusicXMLParser.Utils;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace MusicXMLParser.Parser
 {
-    /// <summary>
-    /// Parses the main MusicXML score elements.
-    /// This is a stub implementation to demonstrate TimeSignature integration.
-    /// </summary>
     public class ScoreParser
     {
-        /// <summary>
-        /// Parses a 'score-partwise' XElement into a Score object.
-        /// This is a simplified stub focusing on demonstrating TimeSignature parsing.
-        /// </summary>
-        /// <param name="scorePartwiseElement">The 'score-partwise' XElement to parse.</param>
-        /// <returns>A Score object (currently a placeholder).</returns>
-        public Score ParseScorePartwise(XElement scorePartwiseElement)
+        private readonly PartParser _partParser;
+        private readonly ScalingParser _scalingParser;
+        private readonly PageLayoutParser _pageLayoutParser;
+        private readonly SystemLayoutParser _systemLayoutParser;
+        private readonly StaffLayoutParser _staffLayoutParser; // Assuming this parser exists
+        public WarningSystem WarningSystem { get; }
+
+        public ScoreParser(
+            PartParser? partParser = null,
+            ScalingParser? scalingParser = null,
+            PageLayoutParser? pageLayoutParser = null,
+            SystemLayoutParser? systemLayoutParser = null,
+            StaffLayoutParser? staffLayoutParser = null,
+            WarningSystem? warningSystem = null)
         {
-            if (scorePartwiseElement == null || scorePartwiseElement.Name.LocalName != "score-partwise")
+            WarningSystem = warningSystem ?? new WarningSystem();
+            _partParser = partParser ?? new PartParser(warningSystem: WarningSystem);
+            _scalingParser = scalingParser ?? new ScalingParser(); // Assuming parameterless constructor
+            _pageLayoutParser = pageLayoutParser ?? new PageLayoutParser(); // Assuming parameterless constructor
+            _systemLayoutParser = systemLayoutParser ?? new SystemLayoutParser(); // Assuming parameterless constructor
+            _staffLayoutParser = staffLayoutParser ?? new StaffLayoutParser(); // Assuming parameterless constructor
+        }
+
+        public Score Parse(XDocument document)
+        {
+            var scorePartwiseElement = document.Elements("score-partwise").FirstOrDefault();
+            if (scorePartwiseElement != null)
             {
-                throw new ArgumentException("Element must be a 'score-partwise' XElement.", nameof(scorePartwiseElement));
+                return ParseScorePartwise(scorePartwiseElement);
             }
 
-            Console.WriteLine("ScoreParser: Starting to parse 'score-partwise' element.");
-
-            // In a full parser, we would iterate through parts, then measures.
-            // For this stub, let's simulate finding a <time> element within the first measure of the first part.
-
-            var firstPart = scorePartwiseElement.Element("part");
-            if (firstPart != null)
+            var scoreTimewiseElement = document.Elements("score-timewise").FirstOrDefault();
+            if (scoreTimewiseElement != null)
             {
-                var firstMeasure = firstPart.Element("measure");
-                if (firstMeasure != null)
-                {
-                    string partId = firstPart.Attribute("id")?.Value ?? "P1"; // Example part ID
-                    string measureNumber = firstMeasure.Attribute("number")?.Value ?? "1"; // Example measure number
-
-                    var attributesElement = firstMeasure.Element("attributes");
-                    if (attributesElement != null)
-                    {
-                        var timeElement = attributesElement.Element("time");
-                        if (timeElement != null)
-                        {
-                            try
-                            {
-                                Console.WriteLine($"ScoreParser: Found <time> element in measure {measureNumber} of part {partId}. Attempting to parse.");
-                                // Here's the integration of TimeSignature.FromXmlElement
-                                TimeSignature timeSignature = TimeSignature.FromXmlElement(timeElement, partId, measureNumber);
-
-                                Console.WriteLine($"ScoreParser: Successfully parsed TimeSignature: {timeSignature.Beats}/{timeSignature.BeatType}");
-
-                                // In a real parser, this timeSignature object would be added to an Attributes object,
-                                // which would then be added to the Measure object, then to the Part, and finally to the Score.
-                                // For example:
-                                // var measureAttributes = new MeasureAttributes();
-                                // measureAttributes.TimeSignature = timeSignature;
-                                // currentMeasure.Attributes = measureAttributes;
-
-                            }
-                            catch (MusicXmlStructureException ex)
-                            {
-                                Console.WriteLine($"ScoreParser: Error parsing time signature (Structure): {ex.Message}");
-                                // Potentially re-throw or log to a warning system
-                            }
-                            catch (MusicXmlValidationException ex)
-                            {
-                                Console.WriteLine($"ScoreParser: Error parsing time signature (Validation): {ex.Message}");
-                                // Potentially re-throw or log to a warning system
-                            }
-                        }
-                        else
-                        {
-                            Console.WriteLine($"ScoreParser: No <time> element found in <attributes> of measure {measureNumber}, part {partId}.");
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"ScoreParser: No <attributes> element found in measure {measureNumber}, part {partId}.");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("ScoreParser: No <measure> elements found in the first <part>.");
-                }
-            }
-            else
-            {
-                Console.WriteLine("ScoreParser: No <part> elements found in 'score-partwise'.");
+                throw new MusicXmlStructureException(
+                    message: "Score-timewise format is not fully implemented",
+                    requiredElement: "score-partwise",
+                    parentElement: "score-timewise",
+                    line: XmlHelper.GetLineNumber(scoreTimewiseElement),
+                    context: null
+                );
             }
 
-            // Placeholder: a real implementation would populate and return a full Score object.
-            // The Score model class itself would need to be defined.
-            // For now, let's assume a Score model exists and we return a new instance.
-            // Score.cs needs to be present in Models folder.
+            throw new MusicXmlStructureException(
+                message: "Document is not a valid MusicXML file. Root element must be either \"score-partwise\" or \"score-timewise\"",
+                requiredElement: "score-partwise or score-timewise",
+                parentElement: document.Root?.Name.LocalName, // Get root name if available
+                line: XmlHelper.GetLineNumber(document.Root), // Pass root for line number
+                context: null
+            );
+        }
 
-            // Use ScoreBuilder to construct the Score object
-            var scoreBuilder = new ScoreBuilder(scorePartwiseElement.Attribute("version")?.Value ?? "3.0");
+        private Score ParseScorePartwise(XElement element)
+        {
+            var title = XmlHelper.FindOptionalTextElement(element, "work/work-title") ??
+                        XmlHelper.FindOptionalTextElement(element, "movement-title");
+            var composer = XmlHelper.FindOptionalTextElement(element, "identification/creator[@type='composer']");
+            var arranger = XmlHelper.FindOptionalTextElement(element, "identification/creator[@type='arranger']");
+            var lyricist = XmlHelper.FindOptionalTextElement(element, "identification/creator[@type='lyricist']");
+            var rights = XmlHelper.FindOptionalTextElement(element, "identification/rights");
+            var source = XmlHelper.FindOptionalTextElement(element, "identification/source");
+            var version = element.Attribute("version")?.Value;
 
-            // In a real parser, you would populate the scoreBuilder with all parsed data (parts, identification, etc.)
-            // For this stub, we'll just set a minimal Identification.
-            var identification = new Identification(source: "Parsed by ScoreParser stub");
-            scoreBuilder.SetIdentification(identification);
+            var partListElement = element.Elements("part-list").FirstOrDefault();
+            if (partListElement == null)
+            {
+                WarningSystem.AddWarning(
+                    "Missing part-list element in score",
+                    category: "structure",
+                    context: new Dictionary<string, object> { { "line", XmlHelper.GetLineNumber(element) } }
+                );
+            }
 
-            // Example: If parts were parsed, you'd add them:
-            // List<Part> parsedParts = ParseParts(scorePartwiseElement); // Assuming a ParseParts method
-            // scoreBuilder.SetParts(parsedParts);
+            var parts = element.Elements("part")
+                               .Select(partEl => _partParser.Parse(partEl, partListElement))
+                               .ToList();
+
+            var defaultsData = ParseDefaults(element.Element("defaults"));
+
+            var scoreBuilder = new ScoreBuilder(version, XmlHelper.GetLineNumber(element))
+                .SetTitle(title) // Title can be set directly or via Work
+                .SetComposer(composer); // Composer can be set directly or via Identification
+
+            scoreBuilder.SetParts(parts);
+
+            scoreBuilder.SetPageLayout(defaultsData.PageLayout)
+                        .SetDefaultSystemLayout(defaultsData.SystemLayout)
+                        .SetDefaultStaffLayouts(defaultsData.StaffLayouts)
+                        .SetScaling(defaultsData.Scaling)
+                        .SetAppearance(defaultsData.Appearance);
+
+            if (!string.IsNullOrEmpty(title)) { // Ensure title is not null or empty before creating Work
+                 scoreBuilder.SetWork(new Work(title));
+            }
+
+            if (!string.IsNullOrEmpty(composer) || !string.IsNullOrEmpty(arranger) || !string.IsNullOrEmpty(lyricist) || !string.IsNullOrEmpty(rights) || !string.IsNullOrEmpty(source))
+            {
+                scoreBuilder.SetIdentification(new Identification(
+                    composer: composer,
+                    arranger: arranger,
+                    lyricist: lyricist,
+                    rights: rights,
+                    source: source
+                ));
+            }
+
+            var parsedCredits = ParseCredits(element);
+            if (parsedCredits.Any())
+            {
+                scoreBuilder.SetCredits(parsedCredits);
+            }
 
             return scoreBuilder.Build();
+        }
+
+        private DefaultsData ParseDefaults(XElement defaultsElement)
+        {
+            if (defaultsElement == null)
+            {
+                return new DefaultsData();
+            }
+
+            Scaling scaling = null;
+            var scalingElement = defaultsElement.Element("scaling");
+            if (scalingElement != null)
+            {
+                scaling = _scalingParser.Parse(scalingElement);
+            }
+
+            PageLayout pageLayout = null;
+            var pageLayoutElement = defaultsElement.Element("page-layout");
+            if (pageLayoutElement != null)
+            {
+                pageLayout = _pageLayoutParser.Parse(pageLayoutElement);
+            }
+
+            SystemLayout systemLayout = null;
+            var systemLayoutElement = defaultsElement.Element("system-layout");
+            if (systemLayoutElement != null)
+            {
+                systemLayout = _systemLayoutParser.Parse(systemLayoutElement);
+            }
+
+            var staffLayouts = defaultsElement.Elements("staff-layout")
+                                             .Select(el => _staffLayoutParser.Parse(el))
+                                             .ToList();
+
+            var appearance = ParseAppearance(defaultsElement);
+
+            return new DefaultsData(
+                scaling: scaling,
+                pageLayout: pageLayout,
+                systemLayout: systemLayout,
+                staffLayouts: staffLayouts,
+                appearance: appearance
+            );
+        }
+
+        private List<Credit> ParseCredits(XElement scoreElement)
+        {
+            var parsedCredits = new List<Credit>();
+            foreach (var creditElement in scoreElement.Elements("credit"))
+            {
+                string pageStr = creditElement.Attribute("page")?.Value;
+                int? page = !string.IsNullOrEmpty(pageStr) && int.TryParse(pageStr, out int pVal) ? pVal : (int?)null;
+
+                var creditTypeElement = creditElement.Elements("credit-type").FirstOrDefault();
+                string creditType = creditTypeElement?.Value.Trim();
+
+                var creditWordsList = new List<string>();
+                foreach (var wordsElement in creditElement.Elements("credit-words"))
+                {
+                    var text = wordsElement.Value.Trim();
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        creditWordsList.Add(text);
+                    }
+                }
+
+                if ((!string.IsNullOrEmpty(creditType)) || creditWordsList.Any())
+                {
+                    parsedCredits.Add(new Credit(page, creditType, creditWordsList));
+                }
+                else if (page.HasValue) // Credit can exist with only a page number
+                {
+                     parsedCredits.Add(new Credit(page, creditType, creditWordsList));
+                }
+            }
+            return parsedCredits;
+        }
+
+        private Appearance ParseAppearance(XElement defaultsElement)
+        {
+            if (defaultsElement == null) return null;
+            var appearanceElement = defaultsElement.Element("appearance");
+            if (appearanceElement == null) return null;
+
+            var lineWidths = new List<LineWidth>();
+            var noteSizes = new List<NoteSize>();
+
+            foreach (var lineWidthElement in appearanceElement.Elements("line-width"))
+            {
+                var type = lineWidthElement.Attribute("type")?.Value;
+                if (string.IsNullOrEmpty(type)) continue;
+
+                if (double.TryParse(lineWidthElement.Value, out double width))
+                {
+                    lineWidths.Add(new LineWidth(type, width));
+                }
+            }
+
+            foreach (var noteSizeElement in appearanceElement.Elements("note-size"))
+            {
+                var type = noteSizeElement.Attribute("type")?.Value;
+                if (string.IsNullOrEmpty(type)) continue;
+
+                if (double.TryParse(noteSizeElement.Value, out double size))
+                {
+                    noteSizes.Add(new NoteSize(type, size));
+                }
+            }
+
+            // Only return Appearance if there's something in it
+            if (lineWidths.Any() || noteSizes.Any())
+            {
+                 return new Appearance(lineWidths, noteSizes);
+            }
+            return null;
+        }
+
+
+        // Helper class, similar to _DefaultsData in Dart
+        private class DefaultsData
+        {
+            public Scaling Scaling { get; }
+            public PageLayout PageLayout { get; }
+            public SystemLayout SystemLayout { get; }
+            public List<StaffLayout> StaffLayouts { get; }
+            public Appearance Appearance { get; }
+
+            public DefaultsData(Scaling scaling = null, PageLayout pageLayout = null, SystemLayout systemLayout = null, List<StaffLayout> staffLayouts = null, Appearance appearance = null)
+            {
+                Scaling = scaling;
+                PageLayout = pageLayout;
+                SystemLayout = systemLayout;
+                StaffLayouts = staffLayouts ?? new List<StaffLayout>();
+                Appearance = appearance;
+            }
         }
     }
 }
