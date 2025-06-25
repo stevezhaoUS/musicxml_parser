@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="2c3cf99c-f23b-4254-839a-2e49330bb8a4" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/CHANGELOG.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/PARSER_MIGRATION_STATUS.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Class1.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Exceptions/InvalidMusicXmlException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Exceptions/MusicXmlParseException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Exceptions/MusicXmlStructureException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Exceptions/MusicXmlValidationException.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Appearance.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Articulation.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Barline.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Beam.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Clef.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Credit.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Direction.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/DirectionTypeElements/Coda.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/DirectionTypeElements/Dynamics.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/DirectionTypeElements/IDirectionTypeElement.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/DirectionTypeElements/Segno.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/DirectionTypeElements/WordsDirection.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Duration.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Ending.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Identification.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/KeySignature.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Measure.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/MeasureLayoutInfo.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Note.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/PageLayout.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Part.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Pitch.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/PrintObject.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Score.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Slur.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/StaffLayout.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/SystemLayout.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Tie.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/TimeModification.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/TimeSignature.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Models/Work.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/MusicXMLParser.csproj" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Parser/AttributesParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Parser/BeamParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Parser/MeasureParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Parser/MusicXmlParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Parser/NoteParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Parser/PageLayoutParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Parser/PartParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Parser/ScalingParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Parser/ScoreParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Parser/StaffLayoutParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Parser/SystemLayoutParser.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Utils/ValidationUtils.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Utils/WarningSystem.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/Utils/XmlHelper.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/bin/Debug/net8.0/MusicXMLParser.deps.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/bin/Debug/net8.0/MusicXMLParser.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/bin/Debug/net8.0/MusicXMLParser.pdb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/.NETCoreApp,Version=v8.0.AssemblyAttributes.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/MusicXMLParser.AssemblyInfo.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/MusicXMLParser.AssemblyInfoInputs.cache" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/MusicXMLParser.GeneratedMSBuildEditorConfig.editorconfig" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/MusicXMLParser.GlobalUsings.g.cs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/MusicXMLParser.assets.cache" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/MusicXMLParser.csproj.CoreCompileInputs.cache" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/MusicXMLParser.csproj.FileListAbsolute.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/MusicXMLParser.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/MusicXMLParser.pdb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/MusicXMLParser.sourcelink.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/ref/MusicXMLParser.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/Debug/net8.0/refint/MusicXMLParser.dll" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/MusicXMLParser.csproj.nuget.dgspec.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/MusicXMLParser.csproj.nuget.g.props" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/MusicXMLParser.csproj.nuget.g.targets" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/project.assets.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/csharp/MusicXMLParser/obj/project.nuget.cache" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dart_test.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/coverage-guidelines.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/error-handling-examples.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/example.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/example/pubspec.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/musicxml_parser.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/exceptions/invalid_musicxml_exception.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/exceptions/musicxml_parse_exception.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/exceptions/musicxml_structure_exception.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/exceptions/musicxml_validation_exception.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/appearance.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/articulation.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/barline.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/beam.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/clef.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/credit.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/direction.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/direction_type_elements.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/direction_words.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/duration.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/ending.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/identification.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/key_signature.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/measure.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/measure_layout_info.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/note.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/page_layout.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/part.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/pitch.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/print_object.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/score.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/slur.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/staff_layout.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/system_layout.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/tie.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/time_modification.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/time_signature.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/models/work.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/parser/attributes_parser.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/parser/beam_parser.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/parser/measure_parser.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/parser/musicxml_parser.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/parser/note_parser.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/parser/page_layout_parser.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/parser/part_parser.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/parser/score_parser.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/parser/staff_layout_parser.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/parser/system_layout_parser.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/parser/xml_helper.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/utils/musicxml_utils.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/utils/validation_utils.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/src/utils/warning_system.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pubspec.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/quick-coverage.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/exceptions/musicxml_parse_exception_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/exceptions/musicxml_structure_exception_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/exceptions/musicxml_validation_exception_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/articulation_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/barline_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/beam_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/clef_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/credit_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/direction_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/direction_type_elements_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/ending_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/measure_layout_info_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/note_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/pitch_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/slur_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/tie_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/time_modification_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/models/words_direction_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/parser/attributes_parser_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/parser/enhanced_musicxml_parser_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/parser/measure_parser_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/parser/measure_parser_test.mocks.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/parser/musicxml_parser_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/parser/mxl_parser_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/parser/note_parser_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/parser/score_parser_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/utils/musicxml_utils_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/utils/validation_utils_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/utils/warning_system_test.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/cli_tester.dart" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/test_files/Fur_Elise.mxl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/test_files/META-INF/container.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/test_files/city_ruins.mxl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/test_files/mxl_test.mxl" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/test_files/score.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/test_files/simple_test.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_app/test_files/test.mxl" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 8
+}]]></component>
+  <component name="ProjectId" id="2z1DJMY7Fs8GcsSpcOhVS0glgLH" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "csharp",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="2c3cf99c-f23b-4254-839a-2e49330bb8a4" name="Changes" comment="" />
+      <created>1750889613381</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1750889613381</updated>
+      <workItem from="1750889614785" duration="69000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
+  <component name="VcsManagerConfiguration">
+    <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
+          <properties exception="System.OperationCanceledException" breakIfHandledByOtherCode="false" displayValue="System.OperationCanceledException" />
+          <option name="timeStamp" value="1" />
+        </breakpoint>
+        <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
+          <properties exception="System.Threading.Tasks.TaskCanceledException" breakIfHandledByOtherCode="false" displayValue="System.Threading.Tasks.TaskCanceledException" />
+          <option name="timeStamp" value="2" />
+        </breakpoint>
+        <breakpoint enabled="true" type="DotNet_Exception_Breakpoints">
+          <properties exception="System.Threading.ThreadAbortException" breakIfHandledByOtherCode="false" displayValue="System.Threading.ThreadAbortException" />
+          <option name="timeStamp" value="3" />
+        </breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>
