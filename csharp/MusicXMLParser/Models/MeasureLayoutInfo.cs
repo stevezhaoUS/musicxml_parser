@@ -2,19 +2,19 @@ using System;
 
 namespace MusicXMLParser.Models
 {
-    public class MeasureLayout : IEquatable<MeasureLayout>
+    public class MeasureLayoutInfo : IEquatable<MeasureLayoutInfo>
     {
         public double? MeasureDistance { get; }
 
-        public MeasureLayout(double? measureDistance = null)
+        public MeasureLayoutInfo(double? measureDistance = null)
         {
             MeasureDistance = measureDistance;
         }
 
-        public override bool Equals(object obj) => Equals(obj as MeasureLayout);
-        public bool Equals(MeasureLayout other) => other != null && MeasureDistance == other.MeasureDistance;
+        public override bool Equals(object obj) => Equals(obj as MeasureLayoutInfo);
+        public bool Equals(MeasureLayoutInfo other) => other != null && MeasureDistance == other.MeasureDistance;
         public override int GetHashCode() => MeasureDistance.GetHashCode();
-        public override string ToString() => $"MeasureLayout{{measureDistance: {MeasureDistance}}}";
+        public override string ToString() => $"MeasureLayoutInfo{{measureDistance: {MeasureDistance}}}";
     }
 
     public enum MeasureNumberingValue { None, Measure, System }
