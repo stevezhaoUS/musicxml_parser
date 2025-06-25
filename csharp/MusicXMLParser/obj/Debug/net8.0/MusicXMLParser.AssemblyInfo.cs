@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MusicXMLParser")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e839d6b22a898e9fdc327955441d826fee787a03")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a2080dc5adb770f647cf9c7feb038504107f6870")]
 [assembly: System.Reflection.AssemblyProductAttribute("MusicXMLParser")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MusicXMLParser")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -52,11 +52,11 @@ namespace MusicXMLParser.Utils
             Console.WriteLine($"Warning: {warning.ToString()}");
         }
 
-        // Overload to match specific call from MeasureParser for direction warning
-        public void AddWarning(string message, WarningCategories category, string? elementName = null, int line = -1, Dictionary<string, object>? context = null)
-        {
-             AddWarning(message, category, null, line, elementName, context);
-        }
+        // Removing this ambiguous overload. The main overload with all optional parameters should suffice.
+        // public void AddWarning(string message, WarningCategories category, string? elementName = null, int line = -1, Dictionary<string, object>? context = null)
+        // {
+        //      AddWarning(message, category, null, line, elementName, context);
+        // }
 
 
         public void ClearWarnings()

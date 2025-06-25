@@ -43,9 +43,9 @@ namespace MusicXMLParser.Models
         public double? Tempo { get; } // MIDI tempo in beats per minute
         public double? Dynamics { get; } // Dynamic scaling factor (percentage)
         public bool? Dacapo { get; }
-        public string Segno { get; } // Value is text, e.g., name of segno mark
-        public string Coda { get; } // Value is text, e.g., name of coda mark
-        public string Fine { get; } // Value is text, e.g., text for fine mark
+        public string? Segno { get; } // Value is text, e.g., name of segno mark
+        public string? Coda { get; } // Value is text, e.g., name of coda mark
+        public string? Fine { get; } // Value is text, e.g., text for fine mark
         public bool? TimeOnly { get; } // Specifies which parts of a metronome mark to play
         public bool? Pizzicato { get; }
         public double? Pan { get; }
@@ -54,8 +54,8 @@ namespace MusicXMLParser.Models
         // For <offset> child of <sound>
         public Offset Offset { get; }
 
-        public Sound(double? tempo = null, double? dynamics = null, bool? dacapo = null, string segno = null,
-                     string coda = null, string fine = null, bool? timeOnly = null, bool? pizzicato = null,
+        public Sound(double? tempo = null, double? dynamics = null, bool? dacapo = null, string? segno = null,
+                     string? coda = null, string? fine = null, bool? timeOnly = null, bool? pizzicato = null,
                      double? pan = null, double? elevation = null, Offset offset = null)
         {
             Tempo = tempo;

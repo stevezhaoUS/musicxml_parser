@@ -107,7 +107,7 @@ namespace MusicXMLParser.Parser
                 }
                 else
                 {
-                    string xmlString = Encoding.UTF8.GetString(data);
+                    string xmlString = System.Text.Encoding.UTF8.GetString(data); // Explicitly qualified
                     return Parse(xmlString);
                 }
             }
@@ -160,7 +160,7 @@ namespace MusicXMLParser.Parser
                     if (containerEntry != null)
                     {
                         using (var stream = containerEntry.Open())
-                        using (var reader = new StreamReader(stream, Encoding.UTF8))
+                        using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8)) // Explicitly qualified
                         {
                             var containerContent = reader.ReadToEnd();
                             var containerDoc = XDocument.Parse(containerContent);
@@ -174,7 +174,7 @@ namespace MusicXMLParser.Parser
                                     if (mainEntry != null)
                                     {
                                         using (var mainStream = mainEntry.Open())
-                                        using (var mainReader = new StreamReader(mainStream, Encoding.UTF8))
+                                        using (var mainReader = new StreamReader(mainStream, System.Text.Encoding.UTF8)) // Explicitly qualified
                                         {
                                             return mainReader.ReadToEnd();
                                         }
@@ -197,7 +197,7 @@ namespace MusicXMLParser.Parser
                     if (xmlFile != null)
                     {
                         using (var stream = xmlFile.Open())
-                        using (var reader = new StreamReader(stream, Encoding.UTF8))
+                        using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8)) // Explicitly qualified
                         {
                             return reader.ReadToEnd();
                         }

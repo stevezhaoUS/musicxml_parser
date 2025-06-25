@@ -3,6 +3,7 @@ using System.Xml.Linq;
 using System.Collections.Generic;
 using System.Linq;
 using MusicXMLParser.Models; // For Measure, Note, KeySignature, TimeSignature, Clef, Barline, Ending, Direction, PrintObject etc.
+using MusicXMLParser.Models.DirectionTypeElements; // Added for IDirectionTypeElement and its implementations
 using MusicXMLParser.Exceptions; // For MusicXmlValidationException, MusicXmlStructureException
 using MusicXMLParser.Parser; // For other parsers like NoteParser, AttributesParser, BeamParser, PageLayoutParser, SystemLayoutParser, StaffLayoutParser
 using MusicXMLParser.Utils; // For WarningSystem
@@ -172,13 +173,15 @@ namespace MusicXMLParser.Parser
                 );
             }
             WarningSystem.AddWarning(
-                $"Encountered <{type}> with duration {duration}. Full timeline impact not yet implemented.",
-                category: "partial_processing",
+                message: $"Encountered <{type}> with duration {duration}. Full timeline impact not yet implemented.",
+                category: WarningCategories.Generic, // Using Generic as "partial_processing" isn't a defined category
                 rule: $"{type}_partially_processed",
+                line: XmlHelper.GetLineNumber(element),
+                elementName: type,
                 context: new Dictionary<string, object>
                 {
-                    { "element", type }, { "part", partId }, { "measure", measureNumber },
-                    { "duration", duration }, { "line", XmlHelper.GetLineNumber(element) }
+                    { "part", partId }, { "measure", measureNumber },
+                    { "duration", duration }
                 }
             );
         }
@@ -220,8 +223,9 @@ namespace MusicXMLParser.Parser
             else
             {
                 WarningSystem.AddWarning(
-                    $"Incomplete <ending> element in measure {measureNumber}. Missing \"number\" or \"type\" attribute, or number text content.",
-                    category: WarningCategories.Structure, // Assuming WarningCategories is an enum or static class
+                    message: $"Incomplete <ending> element in measure {measureNumber}. Missing \"number\" or \"type\" attribute, or number text content.",
+                    category: WarningCategories.Structure,
+                    elementName: "ending",
                     line: XmlHelper.GetLineNumber(endingElement),
                     context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } }
                 );
@@ -272,8 +276,10 @@ namespace MusicXMLParser.Parser
                             ));
                             if (string.IsNullOrEmpty(text))
                             {
-                                WarningSystem.AddWarning("Empty <words> element found in direction.",
+                                WarningSystem.AddWarning(
+                                    message: "Empty <words> element found in direction.",
                                     category: WarningCategories.Structure,
+                                    elementName: "words",
                                     line: XmlHelper.GetLineNumber(childElement),
                                     context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } });
                             }
@@ -330,24 +336,24 @@ namespace MusicXMLParser.Parser
                                 }
                             }
                             directionTypeElements.Add(new Dynamics(
-                                dynamicValues,
-                                XmlHelper.GetAttributeValue(childElement, "color"),
-                                XmlHelper.GetAttributeValueAsDouble(childElement, "default-x"),
-                                XmlHelper.GetAttributeValueAsDouble(childElement, "default-y"),
-                                XmlHelper.GetAttributeValue(childElement, "enclosure"),
-                                XmlHelper.GetAttributeValue(childElement, "font-family"),
-                                XmlHelper.GetAttributeValue(childElement, "font-size"),
-                                XmlHelper.GetAttributeValue(childElement, "font-style"),
-                                XmlHelper.GetAttributeValue(childElement, "font-weight"),
-                                XmlHelper.GetAttributeValue(childElement, "halign"),
-                                XmlHelper.GetAttributeValue(childElement, "id"),
-                                XmlHelper.GetAttributeValueAsInt(childElement, "line-through"),
-                                XmlHelper.GetAttributeValueAsInt(childElement, "overline"),
-                                XmlHelper.GetAttributeValue(childElement, "placement"),
-                                XmlHelper.GetAttributeValueAsDouble(childElement, "relative-x"),
-                                XmlHelper.GetAttributeValueAsDouble(childElement, "relative-y"),
-                                XmlHelper.GetAttributeValueAsInt(childElement, "underline"),
-                                XmlHelper.GetAttributeValue(childElement, "valign")
+                                color: XmlHelper.GetAttributeValue(childElement, "color"),
+                                defaultX: XmlHelper.GetAttributeValueAsDouble(childElement, "default-x"),
+                                defaultY: XmlHelper.GetAttributeValueAsDouble(childElement, "default-y"),
+                                enclosure: XmlHelper.GetAttributeValue(childElement, "enclosure"),
+                                fontFamily: XmlHelper.GetAttributeValue(childElement, "font-family"),
+                                fontSize: XmlHelper.GetAttributeValue(childElement, "font-size"),
+                                fontStyle: XmlHelper.GetAttributeValue(childElement, "font-style"),
+                                fontWeight: XmlHelper.GetAttributeValue(childElement, "font-weight"),
+                                halign: XmlHelper.GetAttributeValue(childElement, "halign"),
+                                id: XmlHelper.GetAttributeValue(childElement, "id"),
+                                lineThrough: XmlHelper.GetAttributeValueAsInt(childElement, "line-through"),
+                                overline: XmlHelper.GetAttributeValueAsInt(childElement, "overline"),
+                                placement: XmlHelper.GetAttributeValue(childElement, "placement"),
+                                relativeX: XmlHelper.GetAttributeValueAsDouble(childElement, "relative-x"),
+                                relativeY: XmlHelper.GetAttributeValueAsDouble(childElement, "relative-y"),
+                                underline: XmlHelper.GetAttributeValueAsInt(childElement, "underline"),
+                                valign: XmlHelper.GetAttributeValue(childElement, "valign"),
+                                values: dynamicValues
                             ));
                             break;
                     }
@@ -398,9 +404,10 @@ namespace MusicXMLParser.Parser
             if (!directionTypeElements.Any())
             {
                 WarningSystem.AddWarning(
-                    "Direction element without any <direction-type> children. Skipping this direction.",
+                    message: "Direction element without any <direction-type> children. Skipping this direction.",
                     category: WarningCategories.Structure,
-                    elementName: directionElement.Name.LocalName, // Corrected parameter name
+                    rule: "direction_missing_type",
+                    elementName: directionElement.Name.LocalName,
                     line: XmlHelper.GetLineNumber(directionElement),
                     context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } }
                 );
@@ -450,12 +457,12 @@ namespace MusicXMLParser.Parser
                 localStaffLayouts.Add(_staffLayoutParser.Parse(staffLayoutElement));
             }
 
-            MeasureLayout measureLayout = null;
+            MeasureLayoutInfo measureLayout = null; // Changed type to MeasureLayoutInfo
             var measureLayoutElement = printElement.Elements("measure-layout").FirstOrDefault();
             if (measureLayoutElement != null)
             {
                 var measureDistanceElement = measureLayoutElement.Elements("measure-distance").FirstOrDefault();
-                measureLayout = new MeasureLayout(
+                measureLayout = new MeasureLayoutInfo( // Changed to construct MeasureLayoutInfo
                     measureDistanceElement != null ? XmlHelper.GetElementTextAsDouble(measureDistanceElement) : null
                 );
             }

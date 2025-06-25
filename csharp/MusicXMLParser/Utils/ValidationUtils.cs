@@ -57,55 +57,58 @@ namespace MusicXMLParser.Utils
         /// the octave is within the valid range (0-9).
         /// Throws <see cref="MusicXmlValidationException"/> if validation fails.
         /// </remarks>
-        public static void ValidatePitch(Pitch pitch, string line = null, Dictionary<string, string> context = null)
+        public static void ValidatePitch(Pitch pitch, int? line = null, Dictionary<string, object>? rawContext = null)
         {
             if (pitch == null) throw new ArgumentNullException(nameof(pitch));
 
             // Validate step
             if (!ValidPitchSteps.Contains(pitch.Step))
             {
+                var currentContext = new Dictionary<string, object>
+                {
+                    { "step", pitch.Step },
+                    { "octave", pitch.Octave.ToString() }, // Keep as string for context consistency if preferred
+                    { "alter", pitch.Alter?.ToString() ?? "null" }
+                };
                 throw new MusicXmlValidationException(
                     $"Invalid pitch step \"{pitch.Step}\". Expected one of: {string.Join(", ", ValidPitchSteps)}",
                     rule: "pitch_step_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "step", pitch.Step },
-                        { "octave", pitch.Octave.ToString() },
-                        { "alter", pitch.Alter?.ToString() }
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
 
             // Validate octave
             if (pitch.Octave < MinOctave || pitch.Octave > MaxOctave)
             {
+                var currentContext = new Dictionary<string, object>
+                {
+                    { "step", pitch.Step },
+                    { "octave", pitch.Octave.ToString() },
+                    { "alter", pitch.Alter?.ToString() ?? "null" }
+                };
                 throw new MusicXmlValidationException(
                     $"Pitch octave {pitch.Octave} is out of valid range ({MinOctave}-{MaxOctave})",
                     rule: "pitch_octave_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "step", pitch.Step },
-                        { "octave", pitch.Octave.ToString() },
-                        { "alter", pitch.Alter?.ToString() }
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
 
             // Validate alter (alteration should be reasonable)
             if (pitch.Alter.HasValue && (pitch.Alter.Value < -2 || pitch.Alter.Value > 2))
             {
+                var currentContext = new Dictionary<string, object>
+                {
+                    { "step", pitch.Step },
+                    { "octave", pitch.Octave.ToString() },
+                    { "alter", pitch.Alter.Value.ToString() }
+                };
                 throw new MusicXmlValidationException(
                     $"Pitch alteration {pitch.Alter} is out of reasonable range (-2 to +2)",
                     rule: "pitch_alter_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "step", pitch.Step },
-                        { "octave", pitch.Octave.ToString() },
-                        { "alter", pitch.Alter?.ToString() }
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
         }
@@ -117,35 +120,37 @@ namespace MusicXMLParser.Utils
         /// Checks that the duration value is positive.
         /// Throws <see cref="MusicXmlValidationException"/> if validation fails.
         /// </remarks>
-        public static void ValidateDuration(Duration duration, string line = null, Dictionary<string, string> context = null)
+        public static void ValidateDuration(Duration duration, int? line = null, Dictionary<string, object>? rawContext = null)
         {
             if (duration == null) throw new ArgumentNullException(nameof(duration));
 
             if (duration.Value <= 0)
             {
+                var currentContext = new Dictionary<string, object>
+                {
+                    { "value", duration.Value.ToString() },
+                    { "divisions", duration.Divisions.ToString() }
+                };
                 throw new MusicXmlValidationException(
                     $"Duration value must be positive, got {duration.Value}",
                     rule: "duration_positive_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "value", duration.Value.ToString() },
-                        { "divisions", duration.Divisions.ToString() }
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
 
             if (duration.Divisions <= 0)
             {
+                var currentContext = new Dictionary<string, object>
+                {
+                    { "value", duration.Value.ToString() },
+                    { "divisions", duration.Divisions.ToString() }
+                };
                 throw new MusicXmlValidationException(
                     $"Duration divisions must be positive, got {duration.Divisions}",
                     rule: "duration_divisions_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "value", duration.Value.ToString() },
-                        { "divisions", duration.Divisions.ToString() }
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
         }
@@ -158,37 +163,39 @@ namespace MusicXMLParser.Utils
         /// and the mode is valid if specified.
         /// Throws <see cref="MusicXmlValidationException"/> if validation fails.
         /// </remarks>
-        public static void ValidateKeySignature(KeySignature keySignature, string line = null, Dictionary<string, string> context = null)
+        public static void ValidateKeySignature(KeySignature keySignature, int? line = null, Dictionary<string, object>? rawContext = null)
         {
             if (keySignature == null) throw new ArgumentNullException(nameof(keySignature));
 
             // Validate fifths
             if (keySignature.Fifths < MinFifths || keySignature.Fifths > MaxFifths)
             {
+                var currentContext = new Dictionary<string, object>
+                {
+                    { "fifths", keySignature.Fifths.ToString() },
+                    { "mode", keySignature.Mode ?? "null" }
+                };
                 throw new MusicXmlValidationException(
                     $"Key signature fifths {keySignature.Fifths} is out of valid range ({MinFifths} to {MaxFifths})",
                     rule: "key_signature_fifths_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "fifths", keySignature.Fifths.ToString() },
-                        { "mode", keySignature.Mode }
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
 
             // Validate mode if specified
             if (!string.IsNullOrEmpty(keySignature.Mode) && !ValidModes.Contains(keySignature.Mode.ToLower()))
             {
+                 var currentContext = new Dictionary<string, object>
+                {
+                    { "fifths", keySignature.Fifths.ToString() },
+                    { "mode", keySignature.Mode }
+                };
                 throw new MusicXmlValidationException(
                     $"Invalid key signature mode \"{keySignature.Mode}\". Expected one of: {string.Join(", ", ValidModes)}",
                     rule: "key_signature_mode_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "fifths", keySignature.Fifths.ToString() },
-                        { "mode", keySignature.Mode }
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
         }
@@ -200,37 +207,39 @@ namespace MusicXMLParser.Utils
         /// Checks that beats is positive and beat type is a power of 2.
         /// Throws <see cref="MusicXmlValidationException"/> if validation fails.
         /// </remarks>
-        public static void ValidateTimeSignature(TimeSignature timeSignature, string line = null, Dictionary<string, string> context = null)
+        public static void ValidateTimeSignature(TimeSignature timeSignature, int? line = null, Dictionary<string, object>? rawContext = null)
         {
             if (timeSignature == null) throw new ArgumentNullException(nameof(timeSignature));
 
             // Validate beats
             if (timeSignature.Beats <= 0)
             {
+                var currentContext = new Dictionary<string, object>
+                {
+                    { "beats", timeSignature.Beats.ToString() },
+                    { "beatType", timeSignature.BeatType.ToString() }
+                };
                 throw new MusicXmlValidationException(
                     $"Time signature beats must be positive, got {timeSignature.Beats}",
                     rule: "time_signature_beats_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "beats", timeSignature.Beats.ToString() },
-                        { "beatType", timeSignature.BeatType.ToString() }
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
 
             // Validate beat type (should be a power of 2)
             if (timeSignature.BeatType <= 0 || !IsPowerOfTwo(timeSignature.BeatType))
             {
+                var currentContext = new Dictionary<string, object>
+                {
+                    { "beats", timeSignature.Beats.ToString() },
+                    { "beatType", timeSignature.BeatType.ToString() }
+                };
                 throw new MusicXmlValidationException(
                     $"Time signature beat type must be a positive power of 2, got {timeSignature.BeatType}",
                     rule: "time_signature_beat_type_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "beats", timeSignature.Beats.ToString() },
-                        { "beatType", timeSignature.BeatType.ToString() }
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
         }
@@ -243,49 +252,51 @@ namespace MusicXMLParser.Utils
         /// and duration validation.
         /// Throws <see cref="MusicXmlValidationException"/> if validation fails.
         /// </remarks>
-        public static void ValidateNote(Note note, string line = null, Dictionary<string, string> context = null)
+        public static void ValidateNote(Note note, int? line = null, Dictionary<string, object>? rawContext = null)
         {
             if (note == null) throw new ArgumentNullException(nameof(note));
 
             // Validate duration if present
-            if (note.Duration != null) // Assuming Duration is a class/struct and can be null
+            if (note.Duration != null)
             {
-                ValidateDuration(note.Duration, line: line, context: context);
+                ValidateDuration(note.Duration, line: line, rawContext: rawContext);
             }
 
             // Validate pitch if not a rest
-            if (!note.IsRest && note.Pitch != null) // Assuming Pitch is a class/struct and can be null
+            if (!note.IsRest && note.Pitch != null)
             {
-                ValidatePitch(note.Pitch, line: line, context: context);
+                ValidatePitch(note.Pitch, line: line, rawContext: rawContext);
             }
 
             // Validate voice (should be positive if specified)
             if (note.Voice.HasValue && note.Voice.Value <= 0)
             {
+                var currentContext = new Dictionary<string, object>
+                {
+                    { "voice", note.Voice?.ToString() ?? "null" },
+                    { "isRest", note.IsRest.ToString() }
+                };
                 throw new MusicXmlValidationException(
                     $"Note voice must be positive, got {note.Voice}",
                     rule: "note_voice_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "voice", note.Voice?.ToString() },
-                        { "isRest", note.IsRest.ToString() }
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
 
             // Validate that rests don't have pitches
             if (note.IsRest && note.Pitch != null)
             {
+                var currentContext = new Dictionary<string, object>
+                {
+                    { "isRest", note.IsRest.ToString() },
+                    { "hasPitch", (note.Pitch != null).ToString() }
+                };
                 throw new MusicXmlValidationException(
                     "Rest notes should not have pitch information",
                     rule: "rest_no_pitch_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "isRest", note.IsRest.ToString() },
-                        { "hasPitch", (note.Pitch != null).ToString() }
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
 
@@ -293,16 +304,17 @@ namespace MusicXMLParser.Utils
             // This might need refinement based on how unpitched notes are represented.
             if (!note.IsRest && note.Pitch == null && !note.IsUnpitched) // Assuming an IsUnpitched property or similar
             {
+                var currentContext = new Dictionary<string, object>
+                {
+                    { "isRest", note.IsRest.ToString() },
+                    { "hasPitch", (note.Pitch != null).ToString() },
+                    {"isUnpitched", note.IsUnpitched.ToString()}
+                };
                 throw new MusicXmlValidationException(
                     "Non-rest, pitched notes must have pitch information",
                     rule: "note_pitch_required_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "isRest", note.IsRest.ToString() },
-                        { "hasPitch", (note.Pitch != null).ToString() },
-                        {"isUnpitched", note.IsUnpitched.ToString()}
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
         }
@@ -324,8 +336,8 @@ namespace MusicXMLParser.Utils
             List<Note> notes,
             TimeSignature timeSignature,
             int? divisions,
-            string line = null,
-            Dictionary<string, string> context = null)
+            int? line = null,
+            Dictionary<string, object>? rawContext = null)
         {
             if (notes == null) throw new ArgumentNullException(nameof(notes));
             if (timeSignature == null || !divisions.HasValue)
@@ -349,18 +361,19 @@ namespace MusicXMLParser.Utils
 
             if (actualDuration != expectedDuration)
             {
+                var currentContext = new Dictionary<string, object>
+                {
+                    { "actualDuration", actualDuration.ToString() },
+                    { "expectedDuration", expectedDuration.ToString() },
+                    { "timeSignature", $"{timeSignature.Beats}/{timeSignature.BeatType}" },
+                    { "divisions", divisions.Value.ToString() },
+                    { "noteCount", notes.Count.ToString() }
+                };
                 throw new MusicXmlValidationException(
                     $"Measure duration ({actualDuration}) does not match time signature expectation ({expectedDuration})",
                     rule: "measure_duration_validation",
-                    line: line,
-                    context: MergeContext(new Dictionary<string, string>
-                    {
-                        { "actualDuration", actualDuration.ToString() },
-                        { "expectedDuration", expectedDuration.ToString() },
-                        { "timeSignature", $"{timeSignature.Beats}/{timeSignature.BeatType}" },
-                        { "divisions", divisions.Value.ToString() },
-                        { "noteCount", notes.Count.ToString() }
-                    }, context)
+                    line: line ?? -1,
+                    context: MergeContext(currentContext, rawContext)
                 );
             }
         }
@@ -377,12 +390,12 @@ namespace MusicXMLParser.Utils
         /// <summary>
         /// Helper method to merge base context with additional context.
         /// </summary>
-        private static Dictionary<string, string> MergeContext(Dictionary<string, string> baseContext, Dictionary<string, string> additionalContext)
+        private static Dictionary<string, object>? MergeContext(Dictionary<string, object>? baseContext, Dictionary<string, object>? additionalContext)
         {
             if (additionalContext == null) return baseContext;
             if (baseContext == null) return additionalContext;
 
-            var merged = new Dictionary<string, string>(baseContext);
+            var merged = new Dictionary<string, object>(baseContext);
             foreach (var item in additionalContext)
             {
                 merged[item.Key] = item.Value; // Overwrites if key exists, which is typical for context override

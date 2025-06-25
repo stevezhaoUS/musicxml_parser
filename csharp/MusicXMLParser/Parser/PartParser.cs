@@ -54,7 +54,7 @@ namespace MusicXMLParser.Parser
                 name = XmlHelper.FindOptionalTextElement(scorePartElement, "part-name");
             }
 
-            var partBuilder = new PartBuilder(id, line).SetName(name);
+            var partBuilder = new PartBuilder(id).SetName(name); // Removed line argument
 
             int? activeDivisions = null;
             KeySignature activeKeySignature = null;
