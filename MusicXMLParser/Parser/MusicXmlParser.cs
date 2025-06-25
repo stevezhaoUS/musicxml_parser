@@ -38,7 +38,7 @@ namespace MusicXMLParser.Parser
             try
             {
                 var document = XDocument.Parse(xmlString, LoadOptions.SetLineInfo);
-                return _scoreParser.Parse(document);
+                return _scoreParser.Parse(document.Root);
             }
             catch (System.Xml.XmlException e)
             {

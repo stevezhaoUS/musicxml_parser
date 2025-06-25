@@ -155,6 +155,18 @@ namespace MusicXMLParser.Utils
             return int.TryParse(attributeValue, out int result) ? result : (int?)null;
         }
 
+        public static bool? GetAttributeValueAsBool(XElement? element, string attributeName)
+        {
+            var attributeValue = element?.Attribute(attributeName)?.Value;
+            if (attributeValue == null) return null;
+            return attributeValue.ToLowerInvariant() switch
+            {
+                "yes" => true,
+                "no" => false,
+                _ => null
+            };
+        }
+
         public static string? GetElementText(XElement? parent, string elementName)
         {
             return parent?.Element(elementName)?.Value?.Trim();

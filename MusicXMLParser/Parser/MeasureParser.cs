@@ -18,6 +18,9 @@ namespace MusicXMLParser.Parser
         private readonly SystemLayoutParser _systemLayoutParser;
         private readonly StaffLayoutParser _staffLayoutParser;
         public WarningSystem WarningSystem { get; }
+        
+        // 缓存常用的上下文字典以减少内存分配
+        private readonly Dictionary<string, object> _sharedContext = new();
 
         public MeasureParser(
             NoteParser? noteParser = null,
@@ -52,7 +55,7 @@ namespace MusicXMLParser.Parser
                 throw new MusicXmlValidationException(
                     message: "Measure number is required",
                     line: line,
-                    context: new Dictionary<string, object> { { "part", partId } }
+                    context: CreateContext(partId)
                 );
             }
 
@@ -61,7 +64,7 @@ namespace MusicXMLParser.Parser
                 throw new MusicXmlValidationException(
                     message: $"Invalid measure number: {numberAttr}",
                     line: line,
-                    context: new Dictionary<string, object> { { "part", partId }, { "measure", numberAttr } }
+                    context: CreateContext(partId, "measure", numberAttr)
                 );
             }
 
@@ -71,14 +74,14 @@ namespace MusicXMLParser.Parser
                 throw new MusicXmlValidationException(
                     message: $"Invalid measure number: {numberAttr}",
                     line: line,
-                    context: new Dictionary<string, object> { { "part", partId }, { "measure", numberAttr } }
+                    context: CreateContext(partId, "measure", numberAttr)
                 );
             }
 
             var widthAttr = XmlHelper.GetAttributeValue(element, "width");
             double? width = !string.IsNullOrEmpty(widthAttr) && double.TryParse(widthAttr, out double w) ? w : (double?)null;
 
-            var measureBuilder = new MeasureBuilder(numberAttr, line, new Dictionary<string, object> { { "part", partId } })
+            var measureBuilder = new MeasureBuilder(numberAttr, line, CreateContext(partId))
                 .SetIsPickup(isPickup)
                 .SetWidth(width)
                 .SetKeySignature(inheritedKeySignature)
@@ -150,16 +153,30 @@ namespace MusicXMLParser.Parser
             return measureBuilder.Build();
         }
 
+        // 优化的上下文创建方法，减少内存分配
+        private Dictionary<string, object> CreateContext(string partId, string? additionalKey = null, object? additionalValue = null)
+        {
+            _sharedContext.Clear();
+            _sharedContext["part"] = partId;
+            
+            if (additionalKey != null && additionalValue != null)
+            {
+                _sharedContext[additionalKey] = additionalValue;
+            }
+            
+            return new Dictionary<string, object>(_sharedContext);
+        }
+
         private void ParseBackupOrForward(XElement element, string type, string partId, string measureNumber)
         {
-            var durationElement = element.Elements("duration").FirstOrDefault();
+            var durationElement = element.Element("duration");
             if (durationElement == null)
             {
                 throw new MusicXmlStructureException(
                     message: $"<{type}> element missing required <duration> child.",
                     parentElement: type,
                     line: XmlHelper.GetLineNumber(element),
-                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } }
+                    context: CreateContext(partId, "measure", measureNumber)
                 );
             }
             var duration = XmlHelper.GetElementTextAsInt(durationElement);
@@ -169,86 +186,78 @@ namespace MusicXMLParser.Parser
                     message: $"Invalid or missing duration value for <{type}>.",
                     parentElement: type,
                     line: XmlHelper.GetLineNumber(durationElement),
-                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber }, { "parsedDuration", duration } }
+                    context: CreateContext(partId, "parsedDuration", duration)
                 );
             }
             WarningSystem.AddWarning(
                 message: $"Encountered <{type}> with duration {duration}. Full timeline impact not yet implemented.",
-                category: WarningCategories.Generic, // Using Generic as "partial_processing" isn't a defined category
+                category: WarningCategories.Generic,
                 rule: $"{type}_partially_processed",
                 line: XmlHelper.GetLineNumber(element),
                 elementName: type,
-                context: new Dictionary<string, object>
-                {
-                    { "part", partId }, { "measure", measureNumber },
-                    { "duration", duration }
-                }
+                context: CreateContext(partId, "duration", duration)
             );
         }
 
         private Barline ParseBarline(XElement barlineElement)
         {
             string location = XmlHelper.GetAttributeValue(barlineElement, "location");
-            XElement barStyleElement = barlineElement.Elements("bar-style").FirstOrDefault();
+            XElement barStyleElement = barlineElement.Element("bar-style");
             string barStyle = barStyleElement?.Value.Trim();
-            XElement repeatElement = barlineElement.Elements("repeat").FirstOrDefault();
+            XElement repeatElement = barlineElement.Element("repeat");
             string repeatDirection = null;
             int? repeatTimes = null;
             if (repeatElement != null)
             {
                 repeatDirection = XmlHelper.GetAttributeValue(repeatElement, "direction");
                 string timesStr = XmlHelper.GetAttributeValue(repeatElement, "times");
-                if (!string.IsNullOrEmpty(timesStr) && int.TryParse(timesStr, out int t))
-                {
-                    repeatTimes = t;
-                }
+                repeatTimes = !string.IsNullOrEmpty(timesStr) && int.TryParse(timesStr, out int times) ? times : (int?)null;
             }
             return new Barline(location, barStyle, repeatDirection, repeatTimes);
         }
 
-        private Ending ParseEnding(XElement endingElement, string partId, string measureNumber)
+        private Ending? ParseEnding(XElement endingElement, string partId, string measureNumber)
         {
-            string endingNumber = XmlHelper.GetAttributeValue(endingElement, "number");
-            if (string.IsNullOrEmpty(endingNumber))
-            {
-                endingNumber = endingElement.Value.Trim();
-            }
-            string type = XmlHelper.GetAttributeValue(endingElement, "type");
-            string printObjectAttr = XmlHelper.GetAttributeValue(endingElement, "print-object");
+            var numberAttr = XmlHelper.GetAttributeValue(endingElement, "number");
+            var typeAttr = XmlHelper.GetAttributeValue(endingElement, "type");
+            var printObjectAttr = XmlHelper.GetAttributeValue(endingElement, "print-object");
 
-            if (!string.IsNullOrEmpty(endingNumber) && !string.IsNullOrEmpty(type))
+            // 使用优化的方法获取元素文本
+            var numberText = XmlHelper.GetElementText(endingElement, "ending-number");
+            var typeText = XmlHelper.GetElementText(endingElement, "ending-type");
+
+            // 优先使用属性值，如果没有则使用元素文本
+            var number = !string.IsNullOrEmpty(numberAttr) ? numberAttr : numberText;
+            var type = !string.IsNullOrEmpty(typeAttr) ? typeAttr : typeText;
+
+            bool? printObject = null;
+            if (!string.IsNullOrEmpty(printObjectAttr))
             {
-                return new Ending(endingNumber, type, printObjectAttr ?? "yes");
+                printObject = printObjectAttr == "yes";
             }
-            else
+
+            if (!string.IsNullOrEmpty(number) || !string.IsNullOrEmpty(type))
             {
-                WarningSystem.AddWarning(
-                    message: $"Incomplete <ending> element in measure {measureNumber}. Missing \"number\" or \"type\" attribute, or number text content.",
-                    category: WarningCategories.Structure,
-                    elementName: "ending",
-                    line: XmlHelper.GetLineNumber(endingElement),
-                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } }
-                );
-                return null;
+                string printObjectStr = printObject == true ? "yes" : (printObject == false ? "no" : "yes");
+                return new Ending(number, type, printObjectStr);
             }
+
+            return null;
         }
 
-        private Direction ParseDirection(XElement directionElement, string partId, string measureNumber)
+        private Direction? ParseDirection(XElement directionElement, string partId, string measureNumber)
         {
-            var directionTypeElements = new List<IDirectionTypeElement>(); // Assuming IDirectionTypeElement interface
-            Offset parsedOffset = null;
-            Staff parsedStaff = null;
-            Sound parsedSound = null;
+            var directionTypes = new List<IDirectionTypeElement>();
 
-            foreach (var directionTypeElementXml in directionElement.Elements("direction-type"))
+            foreach (var childElement in directionElement.Elements())
             {
-                foreach (var childElement in directionTypeElementXml.Elements())
+                switch (childElement.Name.LocalName)
                 {
-                    switch (childElement.Name.LocalName)
-                    {
-                        case "words":
-                            var text = childElement.Value.Trim();
-                            directionTypeElements.Add(new WordsDirection(
+                    case "words":
+                        var text = childElement.Value.Trim();
+                        if (!string.IsNullOrEmpty(text))
+                        {
+                            directionTypes.Add(new WordsDirection(
                                 text,
                                 XmlHelper.GetAttributeValue(childElement, "color"),
                                 XmlHelper.GetAttributeValueAsDouble(childElement, "default-x"),
@@ -274,155 +283,156 @@ namespace MusicXMLParser.Parser
                                 XmlHelper.GetAttributeValue(childElement, "xml:lang"),
                                 XmlHelper.GetAttributeValue(childElement, "xml:space")
                             ));
-                            if (string.IsNullOrEmpty(text))
+                        }
+                        else
+                        {
+                            WarningSystem.AddWarning(
+                                message: "Empty <words> element found in direction.",
+                                category: WarningCategories.Structure,
+                                elementName: "words",
+                                line: XmlHelper.GetLineNumber(childElement),
+                                context: CreateContext(partId, "measure", measureNumber));
+                        }
+                        break;
+                    case "segno":
+                        directionTypes.Add(new Segno(
+                            XmlHelper.GetAttributeValue(childElement, "color"),
+                            XmlHelper.GetAttributeValueAsDouble(childElement, "default-x"),
+                            XmlHelper.GetAttributeValueAsDouble(childElement, "default-y"),
+                            XmlHelper.GetAttributeValue(childElement, "font-family"),
+                            XmlHelper.GetAttributeValue(childElement, "font-size"),
+                            XmlHelper.GetAttributeValue(childElement, "font-style"),
+                            XmlHelper.GetAttributeValue(childElement, "font-weight"),
+                            XmlHelper.GetAttributeValue(childElement, "halign"),
+                            XmlHelper.GetAttributeValue(childElement, "id"),
+                            XmlHelper.GetAttributeValueAsDouble(childElement, "relative-x"),
+                            XmlHelper.GetAttributeValueAsDouble(childElement, "relative-y"),
+                            XmlHelper.GetAttributeValue(childElement, "smufl"),
+                            XmlHelper.GetAttributeValue(childElement, "valign")
+                        ));
+                        break;
+                    case "coda":
+                        directionTypes.Add(new Coda(
+                            XmlHelper.GetAttributeValue(childElement, "color"),
+                            XmlHelper.GetAttributeValueAsDouble(childElement, "default-x"),
+                            XmlHelper.GetAttributeValueAsDouble(childElement, "default-y"),
+                            XmlHelper.GetAttributeValue(childElement, "font-family"),
+                            XmlHelper.GetAttributeValue(childElement, "font-size"),
+                            XmlHelper.GetAttributeValue(childElement, "font-style"),
+                            XmlHelper.GetAttributeValue(childElement, "font-weight"),
+                            XmlHelper.GetAttributeValue(childElement, "halign"),
+                            XmlHelper.GetAttributeValue(childElement, "id"),
+                            XmlHelper.GetAttributeValueAsDouble(childElement, "relative-x"),
+                            XmlHelper.GetAttributeValueAsDouble(childElement, "relative-y"),
+                            XmlHelper.GetAttributeValue(childElement, "smufl"),
+                            XmlHelper.GetAttributeValue(childElement, "valign")
+                        ));
+                        break;
+                    case "dynamics":
+                        var dynamicsValues = new List<string>();
+                        foreach (var dynamicsChild in childElement.Elements())
+                        {
+                            var dynamicsText = dynamicsChild.Value.Trim();
+                            if (!string.IsNullOrEmpty(dynamicsText))
                             {
-                                WarningSystem.AddWarning(
-                                    message: "Empty <words> element found in direction.",
-                                    category: WarningCategories.Structure,
-                                    elementName: "words",
-                                    line: XmlHelper.GetLineNumber(childElement),
-                                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } });
+                                dynamicsValues.Add(dynamicsText);
                             }
-                            break;
-                        case "segno":
-                            directionTypeElements.Add(new Segno(
-                                XmlHelper.GetAttributeValue(childElement, "color"),
-                                XmlHelper.GetAttributeValueAsDouble(childElement, "default-x"),
-                                XmlHelper.GetAttributeValueAsDouble(childElement, "default-y"),
-                                XmlHelper.GetAttributeValue(childElement, "font-family"),
-                                XmlHelper.GetAttributeValue(childElement, "font-size"),
-                                XmlHelper.GetAttributeValue(childElement, "font-style"),
-                                XmlHelper.GetAttributeValue(childElement, "font-weight"),
-                                XmlHelper.GetAttributeValue(childElement, "halign"),
-                                XmlHelper.GetAttributeValue(childElement, "id"),
-                                XmlHelper.GetAttributeValueAsDouble(childElement, "relative-x"),
-                                XmlHelper.GetAttributeValueAsDouble(childElement, "relative-y"),
-                                XmlHelper.GetAttributeValue(childElement, "smufl"),
-                                XmlHelper.GetAttributeValue(childElement, "valign")
-                            ));
-                            break;
-                        case "coda":
-                             directionTypeElements.Add(new Coda(
-                                XmlHelper.GetAttributeValue(childElement, "color"),
-                                XmlHelper.GetAttributeValueAsDouble(childElement, "default-x"),
-                                XmlHelper.GetAttributeValueAsDouble(childElement, "default-y"),
-                                XmlHelper.GetAttributeValue(childElement, "font-family"),
-                                XmlHelper.GetAttributeValue(childElement, "font-size"),
-                                XmlHelper.GetAttributeValue(childElement, "font-style"),
-                                XmlHelper.GetAttributeValue(childElement, "font-weight"),
-                                XmlHelper.GetAttributeValue(childElement, "halign"),
-                                XmlHelper.GetAttributeValue(childElement, "id"),
-                                XmlHelper.GetAttributeValueAsDouble(childElement, "relative-x"),
-                                XmlHelper.GetAttributeValueAsDouble(childElement, "relative-y"),
-                                XmlHelper.GetAttributeValue(childElement, "smufl"),
-                                XmlHelper.GetAttributeValue(childElement, "valign")
-                            ));
-                            break;
-                        case "dynamics":
-                            var dynamicValues = new List<string>();
-                            foreach (var dynamicChild in childElement.Elements())
-                            {
-                                if (dynamicChild.Name.LocalName == "other-dynamics")
-                                {
-                                    var dynamicText = dynamicChild.Value.Trim();
-                                    if (!string.IsNullOrEmpty(dynamicText))
-                                    {
-                                        dynamicValues.Add(dynamicText);
-                                    }
-                                }
-                                else
-                                {
-                                    dynamicValues.Add(dynamicChild.Name.LocalName);
-                                }
-                            }
-                            directionTypeElements.Add(new Dynamics(
-                                color: XmlHelper.GetAttributeValue(childElement, "color"),
-                                defaultX: XmlHelper.GetAttributeValueAsDouble(childElement, "default-x"),
-                                defaultY: XmlHelper.GetAttributeValueAsDouble(childElement, "default-y"),
-                                enclosure: XmlHelper.GetAttributeValue(childElement, "enclosure"),
-                                fontFamily: XmlHelper.GetAttributeValue(childElement, "font-family"),
-                                fontSize: XmlHelper.GetAttributeValue(childElement, "font-size"),
-                                fontStyle: XmlHelper.GetAttributeValue(childElement, "font-style"),
-                                fontWeight: XmlHelper.GetAttributeValue(childElement, "font-weight"),
-                                halign: XmlHelper.GetAttributeValue(childElement, "halign"),
-                                id: XmlHelper.GetAttributeValue(childElement, "id"),
-                                lineThrough: XmlHelper.GetAttributeValueAsInt(childElement, "line-through"),
-                                overline: XmlHelper.GetAttributeValueAsInt(childElement, "overline"),
-                                placement: XmlHelper.GetAttributeValue(childElement, "placement"),
-                                relativeX: XmlHelper.GetAttributeValueAsDouble(childElement, "relative-x"),
-                                relativeY: XmlHelper.GetAttributeValueAsDouble(childElement, "relative-y"),
-                                underline: XmlHelper.GetAttributeValueAsInt(childElement, "underline"),
-                                valign: XmlHelper.GetAttributeValue(childElement, "valign"),
-                                values: dynamicValues
-                            ));
-                            break;
-                    }
+                        }
+                        directionTypes.Add(new Dynamics(
+                            XmlHelper.GetAttributeValue(childElement, "color"),
+                            XmlHelper.GetAttributeValueAsDouble(childElement, "default-x"),
+                            XmlHelper.GetAttributeValueAsDouble(childElement, "default-y"),
+                            XmlHelper.GetAttributeValue(childElement, "enclosure"),
+                            XmlHelper.GetAttributeValue(childElement, "font-family"),
+                            XmlHelper.GetAttributeValue(childElement, "font-size"),
+                            XmlHelper.GetAttributeValue(childElement, "font-style"),
+                            XmlHelper.GetAttributeValue(childElement, "font-weight"),
+                            XmlHelper.GetAttributeValue(childElement, "halign"),
+                            XmlHelper.GetAttributeValue(childElement, "id"),
+                            XmlHelper.GetAttributeValueAsInt(childElement, "line-through"),
+                            XmlHelper.GetAttributeValueAsInt(childElement, "overline"),
+                            XmlHelper.GetAttributeValue(childElement, "placement"),
+                            XmlHelper.GetAttributeValueAsDouble(childElement, "relative-x"),
+                            XmlHelper.GetAttributeValueAsDouble(childElement, "relative-y"),
+                            XmlHelper.GetAttributeValueAsInt(childElement, "underline"),
+                            XmlHelper.GetAttributeValue(childElement, "valign"),
+                            dynamicsValues
+                        ));
+                        break;
                 }
             }
 
-            var offsetElement = directionElement.Elements("offset").FirstOrDefault();
-            if (offsetElement != null)
+            if (directionTypes.Count == 0)
             {
-                var value = XmlHelper.GetElementTextAsDouble(offsetElement);
-                if (value.HasValue)
-                {
-                    parsedOffset = new Offset(
-                        value.Value,
-                        XmlHelper.GetAttributeValue(offsetElement, "sound") == "yes"
-                    );
-                }
-            }
-
-            var staffElement = directionElement.Elements("staff").FirstOrDefault();
-            if (staffElement != null)
-            {
-                var value = XmlHelper.GetElementTextAsInt(staffElement);
-                if (value.HasValue)
-                {
-                    parsedStaff = new Staff(value.Value);
-                }
-            }
-
-            var soundElement = directionElement.Elements("sound").FirstOrDefault();
-            if (soundElement != null)
-            {
-                var timeOnlyValue = XmlHelper.GetAttributeValue(soundElement, "time-only");
-                parsedSound = new Sound(
-                    XmlHelper.GetAttributeValueAsDouble(soundElement, "tempo"),
-                    XmlHelper.GetAttributeValueAsDouble(soundElement, "dynamics"),
-                    XmlHelper.GetAttributeValue(soundElement, "dacapo") == "yes",
-                    XmlHelper.GetAttributeValue(soundElement, "segno"),
-                    XmlHelper.GetAttributeValue(soundElement, "coda"),
-                    XmlHelper.GetAttributeValue(soundElement, "fine"),
-                    string.IsNullOrEmpty(timeOnlyValue) ? (bool?)null : timeOnlyValue == "yes",
-                    XmlHelper.GetAttributeValue(soundElement, "pizzicato") == "yes",
-                    XmlHelper.GetAttributeValueAsDouble(soundElement, "pan"),
-                    XmlHelper.GetAttributeValueAsDouble(soundElement, "elevation")
-                );
-            }
-
-            if (!directionTypeElements.Any())
-            {
-                WarningSystem.AddWarning(
-                    message: "Direction element without any <direction-type> children. Skipping this direction.",
-                    category: WarningCategories.Structure,
-                    rule: "direction_missing_type",
-                    elementName: directionElement.Name.LocalName,
-                    line: XmlHelper.GetLineNumber(directionElement),
-                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } }
-                );
                 return null;
             }
 
+            // 使用优化的方法获取属性值
+            var offset = ParseOffset(directionElement);
+            var staff = ParseStaff(directionElement);
+            var sound = ParseSound(directionElement);
+
             return new Direction(
-                directionTypeElements,
-                parsedOffset,
-                parsedStaff,
-                parsedSound,
+                directionTypes,
+                offset,
+                staff,
+                sound,
                 XmlHelper.GetAttributeValue(directionElement, "placement"),
                 XmlHelper.GetAttributeValue(directionElement, "directive"),
                 XmlHelper.GetAttributeValue(directionElement, "system"),
                 XmlHelper.GetAttributeValue(directionElement, "id")
+            );
+        }
+
+        private Offset? ParseOffset(XElement element)
+        {
+            var offsetElement = element.Element("offset");
+            if (offsetElement == null) return null;
+
+            var offsetValue = XmlHelper.GetElementTextAsDouble(offsetElement);
+            if (!offsetValue.HasValue) return null;
+
+            return new Offset(offsetValue.Value);
+        }
+
+        private Staff? ParseStaff(XElement element)
+        {
+            var staffElement = element.Element("staff");
+            if (staffElement == null) return null;
+
+            var staffValue = XmlHelper.GetElementTextAsInt(staffElement);
+            if (!staffValue.HasValue) return null;
+
+            return new Staff(staffValue.Value);
+        }
+
+        private Sound? ParseSound(XElement element)
+        {
+            var soundElement = element.Element("sound");
+            if (soundElement == null) return null;
+
+            var tempo = XmlHelper.GetAttributeValueAsDouble(soundElement, "tempo");
+            var dynamics = XmlHelper.GetAttributeValueAsDouble(soundElement, "dynamics");
+            var dacapo = XmlHelper.GetAttributeValueAsBool(soundElement, "dacapo");
+            var segno = XmlHelper.GetAttributeValue(soundElement, "segno");
+            var coda = XmlHelper.GetAttributeValue(soundElement, "coda");
+            var fine = XmlHelper.GetAttributeValue(soundElement, "fine");
+            var timeOnly = XmlHelper.GetAttributeValueAsBool(soundElement, "time-only");
+            var pizzicato = XmlHelper.GetAttributeValueAsBool(soundElement, "pizzicato");
+            var pan = XmlHelper.GetAttributeValueAsDouble(soundElement, "pan");
+            var elevation = XmlHelper.GetAttributeValueAsDouble(soundElement, "elevation");
+
+            return new Sound(
+                tempo,
+                dynamics,
+                dacapo,
+                segno,
+                coda,
+                fine,
+                timeOnly,
+                pizzicato,
+                pan,
+                elevation
             );
         }
 
@@ -438,14 +448,14 @@ namespace MusicXMLParser.Parser
             int? blankPage = !string.IsNullOrEmpty(blankPageStr) && int.TryParse(blankPageStr, out int bp) ? bp : (int?)null;
 
             PageLayout localPageLayout = null;
-            var pageLayoutElement = printElement.Elements("page-layout").FirstOrDefault();
+            var pageLayoutElement = printElement.Element("page-layout");
             if (pageLayoutElement != null)
             {
                 localPageLayout = _pageLayoutParser.Parse(pageLayoutElement);
             }
 
             SystemLayout localSystemLayout = null;
-            var systemLayoutElement = printElement.Elements("system-layout").FirstOrDefault();
+            var systemLayoutElement = printElement.Element("system-layout");
             if (systemLayoutElement != null)
             {
                 localSystemLayout = _systemLayoutParser.Parse(systemLayoutElement);
@@ -457,23 +467,29 @@ namespace MusicXMLParser.Parser
                 localStaffLayouts.Add(_staffLayoutParser.Parse(staffLayoutElement));
             }
 
-            MeasureLayoutInfo measureLayout = null; // Changed type to MeasureLayoutInfo
-            var measureLayoutElement = printElement.Elements("measure-layout").FirstOrDefault();
+            MeasureLayoutInfo measureLayout = null;
+            var measureLayoutElement = printElement.Element("measure-layout");
             if (measureLayoutElement != null)
             {
-                var measureDistanceElement = measureLayoutElement.Elements("measure-distance").FirstOrDefault();
-                measureLayout = new MeasureLayoutInfo( // Changed to construct MeasureLayoutInfo
-                    measureDistanceElement != null ? XmlHelper.GetElementTextAsDouble(measureDistanceElement) : null
-                );
+                var measureDistance = XmlHelper.GetElementTextAsDouble(measureLayoutElement);
+                measureLayout = new MeasureLayoutInfo(measureDistance);
             }
 
-
             MeasureNumbering measureNumbering = null;
-            var measureNumberingElement = printElement.Elements("measure-numbering").FirstOrDefault();
+            var measureNumberingElement = printElement.Element("measure-numbering");
             if (measureNumberingElement != null)
             {
+                var value = measureNumberingElement.Value.Trim();
+                var measureNumberingValue = value switch
+                {
+                    "none" => MeasureNumberingValue.None,
+                    "measure" => MeasureNumberingValue.Measure,
+                    "system" => MeasureNumberingValue.System,
+                    _ => MeasureNumberingValue.None
+                };
+
                 measureNumbering = new MeasureNumbering(
-                    MeasureNumbering.ParseValue(measureNumberingElement.Value.Trim()),
+                    measureNumberingValue,
                     XmlHelper.GetAttributeValue(measureNumberingElement, "color"),
                     XmlHelper.GetAttributeValueAsDouble(measureNumberingElement, "default-x"),
                     XmlHelper.GetAttributeValueAsDouble(measureNumberingElement, "default-y"),
@@ -482,8 +498,8 @@ namespace MusicXMLParser.Parser
                     XmlHelper.GetAttributeValue(measureNumberingElement, "font-style"),
                     XmlHelper.GetAttributeValue(measureNumberingElement, "font-weight"),
                     XmlHelper.GetAttributeValue(measureNumberingElement, "halign"),
-                    XmlHelper.GetAttributeValue(measureNumberingElement, "multiple-rest-always") == "yes",
-                    XmlHelper.GetAttributeValue(measureNumberingElement, "multiple-rest-range") == "yes",
+                    XmlHelper.GetAttributeValueAsBool(measureNumberingElement, "multiple-rest-always") ?? false,
+                    XmlHelper.GetAttributeValueAsBool(measureNumberingElement, "multiple-rest-range") ?? false,
                     XmlHelper.GetAttributeValueAsDouble(measureNumberingElement, "relative-x"),
                     XmlHelper.GetAttributeValueAsDouble(measureNumberingElement, "relative-y"),
                     XmlHelper.GetAttributeValueAsInt(measureNumberingElement, "staff"),

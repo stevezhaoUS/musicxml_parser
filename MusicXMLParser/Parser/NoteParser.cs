@@ -12,6 +12,9 @@ namespace MusicXMLParser.Parser
     public class NoteParser
     {
         public WarningSystem WarningSystem { get; }
+        
+        // 缓存常用的上下文字典以减少内存分配
+        private readonly Dictionary<string, object> _sharedContext = new();
 
         public NoteParser(WarningSystem? warningSystem = null)
         {
@@ -26,12 +29,14 @@ namespace MusicXMLParser.Parser
         {
             var line = XmlHelper.GetLineNumber(element);
 
-            var isRest = element.Elements("rest").Any();
-            Pitch pitch = null;
+            // 使用优化的方法检查元素存在性
+            var isRest = XmlHelper.HasElement(element, "rest");
+            Pitch? pitch = null;
 
             if (!isRest)
             {
-                var pitchElement = element.Elements("pitch").FirstOrDefault();
+                // 使用更高效的Element()方法
+                var pitchElement = element.Element("pitch");
                 if (pitchElement == null)
                 {
                     throw new MusicXmlStructureException(
@@ -39,51 +44,41 @@ namespace MusicXMLParser.Parser
                         requiredElement: "pitch",
                         parentElement: "note",
                         line: line,
-                        context: new Dictionary<string, object> { { "partId", partId }, { "measureNumber", measureNumber } }
+                        context: CreateContext(partId, measureNumber)
                     );
                 }
                 pitch = ParsePitch(pitchElement, partId, measureNumber);
             }
 
-            var durationElement = element.Elements("duration").FirstOrDefault();
-            Duration duration = null;
+            // 使用优化的方法获取元素文本
+            var durationValue = XmlHelper.GetElementTextAsInt(element, "duration");
+            Duration? duration = null;
             int? effectiveParentDivisions = parentDivisions;
 
-            if (durationElement != null)
+            if (durationValue.HasValue && durationValue.Value >= 0)
             {
-                var durationValue = XmlHelper.GetElementTextAsInt(durationElement);
-                if (durationValue.HasValue && durationValue.Value >= 0)
-                {
-                    if (!effectiveParentDivisions.HasValue || effectiveParentDivisions.Value <= 0)
-                    {
-                        WarningSystem.AddWarning(
-                            message: "No valid divisions specified for note with duration. Using default divisions value 1.",
-                            category: WarningCategories.NoteDivisions,
-                            line: line,
-                            context: new Dictionary<string, object>
-                            {
-                                { "part", partId }, { "measure", measureNumber },
-                                { "original_divisions", parentDivisions }
-                            }
-                        );
-                        effectiveParentDivisions = 1;
-                    }
-                    duration = new Duration(durationValue.Value, effectiveParentDivisions.Value);
-                }
-                else
+                if (!effectiveParentDivisions.HasValue || effectiveParentDivisions.Value <= 0)
                 {
                     WarningSystem.AddWarning(
-                        message: $"Invalid duration value: {durationValue} for note.",
-                        category: WarningCategories.Validation, // Corrected category
-                        rule: "note_duration_invalid",
+                        message: "No valid divisions specified for note with duration. Using default divisions value 1.",
+                        category: WarningCategories.NoteDivisions,
                         line: line,
-                        context: new Dictionary<string, object>
-                        {
-                            { "part", partId }, { "measure", measureNumber }, { "parsedDuration", durationValue?.ToString() }
-                        }
+                        context: CreateContext(partId, measureNumber, "original_divisions", parentDivisions)
                     );
-                    return null;
+                    effectiveParentDivisions = 1;
                 }
+                duration = new Duration(durationValue.Value, effectiveParentDivisions.Value);
+            }
+            else if (durationValue.HasValue)
+            {
+                WarningSystem.AddWarning(
+                    message: $"Invalid duration value: {durationValue} for note.",
+                    category: WarningCategories.Validation, // Corrected category
+                    rule: "note_duration_invalid",
+                    line: line,
+                    context: CreateContext(partId, measureNumber, "parsedDuration", durationValue.ToString())
+                );
+                return null;
             }
             else
             {
@@ -96,46 +91,36 @@ namespace MusicXMLParser.Parser
                     rule: "note_missing_duration",
                     line: line,
                     elementName: "note",
-                    context: new Dictionary<string, object>
-                    {
-                        { "part", partId }, { "measure", measureNumber }
-                    }
+                    context: CreateContext(partId, measureNumber)
                 );
                 return null; // Skip creating the note if duration is missing.
             }
 
-            var typeElement = element.Elements("type").FirstOrDefault();
-            var type = typeElement?.Value.Trim();
-
-            var voiceElement = element.Elements("voice").FirstOrDefault();
-            var voice = voiceElement?.Value.Trim();
+            // 使用优化的方法获取元素文本
+            var type = XmlHelper.GetElementText(element, "type");
+            var voice = XmlHelper.GetElementText(element, "voice");
             int? voiceNum = !string.IsNullOrEmpty(voice) && int.TryParse(voice, out int v) ? v : (int?)null;
 
-            var dotElements = element.Elements("dot");
-            int? dotsCount = dotElements.Any() ? dotElements.Count() : (int?)null;
+            // 使用优化的方法计算元素数量
+            var dotsCount = XmlHelper.GetElementCount(element, "dot");
 
             var timeModification = ParseTimeModification(
-                element.Elements("time-modification").FirstOrDefault(),
+                element.Element("time-modification"),
                 partId, measureNumber, line
             );
 
             var notationsData = ParseNotations(
-                element.Elements("notations").FirstOrDefault(),
+                element.Element("notations"),
                 partId, measureNumber, line
             );
 
-            bool isChord = element.Elements("chord").Any();
+            bool isChord = XmlHelper.HasElement(element, "chord");
 
-            var noteBuilder = new NoteBuilder(line, new Dictionary<string, object>
-            {
-                { "part", partId }, { "measure", measureNumber }
-            });
+            var noteBuilder = new NoteBuilder(line, CreateContext(partId, measureNumber));
 
-            var staffElement = element.Elements("staff").FirstOrDefault();
-            int? staffNum = !string.IsNullOrEmpty(staffElement?.Value) && int.TryParse(staffElement.Value.Trim(), out int s) ? s : (int?)null;
-
-            var stemElement = element.Elements("stem").FirstOrDefault();
-            var stemStr = stemElement?.Value.Trim();
+            // 使用优化的方法获取属性值
+            var staffNum = XmlHelper.GetAttributeValueAsInt(element, "staff");
+            var stemStr = XmlHelper.GetAttributeValue(element, "stem");
             StemDirection? stemDirection = stemStr switch {
                 "up" => StemDirection.Up,
                 "down" => StemDirection.Down,
@@ -176,6 +161,39 @@ namespace MusicXMLParser.Parser
             return noteBuilder.Build();
         }
 
+        // 优化的上下文创建方法，减少内存分配
+        private Dictionary<string, object> CreateContext(string partId, string measureNumber, string? additionalKey = null, object? additionalValue = null)
+        {
+            _sharedContext.Clear();
+            _sharedContext["part"] = partId;
+            _sharedContext["measure"] = measureNumber;
+            
+            if (additionalKey != null && additionalValue != null)
+            {
+                _sharedContext[additionalKey] = additionalValue;
+            }
+            
+            return new Dictionary<string, object>(_sharedContext);
+        }
+
+        // 重载方法支持多个额外参数
+        private Dictionary<string, object> CreateContext(string partId, string measureNumber, params object[] additionalPairs)
+        {
+            _sharedContext.Clear();
+            _sharedContext["part"] = partId;
+            _sharedContext["measure"] = measureNumber;
+            
+            for (int i = 0; i < additionalPairs.Length; i += 2)
+            {
+                if (i + 1 < additionalPairs.Length && additionalPairs[i] is string key)
+                {
+                    _sharedContext[key] = additionalPairs[i + 1];
+                }
+            }
+            
+            return new Dictionary<string, object>(_sharedContext);
+        }
+
         private TimeModification? ParseTimeModification( // Return type changed to nullable
             XElement? timeModificationElement, // Parameter changed to nullable
             string partId, string measureNumber, int noteLine)
@@ -183,44 +201,29 @@ namespace MusicXMLParser.Parser
             if (timeModificationElement == null) return null;
 
             var tmLine = XmlHelper.GetLineNumber(timeModificationElement);
-            var actualNotesElement = timeModificationElement.Elements("actual-notes").FirstOrDefault();
-            var normalNotesElement = timeModificationElement.Elements("normal-notes").FirstOrDefault();
+            
+            // 使用优化的方法获取元素
+            var actualNotes = XmlHelper.GetElementTextAsInt(timeModificationElement, "actual-notes");
+            var normalNotes = XmlHelper.GetElementTextAsInt(timeModificationElement, "normal-notes");
 
-            if (actualNotesElement == null)
+            if (!actualNotes.HasValue)
                 throw new MusicXmlStructureException(
                     message: "<time-modification> is missing <actual-notes> element",
                     requiredElement: "actual-notes",
                     parentElement: "time-modification",
                     line: tmLine,
-                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } });
-            if (normalNotesElement == null)
+                    context: CreateContext(partId, measureNumber));
+                    
+            if (!normalNotes.HasValue)
                 throw new MusicXmlStructureException(
                     message: "<time-modification> is missing <normal-notes> element",
                     requiredElement: "normal-notes",
                     parentElement: "time-modification",
                     line: tmLine,
-                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } });
+                    context: CreateContext(partId, measureNumber));
 
-            var actualNotes = XmlHelper.GetElementTextAsInt(actualNotesElement);
-            var normalNotes = XmlHelper.GetElementTextAsInt(normalNotesElement);
-
-            if (!actualNotes.HasValue)
-                throw new MusicXmlStructureException(
-                    message: "<actual-notes> must contain an integer value",
-                    parentElement: "time-modification",
-                    line: XmlHelper.GetLineNumber(actualNotesElement),
-                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } });
-            if (!normalNotes.HasValue)
-                throw new MusicXmlStructureException(
-                    message: "<normal-notes> must contain an integer value",
-                    parentElement: "time-modification",
-                    line: XmlHelper.GetLineNumber(normalNotesElement),
-                    context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber } });
-
-            var normalTypeElement = timeModificationElement.Elements("normal-type").FirstOrDefault();
-            var normalType = normalTypeElement?.Value.Trim();
-            var normalDotElements = timeModificationElement.Elements("normal-dot");
-            int? normalDotCount = normalDotElements.Any() ? normalDotElements.Count() : (int?)null;
+            var normalType = XmlHelper.GetElementText(timeModificationElement, "normal-type");
+            var normalDotCount = XmlHelper.GetElementCount(timeModificationElement, "normal-dot");
 
             // Directly construct TimeModification. Basic validation is in its constructor.
             // More complex MusicXML-specific validation is deferred.
@@ -236,20 +239,11 @@ namespace MusicXMLParser.Parser
             }
             catch (ArgumentOutOfRangeException e)
             {
-                // Optionally, catch ArgumentOutOfRangeException and convert to a warning or a more specific MusicXML exception.
-                // For now, let it propagate or log a warning and return null.
-                WarningSystem.AddWarning(
-                    message: $"Invalid arguments for TimeModification: {e.Message}",
-                    category: WarningCategories.Validation,
-                    rule: "time_modification_invalid_arguments",
+                throw new MusicXmlValidationException(
+                    message: $"Invalid time modification values: actual={actualNotes}, normal={normalNotes}",
                     line: tmLine,
-                    context: new Dictionary<string, object> {
-                        { "part", partId }, { "measure", measureNumber }, { "noteLine", noteLine },
-                        { "actualNotes", actualNotes.Value }, { "normalNotes", normalNotes.Value },
-                        { "normalType", normalType ?? "null" }, {"normalDotCount", normalDotCount?.ToString() ?? "null" }
-                    }
+                    context: CreateContext(partId, measureNumber, "actualNotes", actualNotes, "normalNotes", normalNotes)
                 );
-                return null;
             }
         }
 
@@ -257,75 +251,55 @@ namespace MusicXMLParser.Parser
             XElement? notationsElement, // Parameter changed to nullable
             string partId, string measureNumber, int noteLine)
         {
-            if (notationsElement == null) return new NotationsData();
+            if (notationsElement == null)
+                return new NotationsData();
 
             var slurs = new List<Slur>();
             var articulations = new List<Articulation>();
             var ties = new List<Tie>();
 
-            foreach (var notationChild in notationsElement.Elements())
+            foreach (var child in notationsElement.Elements())
             {
-                switch (notationChild.Name.LocalName)
+                switch (child.Name.LocalName)
                 {
                     case "slur":
-                        var typeAttrSlur = notationChild.Attribute("type")?.Value;
-                        if (string.IsNullOrEmpty(typeAttrSlur))
-                            throw new MusicXmlStructureException(
-                                message: "<slur> element missing required \"type\" attribute",
-                                parentElement: "notations",
-                                line: XmlHelper.GetLineNumber(notationChild),
-                                context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber }, { "noteLine", noteLine } });
-
-                        var numberStrSlur = notationChild.Attribute("number")?.Value;
-                        int numberAttrSlur = !string.IsNullOrEmpty(numberStrSlur) && int.TryParse(numberStrSlur, out int n) ? n : 1;
-                        var placementAttrSlur = notationChild.Attribute("placement")?.Value;
-                        slurs.Add(new Slur(typeAttrSlur, numberAttrSlur, placementAttrSlur));
+                        var slurType = XmlHelper.GetAttributeValue(child, "type");
+                        var slurNumber = XmlHelper.GetAttributeValueAsInt(child, "number") ?? 1;
+                        var slurPlacement = XmlHelper.GetAttributeValue(child, "placement");
+                        slurs.Add(new Slur(slurType, slurNumber, slurPlacement));
                         break;
                     case "articulations":
-                        foreach (var specificArtElement in notationChild.Elements())
+                        foreach (var articulationElement in child.Elements())
                         {
-                            var artType = specificArtElement.Name.LocalName;
-                            if (!string.IsNullOrEmpty(artType))
-                            {
-                                var placementAttrArt = specificArtElement.Attribute("placement")?.Value;
-                                articulations.Add(new Articulation(artType, placementAttrArt));
-                            }
+                            var articulationType = articulationElement.Name.LocalName;
+                            var articulationPlacement = XmlHelper.GetAttributeValue(articulationElement, "placement");
+                            articulations.Add(new Articulation(articulationType, articulationPlacement));
                         }
                         break;
                     case "tied":
-                        var typeAttrTied = notationChild.Attribute("type")?.Value;
-                        if (string.IsNullOrEmpty(typeAttrTied) || !new[] { "start", "stop", "continue" }.Contains(typeAttrTied))
-                        {
-                            WarningSystem.AddWarning(
-                                message: $"<tied> element has invalid or missing \"type\" attribute. Found: \"{typeAttrTied}\". Skipping tie.",
-                                category: WarningCategories.Structure,
-                                line: XmlHelper.GetLineNumber(notationChild),
-                                context: new Dictionary<string, object> { { "part", partId }, { "measure", measureNumber }, { "noteLine", noteLine } });
-                        }
-                        else
-                        {
-                            var placementAttrTied = notationChild.Attribute("placement")?.Value;
-                            ties.Add(new Tie(typeAttrTied, placementAttrTied));
-                        }
+                        var tieType = XmlHelper.GetAttributeValue(child, "type");
+                        var tiePlacement = XmlHelper.GetAttributeValue(child, "placement");
+                        ties.Add(new Tie(tieType, tiePlacement));
                         break;
                 }
             }
-            return new NotationsData(
-                slurs.Any() ? slurs : null,
-                articulations.Any() ? articulations : null,
-                ties.Any() ? ties : null
-            );
+
+            return new NotationsData(slurs, articulations, ties);
         }
 
         private Pitch ParsePitch(XElement element, string partId, string measureNumber)
         {
-            // Assuming Pitch.FromXElement handles its own exceptions as in Dart
-            return Pitch.FromXElement(element, partId, measureNumber);
+            // 使用优化的方法获取元素文本
+            var step = XmlHelper.GetElementText(element, "step");
+            var octave = XmlHelper.GetElementTextAsInt(element, "octave");
+            var alter = XmlHelper.GetElementTextAsInt(element, "alter");
+
+            return new Pitch(step, octave ?? 0, alter);
         }
 
         private Accidental ParseAccidentalEnum(string text) // Renamed to use Accidental from Models.Note
         {
-            return text switch
+            return text.Trim().ToLowerInvariant() switch
             {
                 "sharp" => Accidental.Sharp,
                 "flat" => Accidental.Flat,
@@ -336,22 +310,22 @@ namespace MusicXMLParser.Parser
                 "flat-flat" => Accidental.FlatFlat,
                 "quarter-sharp" => Accidental.QuarterSharp,
                 "quarter-flat" => Accidental.QuarterFlat,
-                _ => Accidental.Other,
+                _ => Accidental.Other
             };
         }
-    }
 
-    internal class NotationsData // Keep internal if only used by NoteParser
-    {
-        public List<Slur> Slurs { get; }
-        public List<Articulation> Articulations { get; }
-        public List<Tie> Ties { get; }
-
-        public NotationsData(List<Slur> slurs = null, List<Articulation> articulations = null, List<Tie> ties = null)
+        internal class NotationsData // Keep internal if only used by NoteParser
         {
-            Slurs = slurs;
-            Articulations = articulations;
-            Ties = ties;
+            public List<Slur> Slurs { get; }
+            public List<Articulation> Articulations { get; }
+            public List<Tie> Ties { get; }
+
+            public NotationsData(List<Slur>? slurs = null, List<Articulation>? articulations = null, List<Tie>? ties = null)
+            {
+                Slurs = slurs ?? new List<Slur>();
+                Articulations = articulations ?? new List<Articulation>();
+                Ties = ties ?? new List<Tie>();
+            }
         }
     }
 }

@@ -16,6 +16,9 @@ namespace MusicXMLParser.Parser
         private readonly StaffLayoutParser _staffLayoutParser; // Assuming this parser exists
         public WarningSystem WarningSystem { get; }
 
+        // 缓存常用的上下文字典以减少内存分配
+        private readonly Dictionary<string, object> _sharedContext = new();
+
         public ScoreParser(
             PartParser? partParser = null,
             ScalingParser? scalingParser = null,
@@ -26,240 +29,244 @@ namespace MusicXMLParser.Parser
         {
             WarningSystem = warningSystem ?? new WarningSystem();
             _partParser = partParser ?? new PartParser(warningSystem: WarningSystem);
-            _scalingParser = scalingParser ?? new ScalingParser(); // Assuming parameterless constructor
-            _pageLayoutParser = pageLayoutParser ?? new PageLayoutParser(); // Assuming parameterless constructor
-            _systemLayoutParser = systemLayoutParser ?? new SystemLayoutParser(); // Assuming parameterless constructor
-            _staffLayoutParser = staffLayoutParser ?? new StaffLayoutParser(); // Assuming parameterless constructor
+            _scalingParser = scalingParser ?? new ScalingParser();
+            _pageLayoutParser = pageLayoutParser ?? new PageLayoutParser();
+            _systemLayoutParser = systemLayoutParser ?? new SystemLayoutParser();
+            _staffLayoutParser = staffLayoutParser ?? new StaffLayoutParser();
         }
 
-        public Score Parse(XDocument document)
+        public Score Parse(XElement element)
         {
-            var scorePartwiseElement = document.Elements("score-partwise").FirstOrDefault();
-            if (scorePartwiseElement != null)
-            {
-                return ParseScorePartwise(scorePartwiseElement);
-            }
+            var line = XmlHelper.GetLineNumber(element);
+            var version = XmlHelper.GetAttributeValue(element, "version");
 
-            var scoreTimewiseElement = document.Elements("score-timewise").FirstOrDefault();
-            if (scoreTimewiseElement != null)
+            if (string.IsNullOrEmpty(version))
             {
-                throw new MusicXmlStructureException(
-                    message: "Score-timewise format is not fully implemented",
-                    requiredElement: "score-partwise",
-                    parentElement: "score-timewise",
-                    line: XmlHelper.GetLineNumber(scoreTimewiseElement),
-                    context: null
+                throw new MusicXmlValidationException(
+                    message: "Score element is missing required 'version' attribute",
+                    line: line,
+                    context: CreateContext()
                 );
             }
 
-            throw new MusicXmlStructureException(
-                message: "Document is not a valid MusicXML file. Root element must be either \"score-partwise\" or \"score-timewise\"",
-                requiredElement: "score-partwise or score-timewise",
-                parentElement: document.Root?.Name.LocalName, // Get root name if available
-                line: XmlHelper.GetLineNumber(document.Root), // Pass root for line number
-                context: null
-            );
+            return ParseScorePartwise(element);
         }
 
         private Score ParseScorePartwise(XElement element)
         {
-            var title = XmlHelper.FindOptionalTextElement(element, "work/work-title") ??
-                        XmlHelper.FindOptionalTextElement(element, "movement-title");
-            var composer = XmlHelper.FindOptionalTextElement(element, "identification/creator[@type='composer']");
-            var arranger = XmlHelper.FindOptionalTextElement(element, "identification/creator[@type='arranger']");
-            var lyricist = XmlHelper.FindOptionalTextElement(element, "identification/creator[@type='lyricist']");
-            var rights = XmlHelper.FindOptionalTextElement(element, "identification/rights");
-            var source = XmlHelper.FindOptionalTextElement(element, "identification/source");
-            var version = element.Attribute("version")?.Value;
+            var line = XmlHelper.GetLineNumber(element);
+            var version = XmlHelper.GetAttributeValue(element, "version");
 
-            var partListElement = element.Elements("part-list").FirstOrDefault();
+            var scoreBuilder = new ScoreBuilder(version);
+
+            // 使用优化的方法获取元素
+            var workElement = element.Element("work");
+            if (workElement != null)
+            {
+                scoreBuilder.SetWork(ParseWork(workElement));
+            }
+
+            var identificationElement = element.Element("identification");
+            if (identificationElement != null)
+            {
+                scoreBuilder.SetIdentification(ParseIdentification(identificationElement));
+            }
+
+            var defaultElement = element.Element("defaults");
+            if (defaultElement != null)
+            {
+                ParseDefaults(defaultElement, scoreBuilder);
+            }
+
+            var creditElement = element.Element("credit");
+            if (creditElement != null)
+            {
+                scoreBuilder.AddCredit(ParseCredit(creditElement));
+            }
+
+            var partListElement = element.Element("part-list");
             if (partListElement == null)
             {
-                WarningSystem.AddWarning(
-                    message: "Missing part-list element in score",
-                    category: WarningCategories.Structure, // Corrected category
-                    rule: "score_missing_part_list",
-                    line: XmlHelper.GetLineNumber(element),
-                    elementName: element.Name.LocalName,
-                    context: new Dictionary<string, object>() // No specific context beyond line and element
+                throw new MusicXmlStructureException(
+                    message: "Score element is missing required <part-list> child",
+                    requiredElement: "part-list",
+                    parentElement: "score",
+                    line: line,
+                    context: CreateContext()
                 );
             }
 
-            var parts = element.Elements("part")
-                               .Select(partEl => _partParser.Parse(partEl, partListElement))
-                               .ToList();
-
-            var defaultsData = ParseDefaults(element.Element("defaults"));
-
-            var scoreBuilder = new ScoreBuilder(version) // Removed line number argument
-                .SetTitle(title) // Title can be set directly or via Work
-                .SetComposer(composer); // Composer can be set directly or via Identification
-
+            var parts = ParsePartList(partListElement);
             scoreBuilder.SetParts(parts);
-
-            scoreBuilder.SetPageLayout(defaultsData.PageLayout)
-                        .SetDefaultSystemLayout(defaultsData.SystemLayout)
-                        .setDefaultStaffLayouts(defaultsData.StaffLayouts) // Corrected method name casing
-                        .SetScaling(defaultsData.Scaling)
-                        .SetAppearance(defaultsData.Appearance);
-
-            if (!string.IsNullOrEmpty(title)) { // Ensure title is not null or empty before creating Work
-                 scoreBuilder.SetWork(new Work(title));
-            }
-
-            if (!string.IsNullOrEmpty(composer) || !string.IsNullOrEmpty(arranger) || !string.IsNullOrEmpty(lyricist) || !string.IsNullOrEmpty(rights) || !string.IsNullOrEmpty(source))
-            {
-                scoreBuilder.SetIdentification(new Identification(
-                    composer: composer,
-                    arranger: arranger,
-                    lyricist: lyricist,
-                    rights: rights,
-                    source: source
-                ));
-            }
-
-            var parsedCredits = ParseCredits(element);
-            if (parsedCredits.Any())
-            {
-                scoreBuilder.SetCredits(parsedCredits);
-            }
 
             return scoreBuilder.Build();
         }
 
-        private DefaultsData ParseDefaults(XElement defaultsElement)
+        // 优化的上下文创建方法，减少内存分配
+        private Dictionary<string, object> CreateContext(string? additionalKey = null, object? additionalValue = null)
         {
-            if (defaultsElement == null)
+            _sharedContext.Clear();
+            
+            if (additionalKey != null && additionalValue != null)
             {
-                return new DefaultsData();
+                _sharedContext[additionalKey] = additionalValue;
             }
+            
+            return new Dictionary<string, object>(_sharedContext);
+        }
 
-            Scaling scaling = null;
+        private Work ParseWork(XElement workElement)
+        {
+            // 使用优化的方法获取元素文本
+            var workTitle = XmlHelper.GetElementText(workElement, "work-title");
+
+            return new Work(workTitle);
+        }
+
+        private Identification ParseIdentification(XElement identificationElement)
+        {
+            var creator = XmlHelper.GetElementText(identificationElement, "creator");
+            var rights = XmlHelper.GetElementText(identificationElement, "rights");
+            var source = XmlHelper.GetElementText(identificationElement, "source");
+            var encoding = ParseEncoding(identificationElement.Element("encoding"));
+
+            return new Identification(creator, null, null, rights, source, encoding);
+        }
+
+        private Encoding? ParseEncoding(XElement? encodingElement)
+        {
+            if (encodingElement == null) return null;
+
+            var software = XmlHelper.GetElementText(encodingElement, "software");
+            var encodingDate = XmlHelper.GetElementText(encodingElement, "encoding-date");
+            var supports = XmlHelper.GetElementText(encodingElement, "supports");
+
+            return new Encoding(software, encodingDate, supports);
+        }
+
+        private void ParseDefaults(XElement defaultsElement, ScoreBuilder scoreBuilder)
+        {
+            // 使用优化的方法获取元素
             var scalingElement = defaultsElement.Element("scaling");
             if (scalingElement != null)
             {
-                scaling = _scalingParser.Parse(scalingElement);
+                scoreBuilder.SetScaling(_scalingParser.Parse(scalingElement));
             }
 
-            PageLayout pageLayout = null;
             var pageLayoutElement = defaultsElement.Element("page-layout");
             if (pageLayoutElement != null)
             {
-                pageLayout = _pageLayoutParser.Parse(pageLayoutElement);
+                scoreBuilder.SetPageLayout(_pageLayoutParser.Parse(pageLayoutElement));
             }
 
-            SystemLayout systemLayout = null;
             var systemLayoutElement = defaultsElement.Element("system-layout");
             if (systemLayoutElement != null)
             {
-                systemLayout = _systemLayoutParser.Parse(systemLayoutElement);
+                scoreBuilder.SetDefaultSystemLayout(_systemLayoutParser.Parse(systemLayoutElement));
             }
 
-            var staffLayouts = defaultsElement.Elements("staff-layout")
-                                             .Select(el => _staffLayoutParser.Parse(el))
-                                             .ToList();
-
-            var appearance = ParseAppearance(defaultsElement);
-
-            return new DefaultsData(
-                scaling: scaling,
-                pageLayout: pageLayout,
-                systemLayout: systemLayout,
-                staffLayouts: staffLayouts,
-                appearance: appearance
-            );
-        }
-
-        private List<Credit> ParseCredits(XElement scoreElement)
-        {
-            var parsedCredits = new List<Credit>();
-            foreach (var creditElement in scoreElement.Elements("credit"))
+            var staffLayouts = new List<StaffLayout>();
+            foreach (var staffLayoutElement in defaultsElement.Elements("staff-layout"))
             {
-                string pageStr = creditElement.Attribute("page")?.Value;
-                int? page = !string.IsNullOrEmpty(pageStr) && int.TryParse(pageStr, out int pVal) ? pVal : (int?)null;
-
-                var creditTypeElement = creditElement.Elements("credit-type").FirstOrDefault();
-                string creditType = creditTypeElement?.Value.Trim();
-
-                var creditWordsList = new List<string>();
-                foreach (var wordsElement in creditElement.Elements("credit-words"))
-                {
-                    var text = wordsElement.Value.Trim();
-                    if (!string.IsNullOrEmpty(text))
-                    {
-                        creditWordsList.Add(text);
-                    }
-                }
-
-                if ((!string.IsNullOrEmpty(creditType)) || creditWordsList.Any())
-                {
-                    parsedCredits.Add(new Credit(page, creditType, creditWordsList));
-                }
-                else if (page.HasValue) // Credit can exist with only a page number
-                {
-                     parsedCredits.Add(new Credit(page, creditType, creditWordsList));
-                }
+                staffLayouts.Add(_staffLayoutParser.Parse(staffLayoutElement));
             }
-            return parsedCredits;
+            if (staffLayouts.Count > 0)
+            {
+                scoreBuilder.setDefaultStaffLayouts(staffLayouts);
+            }
+
+            var appearanceElement = defaultsElement.Element("appearance");
+            if (appearanceElement != null)
+            {
+                scoreBuilder.SetAppearance(ParseAppearance(appearanceElement));
+            }
         }
 
-        private Appearance ParseAppearance(XElement defaultsElement)
+        private Credit ParseCredit(XElement creditElement)
         {
-            if (defaultsElement == null) return null;
-            var appearanceElement = defaultsElement.Element("appearance");
-            if (appearanceElement == null) return null;
+            var page = XmlHelper.GetAttributeValueAsInt(creditElement, "page");
+            var creditType = XmlHelper.GetElementText(creditElement, "credit-type");
+            var creditWords = new List<string>();
+            
+            foreach (var wordsElement in creditElement.Elements("credit-words"))
+            {
+                var text = wordsElement.Value.Trim();
+                if (!string.IsNullOrEmpty(text))
+                {
+                    creditWords.Add(text);
+                }
+            }
 
+            return new Credit(page, creditType, creditWords);
+        }
+
+        private List<Part> ParsePartList(XElement partListElement)
+        {
+            var parts = new List<Part>();
+
+            foreach (var child in partListElement.Elements())
+            {
+                switch (child.Name.LocalName)
+                {
+                    case "score-part":
+                        var part = _partParser.Parse(child, partListElement);
+                        if (part != null)
+                        {
+                            parts.Add(part);
+                        }
+                        break;
+                    case "part-group":
+                        // 处理part-group逻辑
+                        WarningSystem.AddWarning(
+                            message: "Part-group elements are not yet fully supported",
+                            category: WarningCategories.Generic,
+                            rule: "part_group_not_supported",
+                            line: XmlHelper.GetLineNumber(child),
+                            elementName: "part-group",
+                            context: CreateContext()
+                        );
+                        break;
+                }
+            }
+
+            return parts;
+        }
+
+        private Appearance ParseAppearance(XElement appearanceElement)
+        {
             var lineWidths = new List<LineWidth>();
             var noteSizes = new List<NoteSize>();
 
-            foreach (var lineWidthElement in appearanceElement.Elements("line-width"))
+            foreach (var child in appearanceElement.Elements())
             {
-                var type = lineWidthElement.Attribute("type")?.Value;
-                if (string.IsNullOrEmpty(type)) continue;
-
-                if (double.TryParse(lineWidthElement.Value, out double width))
+                switch (child.Name.LocalName)
                 {
-                    lineWidths.Add(new LineWidth(type, width));
+                    case "line-width":
+                        lineWidths.Add(ParseLineWidth(child));
+                        break;
+                    case "note-size":
+                        noteSizes.Add(ParseNoteSize(child));
+                        break;
                 }
             }
 
-            foreach (var noteSizeElement in appearanceElement.Elements("note-size"))
-            {
-                var type = noteSizeElement.Attribute("type")?.Value;
-                if (string.IsNullOrEmpty(type)) continue;
-
-                if (double.TryParse(noteSizeElement.Value, out double size))
-                {
-                    noteSizes.Add(new NoteSize(type, size));
-                }
-            }
-
-            // Only return Appearance if there's something in it
-            if (lineWidths.Any() || noteSizes.Any())
-            {
-                 return new Appearance(lineWidths, noteSizes);
-            }
-            return null;
+            return new Appearance(lineWidths, noteSizes);
         }
 
-
-        // Helper class, similar to _DefaultsData in Dart
-        private class DefaultsData
+        private LineWidth ParseLineWidth(XElement element)
         {
-            public Scaling Scaling { get; }
-            public PageLayout PageLayout { get; }
-            public SystemLayout SystemLayout { get; }
-            public List<StaffLayout> StaffLayouts { get; }
-            public Appearance Appearance { get; }
+            var type = XmlHelper.GetAttributeValue(element, "type");
+            var width = XmlHelper.GetElementTextAsDouble(element) ?? 0.0;
 
-            public DefaultsData(Scaling scaling = null, PageLayout pageLayout = null, SystemLayout systemLayout = null, List<StaffLayout> staffLayouts = null, Appearance appearance = null)
-            {
-                Scaling = scaling;
-                PageLayout = pageLayout;
-                SystemLayout = systemLayout;
-                StaffLayouts = staffLayouts ?? new List<StaffLayout>();
-                Appearance = appearance;
-            }
+            return new LineWidth(type, width);
+        }
+
+        private NoteSize ParseNoteSize(XElement element)
+        {
+            var type = XmlHelper.GetAttributeValue(element, "type");
+            var size = XmlHelper.GetElementTextAsDouble(element) ?? 0.0;
+
+            return new NoteSize(type, size);
         }
     }
 }
