@@ -96,6 +96,9 @@ namespace MusicXMLParser.Parser
                 );
             }
 
+            // 调试输出 part-list 下的元素数量
+            Console.WriteLine($"[ScoreParser] part-list children count: {partListElement.Elements().Count()}");
+
             var parts = ParsePartList(partListElement);
             scoreBuilder.SetParts(parts);
 
@@ -204,15 +207,30 @@ namespace MusicXMLParser.Parser
         {
             var parts = new List<Part>();
 
+            // 获取整个文档的 <part> 节点集合
+            var doc = partListElement.Document;
+            var partNodes = doc?.Descendants("part").ToList();
+
             foreach (var child in partListElement.Elements())
             {
                 switch (child.Name.LocalName)
                 {
                     case "score-part":
-                        var part = _partParser.Parse(child, partListElement);
-                        if (part != null)
+                        var partId = child.Attribute("id")?.Value;
+                        var partNode = partNodes?.FirstOrDefault(p => p.Attribute("id")?.Value == partId);
+                        if (partNode != null)
                         {
-                            parts.Add(part);
+                            // 调试输出
+                            Console.WriteLine($"[ScoreParser] <part id={partId}> measure count: {partNode.Elements("measure").Count()}");
+                            var part = _partParser.Parse(partNode, partListElement);
+                            if (part != null)
+                            {
+                                parts.Add(part);
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[ScoreParser] <part id={partId}> not found in document");
                         }
                         break;
                     case "part-group":

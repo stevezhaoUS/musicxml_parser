@@ -165,11 +165,11 @@ namespace MusicXMLParser.Models
         private List<Note> _notes = new List<Note>();
         private KeySignature _keySignature;
         private TimeSignature _timeSignature;
-        private List<Clef> _clefs;
+        private List<Clef> _clefs = new List<Clef>();
         private double? _width;
         private List<Beam> _beams = new List<Beam>();
         private bool _isPickup = false;
-        private List<Barline> _barlines;
+        private List<Barline> _barlines = new List<Barline>();
         private Ending _ending;
         private List<Direction> _directions = new List<Direction>();
         private PrintObject _printObject;
@@ -190,7 +190,7 @@ namespace MusicXMLParser.Models
         public MeasureBuilder AddBeam(Beam beam) { _beams.Add(beam); return this; }
         public MeasureBuilder SetIsPickup(bool isPickup) { _isPickup = isPickup; return this; }
         public MeasureBuilder SetBarlines(List<Barline> barlines) { _barlines = barlines; return this; }
-        public MeasureBuilder AddBarline(Barline barline) { _barlines = _barlines ?? new List<Barline>(); _barlines.Add(barline); return this; }
+        public MeasureBuilder AddBarline(Barline barline) { _barlines.Add(barline); return this; }
         public MeasureBuilder SetEnding(Ending ending) { _ending = ending; return this; }
         public MeasureBuilder SetDirections(List<Direction> directions) { _directions = directions; return this; }
         public MeasureBuilder AddDirection(Direction direction) { _directions.Add(direction); return this; }
@@ -201,6 +201,8 @@ namespace MusicXMLParser.Models
 
         public Measure Build()
         {
+            // 调试输出集合内容
+            Console.WriteLine($"[MeasureBuilder.Build] number={_number}, notes={_notes.Count}, barlines={_barlines.Count}, clefs={_clefs.Count}, directions={_directions.Count}");
             if (string.IsNullOrEmpty(_number))
             {
                 // Handle error or rely on parser, similar to Dart

@@ -74,6 +74,8 @@ namespace MusicXMLParser.Parser
                     inheritedTimeSignature: activeTimeSignature
                     // inheritedClefs: activeClefs // Pass if clefs are managed this way
                 );
+                // 调试输出 measure 主要内容
+                Console.WriteLine($"[PartParser] Parsed measure: number={measure?.Number}, notes={measure?.Notes?.Count ?? -1}");
                 partBuilder.AddMeasure(measure);
 
                 // Update active attributes for the *next* measure
@@ -104,6 +106,8 @@ namespace MusicXMLParser.Parser
                 // activeClefs = measure.Clefs;
                 // }
             }
+            // 调试输出 measures 集合数量
+            Console.WriteLine($"[PartParser] Total measures added: {partBuilder.Build().Measures.Count}");
             return partBuilder.Build();
         }
     }
