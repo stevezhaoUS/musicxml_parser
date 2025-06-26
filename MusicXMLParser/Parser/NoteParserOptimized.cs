@@ -228,7 +228,7 @@ namespace MusicXMLParser.Parser
                     normalDotCount
                 );
             }
-            catch (ArgumentOutOfRangeException e)
+            catch (ArgumentOutOfRangeException)
             {
                 throw new MusicXmlValidationException(
                     message: $"Invalid time modification values: actual={actualNotes}, normal={normalNotes}",
@@ -257,7 +257,10 @@ namespace MusicXMLParser.Parser
                         var slurType = XmlHelper.GetAttributeValue(child, "type");
                         var slurNumber = XmlHelper.GetAttributeValueAsInt(child, "number") ?? 1;
                         var slurPlacement = XmlHelper.GetAttributeValue(child, "placement");
-                        slurs.Add(new Slur(slurType, slurNumber, slurPlacement));
+                        if (!string.IsNullOrEmpty(slurType))
+                        {
+                            slurs.Add(new Slur(slurType, slurNumber, slurPlacement));
+                        }
                         break;
                     case "articulations":
                         foreach (var articulationElement in child.Elements())
@@ -270,7 +273,10 @@ namespace MusicXMLParser.Parser
                     case "tied":
                         var tieType = XmlHelper.GetAttributeValue(child, "type");
                         var tiePlacement = XmlHelper.GetAttributeValue(child, "placement");
-                        ties.Add(new Tie(tieType, tiePlacement));
+                        if (!string.IsNullOrEmpty(tieType))
+                        {
+                            ties.Add(new Tie(tieType, tiePlacement));
+                        }
                         break;
                 }
             }

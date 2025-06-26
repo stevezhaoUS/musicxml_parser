@@ -35,12 +35,12 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a new <see cref="Barline"/> instance.
         /// </summary>
-        public Barline(string? location = null, string? barStyle = null, string? repeatDirection = null, int? times = null)
+        public Barline(string? location, string? barStyle, string? repeatDirection, int? repeatTimes)
         {
-            Location = location;
-            BarStyle = barStyle;
-            RepeatDirection = repeatDirection;
-            Times = times;
+            Location = location ?? "";
+            BarStyle = barStyle ?? "";
+            RepeatDirection = repeatDirection ?? "";
+            Times = repeatTimes;
         }
 
         public override bool Equals(object? obj)

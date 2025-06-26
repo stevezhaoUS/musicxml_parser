@@ -44,7 +44,7 @@ namespace MusicXMLParser.Models
             Measures = measures ?? new List<Measure>();
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is Part other)
             {

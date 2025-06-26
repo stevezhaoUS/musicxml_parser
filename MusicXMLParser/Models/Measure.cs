@@ -103,9 +103,9 @@ namespace MusicXMLParser.Models
             PrintObject = printObject;
         }
 
-        public override bool Equals(object obj) => Equals(obj as Measure);
+        public override bool Equals(object? obj) => Equals(obj as Measure);
 
-        public bool Equals(Measure other) =>
+        public bool Equals(Measure? other) =>
             other != null &&
             Number == other.Number &&
             (Notes == null ? other.Notes == null : Notes.SequenceEqual(other.Notes ?? new List<Note>())) &&
@@ -174,7 +174,7 @@ namespace MusicXMLParser.Models
         private List<Direction> _directions = new List<Direction>();
         private PrintObject? _printObject;
 
-        public MeasureBuilder(string number, int? line = null, Dictionary<string, object> context = null)
+        public MeasureBuilder(string number, int? line = null, Dictionary<string, object>? context = null)
         {
             _number = number;
             // line and context are currently unused in C# version, similar to Dart

@@ -24,7 +24,7 @@ namespace MusicXMLParser.Models
         /// The note type of the normal notes (e.g., "eighth", "quarter").
         /// Optional in MusicXML.
         /// </summary>
-        public string NormalType { get; }
+        public string? NormalType { get; }
 
         /// <summary>
         /// The number of dots on the normal notes, if specified.
@@ -39,7 +39,7 @@ namespace MusicXMLParser.Models
         public TimeModification(
             int actualNotes,
             int normalNotes,
-            string normalType = null,
+            string? normalType = null,
             int? normalDotCount = null)
         {
             if (actualNotes <= 0)
@@ -58,7 +58,7 @@ namespace MusicXMLParser.Models
         // Removed CreateValidated static method as per user request to defer validation.
         // Constructor with basic argument checks remains.
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is TimeModification other)
             {

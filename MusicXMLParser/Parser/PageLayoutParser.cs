@@ -29,7 +29,7 @@ namespace MusicXMLParser.Parser
                 // Using object initializer syntax as PageMargins relies on public setters
                 margins.Add(new PageMargins
                 {
-                    Type = type,
+                    Type = type ?? "",
                     LeftMargin = left,
                     RightMargin = right,
                     TopMargin = top,

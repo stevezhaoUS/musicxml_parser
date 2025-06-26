@@ -29,7 +29,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a new <see cref="Credit"/> instance.
         /// </summary>
-        public Credit(int? page = null, string? creditType = null, List<string> creditWords = null)
+        public Credit(int? page = null, string? creditType = null, List<string>? creditWords = null)
         {
             Page = page;
             CreditType = creditType;

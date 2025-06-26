@@ -5,13 +5,22 @@ namespace MusicXMLParser.Models
 {
     public class PageMargins
     {
-        public string Type { get; set; } // "odd", "even", "both"
+        public string Type { get; set; } = string.Empty; // "odd", "even", "both"
         public double? LeftMargin { get; set; }
         public double? RightMargin { get; set; }
         public double? TopMargin { get; set; }
         public double? BottomMargin { get; set; }
 
-        public override bool Equals(object obj)
+        public PageMargins()
+        {
+        }
+
+        public PageMargins(string type)
+        {
+            Type = type;
+        }
+
+        public override bool Equals(object? obj)
         {
             if (obj is PageMargins other)
             {
@@ -41,7 +50,7 @@ namespace MusicXMLParser.Models
         public double? PageWidth { get; set; }
         public List<PageMargins> PageMargins { get; set; } = new List<PageMargins>(); // Can have up to 2 (odd/even) or one for "both"
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is PageLayout other)
             {
@@ -85,7 +94,7 @@ namespace MusicXMLParser.Models
             Tenths = tenths;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is Scaling other)
             {

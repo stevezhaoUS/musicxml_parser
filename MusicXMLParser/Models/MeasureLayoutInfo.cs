@@ -11,8 +11,8 @@ namespace MusicXMLParser.Models
             MeasureDistance = measureDistance;
         }
 
-        public override bool Equals(object obj) => Equals(obj as MeasureLayoutInfo);
-        public bool Equals(MeasureLayoutInfo other) => other != null && MeasureDistance == other.MeasureDistance;
+        public override bool Equals(object? obj) => Equals(obj as MeasureLayoutInfo);
+        public bool Equals(MeasureLayoutInfo? other) => other != null && MeasureDistance == other.MeasureDistance;
         public override int GetHashCode() => MeasureDistance.GetHashCode();
         public override string ToString() => $"MeasureLayoutInfo{{measureDistance: {MeasureDistance}}}";
     }
@@ -39,27 +39,27 @@ namespace MusicXMLParser.Models
         public string Valign { get; }
 
         public MeasureNumbering(
-            MeasureNumberingValue value, string color = null, double? defaultX = null, double? defaultY = null,
-            string fontFamily = null, string fontSize = null, string fontStyle = null, string fontWeight = null,
-            string halign = null, bool? multipleRestAlways = null, bool? multipleRestRange = null,
-            double? relativeX = null, double? relativeY = null, int? staff = null, string system = null, string valign = null)
+            MeasureNumberingValue value, string? color = null, double? defaultX = null, double? defaultY = null,
+            string? fontFamily = null, string? fontSize = null, string? fontStyle = null, string? fontWeight = null,
+            string? halign = null, bool? multipleRestAlways = null, bool? multipleRestRange = null,
+            double? relativeX = null, double? relativeY = null, int? staff = null, string? system = null, string? valign = null)
         {
             Value = value;
-            Color = color;
+            Color = color ?? string.Empty;
             DefaultX = defaultX;
             DefaultY = defaultY;
-            FontFamily = fontFamily;
-            FontSize = fontSize;
-            FontStyle = fontStyle;
-            FontWeight = fontWeight;
-            Halign = halign;
+            FontFamily = fontFamily ?? string.Empty;
+            FontSize = fontSize ?? string.Empty;
+            FontStyle = fontStyle ?? string.Empty;
+            FontWeight = fontWeight ?? string.Empty;
+            Halign = halign ?? string.Empty;
             MultipleRestAlways = multipleRestAlways;
             MultipleRestRange = multipleRestRange;
             RelativeX = relativeX;
             RelativeY = relativeY;
             Staff = staff;
-            System = system;
-            Valign = valign;
+            System = system ?? string.Empty;
+            Valign = valign ?? string.Empty;
         }
 
         public static MeasureNumberingValue ParseValue(string valueStr)
@@ -77,9 +77,9 @@ namespace MusicXMLParser.Models
             };
         }
 
-        public override bool Equals(object obj) => Equals(obj as MeasureNumbering);
+        public override bool Equals(object? obj) => Equals(obj as MeasureNumbering);
 
-        public bool Equals(MeasureNumbering other) =>
+        public bool Equals(MeasureNumbering? other) =>
             other != null &&
             Value == other.Value &&
             Color == other.Color &&

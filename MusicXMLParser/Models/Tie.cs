@@ -18,12 +18,12 @@ namespace MusicXMLParser.Models
         /// The placement of the tie relative to the note (e.g., "above", "below").
         /// Optional.
         /// </summary>
-        public string Placement { get; } // Consider an enum Placement in the future
+        public string? Placement { get; } // Consider an enum Placement in the future
 
         /// <summary>
         /// Creates a new <see cref="Tie"/> instance.
         /// </summary>
-        public Tie(string type, string placement = null)
+        public Tie(string type, string? placement = null)
         {
             if (string.IsNullOrEmpty(type))
                 throw new ArgumentException("Tie type cannot be null or empty.", nameof(type));
@@ -32,7 +32,7 @@ namespace MusicXMLParser.Models
             Placement = placement;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is Tie other)
             {

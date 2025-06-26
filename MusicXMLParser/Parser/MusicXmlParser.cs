@@ -38,6 +38,10 @@ namespace MusicXMLParser.Parser
             try
             {
                 var document = XDocument.Parse(xmlString, LoadOptions.SetLineInfo);
+                if (document.Root == null)
+                {
+                    throw new MusicXmlParseException("XML document has no root element");
+                }
                 return _scoreParser.Parse(document.Root);
             }
             catch (System.Xml.XmlException e)

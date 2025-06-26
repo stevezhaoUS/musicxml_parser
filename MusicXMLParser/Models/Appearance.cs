@@ -71,7 +71,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a new <see cref="Appearance"/> instance.
         /// </summary>
-        public Appearance(List<LineWidth> lineWidths = null, List<NoteSize> noteSizes = null)
+        public Appearance(List<LineWidth>? lineWidths = null, List<NoteSize>? noteSizes = null)
         {
             LineWidths = lineWidths ?? new List<LineWidth>();
             NoteSizes = noteSizes ?? new List<NoteSize>();

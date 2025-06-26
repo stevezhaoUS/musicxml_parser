@@ -9,23 +9,23 @@ namespace MusicXMLParser.Models
         public bool NewPage { get; set; }
         public bool NewSystem { get; set; }
         public int? BlankPage { get; set; }
-        public string PageNumber { get; set; }
-        public PageLayout LocalPageLayout { get; set; } // Assuming PageLayout class exists
-        public SystemLayout LocalSystemLayout { get; set; } // Assuming SystemLayout class exists
+        public string? PageNumber { get; set; }
+        public PageLayout? LocalPageLayout { get; set; } // Assuming PageLayout class exists
+        public SystemLayout? LocalSystemLayout { get; set; } // Assuming SystemLayout class exists
         public List<StaffLayout> LocalStaffLayouts { get; set; } = new List<StaffLayout>(); // Assuming StaffLayout class exists
-        public MeasureLayoutInfo MeasureLayout { get; set; } // Assuming MeasureLayoutInfo (or MeasureLayout) class exists
-        public MeasureNumbering MeasureNumbering { get; set; } // Assuming MeasureNumbering class exists
+        public MeasureLayoutInfo? MeasureLayout { get; set; } // Assuming MeasureLayoutInfo (or MeasureLayout) class exists
+        public MeasureNumbering? MeasureNumbering { get; set; } // Assuming MeasureNumbering class exists
 
         public PrintObject(
             bool newPage = false,
             bool newSystem = false,
             int? blankPage = null,
-            string pageNumber = null,
-            PageLayout localPageLayout = null,
-            SystemLayout localSystemLayout = null,
-            List<StaffLayout> localStaffLayouts = null,
-            MeasureLayoutInfo measureLayout = null,
-            MeasureNumbering measureNumbering = null)
+            string? pageNumber = null,
+            PageLayout? localPageLayout = null,
+            SystemLayout? localSystemLayout = null,
+            List<StaffLayout>? localStaffLayouts = null,
+            MeasureLayoutInfo? measureLayout = null,
+            MeasureNumbering? measureNumbering = null)
         {
             NewPage = newPage;
             NewSystem = newSystem;
@@ -38,7 +38,7 @@ namespace MusicXMLParser.Models
             MeasureNumbering = measureNumbering;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is PrintObject other)
             {

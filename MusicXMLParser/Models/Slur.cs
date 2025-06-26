@@ -23,14 +23,14 @@ namespace MusicXMLParser.Models
         /// The placement of the slur relative to the note (e.g., "above", "below").
         /// Optional.
         /// </summary>
-        public string Placement { get; } // Consider an enum Placement in the future
+        public string? Placement { get; } // Consider an enum Placement in the future
 
         // Other common attributes like orientation, bezier points can be added later.
 
         /// <summary>
         /// Creates a new <see cref="Slur"/> instance.
         /// </summary>
-        public Slur(string type, int number = 1, string placement = null)
+        public Slur(string type, int number = 1, string? placement = null)
         {
             if (string.IsNullOrEmpty(type))
                 throw new ArgumentException("Slur type cannot be null or empty.", nameof(type));
@@ -40,7 +40,7 @@ namespace MusicXMLParser.Models
             Placement = placement;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is Slur other)
             {

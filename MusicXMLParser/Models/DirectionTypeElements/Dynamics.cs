@@ -6,30 +6,30 @@ namespace MusicXMLParser.Models.DirectionTypeElements
 {
     public class Dynamics : IDirectionTypeElement, IEquatable<Dynamics>
     {
-        public string Color { get; }
+        public string? Color { get; }
         public double? DefaultX { get; }
         public double? DefaultY { get; }
-        public string Enclosure { get; }
-        public string FontFamily { get; }
-        public string FontSize { get; }
-        public string FontStyle { get; }
-        public string FontWeight { get; }
-        public string Halign { get; }
-        public string Id { get; }
+        public string? Enclosure { get; }
+        public string? FontFamily { get; }
+        public string? FontSize { get; }
+        public string? FontStyle { get; }
+        public string? FontWeight { get; }
+        public string? Halign { get; }
+        public string? Id { get; }
         public int? LineThrough { get; }
         public int? Overline { get; }
-        public string Placement { get; }
+        public string? Placement { get; }
         public double? RelativeX { get; }
         public double? RelativeY { get; }
         public int? Underline { get; }
-        public string Valign { get; }
+        public string? Valign { get; }
         public List<string> Values { get; } // e.g. ["p", "f", "sfz"] or ["other-dynamics"] content
 
-        public Dynamics(string color = null, double? defaultX = null, double? defaultY = null, string enclosure = null,
-                        string fontFamily = null, string fontSize = null, string fontStyle = null, string fontWeight = null,
-                        string halign = null, string id = null, int? lineThrough = null, int? overline = null,
-                        string placement = null, double? relativeX = null, double? relativeY = null, int? underline = null,
-                        string valign = null, List<string> values = null)
+        public Dynamics(string? color = null, double? defaultX = null, double? defaultY = null, string? enclosure = null,
+                        string? fontFamily = null, string? fontSize = null, string? fontStyle = null, string? fontWeight = null,
+                        string? halign = null, string? id = null, int? lineThrough = null, int? overline = null,
+                        string? placement = null, double? relativeX = null, double? relativeY = null, int? underline = null,
+                        string? valign = null, List<string>? values = null)
         {
             Color = color;
             DefaultX = defaultX;
@@ -51,9 +51,9 @@ namespace MusicXMLParser.Models.DirectionTypeElements
             Values = values ?? new List<string>();
         }
 
-        public override bool Equals(object obj) => Equals(obj as Dynamics);
+        public override bool Equals(object? obj) => Equals(obj as Dynamics);
 
-        public bool Equals(Dynamics other) =>
+        public bool Equals(Dynamics? other) =>
             other != null &&
             Color == other.Color &&
             DefaultX == other.DefaultX &&

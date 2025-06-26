@@ -25,14 +25,14 @@ namespace MusicXMLParser.Models
         /// The mode of the key signature (e.g., "major", "minor", "dorian").
         /// This is optional as per MusicXML specification.
         /// </summary>
-        public string Mode { get; }
+        public string? Mode { get; }
 
         /// <summary>
         /// Creates a new <see cref="KeySignature"/> instance.
         /// It's recommended to use <see cref="Validated"/> or <see cref="FromXElement"/>
         /// for creating instances, as they include validation.
         /// </summary>
-        public KeySignature(int fifths, string mode = null)
+        public KeySignature(int fifths, string? mode = null)
         {
             Fifths = fifths;
             Mode = mode;
@@ -41,9 +41,9 @@ namespace MusicXMLParser.Models
         // Removed Validated and FromXElement static methods as per user request to defer validation.
         // Parsing logic formerly in FromXElement will be moved to AttributesParser.
 
-        public override bool Equals(object obj) => Equals(obj as KeySignature);
+        public override bool Equals(object? obj) => Equals(obj as KeySignature);
 
-        public bool Equals(KeySignature other) =>
+        public bool Equals(KeySignature? other) =>
             other != null &&
             Fifths == other.Fifths &&
             Mode == other.Mode;

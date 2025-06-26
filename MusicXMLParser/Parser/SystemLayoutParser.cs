@@ -13,7 +13,7 @@ namespace MusicXMLParser.Parser
     {
         public SystemLayout Parse(XElement element)
         {
-            SystemMargins margins = null;
+            SystemMargins? margins = null;
             var marginsElement = element.Elements("system-margins").FirstOrDefault();
             if (marginsElement != null)
             {
@@ -23,7 +23,7 @@ namespace MusicXMLParser.Parser
                 );
             }
 
-            SystemDividers dividers = null;
+            SystemDividers? dividers = null;
             var dividersElement = element.Elements("system-dividers").FirstOrDefault();
             if (dividersElement != null)
             {

@@ -35,7 +35,7 @@ namespace MusicXMLParser.Models
         /// This factory method performs validation and throws
         /// <see cref="MusicXmlValidationException"/> if the duration values are invalid.
         /// </summary>
-        public static Duration Validated(int value, int divisions, int? line = null, Dictionary<string, object> context = null)
+        public static Duration Validated(int value, int divisions, int? line = null, Dictionary<string, object>? context = null)
         {
             var duration = new Duration(value, divisions);
             // Assuming ValidationUtils.ValidateDuration will be ported
@@ -48,9 +48,9 @@ namespace MusicXMLParser.Models
         /// </summary>
         public double InQuarterNotes => (double)Value / Divisions;
 
-        public override bool Equals(object obj) => Equals(obj as Duration);
+        public override bool Equals(object? obj) => Equals(obj as Duration);
 
-        public bool Equals(Duration other) =>
+        public bool Equals(Duration? other) =>
             other != null &&
             Value == other.Value &&
             Divisions == other.Divisions;

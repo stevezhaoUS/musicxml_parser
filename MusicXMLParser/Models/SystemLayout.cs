@@ -13,7 +13,7 @@ namespace MusicXMLParser.Models
             RightMargin = rightMargin;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is SystemMargins other)
             {
@@ -45,7 +45,7 @@ namespace MusicXMLParser.Models
             RightDivider = rightDivider;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is SystemDividers other)
             {
@@ -68,16 +68,16 @@ namespace MusicXMLParser.Models
 
     public class SystemLayout
     {
-        public SystemMargins SystemMargins { get; set; }
+        public SystemMargins? SystemMargins { get; set; }
         public double? SystemDistance { get; set; }
         public double? TopSystemDistance { get; set; }
-        public SystemDividers SystemDividers { get; set; }
+        public SystemDividers? SystemDividers { get; set; }
 
         public SystemLayout(
-            SystemMargins systemMargins = null,
+            SystemMargins? systemMargins = null,
             double? systemDistance = null,
             double? topSystemDistance = null,
-            SystemDividers systemDividers = null)
+            SystemDividers? systemDividers = null)
         {
             SystemMargins = systemMargins;
             SystemDistance = systemDistance;
@@ -85,7 +85,7 @@ namespace MusicXMLParser.Models
             SystemDividers = systemDividers;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is SystemLayout other)
             {

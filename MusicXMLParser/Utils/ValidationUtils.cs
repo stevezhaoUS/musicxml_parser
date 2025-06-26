@@ -184,7 +184,7 @@ namespace MusicXMLParser.Utils
             }
 
             // Validate mode if specified
-            if (!string.IsNullOrEmpty(keySignature.Mode) && !ValidModes.Contains(keySignature.Mode.ToLower()))
+            if (keySignature.Mode is string mode && !ValidModes.Contains(mode.ToLower()))
             {
                  var currentContext = new Dictionary<string, object>
                 {
