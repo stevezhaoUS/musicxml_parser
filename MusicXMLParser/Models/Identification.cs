@@ -42,20 +42,20 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a new <see cref="Identification"/> instance.
         /// </summary>
-        public Identification(string composer = null, string lyricist = null, string arranger = null,
-                              string rights = null, string source = null, Encoding encoding = null)
+        public Identification(string? composer = null, string? lyricist = null, string? arranger = null,
+                              string? rights = null, string? source = null, Encoding? encoding = null)
         {
-            Composer = composer;
-            Lyricist = lyricist;
-            Arranger = arranger;
-            Rights = rights;
-            Source = source;
-            Encoding = encoding;
+            Composer = composer ?? string.Empty;
+            Lyricist = lyricist ?? string.Empty;
+            Arranger = arranger ?? string.Empty;
+            Rights = rights ?? string.Empty;
+            Source = source ?? string.Empty;
+            Encoding = encoding ?? new Encoding();
         }
 
-        public override bool Equals(object obj) => Equals(obj as Identification);
+        public override bool Equals(object? obj) => Equals(obj as Identification);
 
-        public bool Equals(Identification other) =>
+        public bool Equals(Identification? other) =>
             other != null &&
             Composer == other.Composer &&
             Lyricist == other.Lyricist &&
@@ -91,16 +91,16 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a new <see cref="Encoding"/> instance.
         /// </summary>
-        public Encoding(string software = null, string encodingDate = null, string description = null)
+        public Encoding(string? software = null, string? encodingDate = null, string? description = null)
         {
-            Software = software;
-            EncodingDate = encodingDate;
-            Description = description;
+            Software = software ?? string.Empty;
+            EncodingDate = encodingDate ?? string.Empty;
+            Description = description ?? string.Empty;
         }
 
-        public override bool Equals(object obj) => Equals(obj as Encoding);
+        public override bool Equals(object? obj) => Equals(obj as Encoding);
 
-        public bool Equals(Encoding other) =>
+        public bool Equals(Encoding? other) =>
             other != null &&
             Software == other.Software &&
             EncodingDate == other.EncodingDate &&

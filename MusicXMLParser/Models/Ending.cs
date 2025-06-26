@@ -31,16 +31,16 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Creates a new <see cref="Ending"/> instance.
         /// </summary>
-        public Ending(string number, string type, string printObject = "yes")
+        public Ending(string? number, string? type, string? printObject = "yes")
         {
-            Number = number;
-            Type = type;
-            PrintObject = printObject; // MusicXML default for print-object is "yes"
+            Number = number ?? "";
+            Type = type ?? "";
+            PrintObject = printObject ?? "yes";
         }
 
-        public override bool Equals(object obj) => Equals(obj as Ending);
+        public override bool Equals(object? obj) => Equals(obj as Ending);
 
-        public bool Equals(Ending other) =>
+        public bool Equals(Ending? other) =>
             other != null &&
             Number == other.Number &&
             Type == other.Type &&

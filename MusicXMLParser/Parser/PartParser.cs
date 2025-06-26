@@ -34,7 +34,7 @@ namespace MusicXMLParser.Parser
                 );
             }
 
-            string name = null;
+            string? name = null;
             if (partListElement != null)
             {
                 var scorePartElement = partListElement.Elements("score-part")
@@ -57,8 +57,8 @@ namespace MusicXMLParser.Parser
             var partBuilder = new PartBuilder(id).SetName(name); // Removed line argument
 
             int? activeDivisions = null;
-            KeySignature activeKeySignature = null;
-            TimeSignature activeTimeSignature = null;
+            KeySignature? activeKeySignature = null;
+            TimeSignature? activeTimeSignature = null;
             // In C#, List<Clef> would need to be managed similarly if it's inherited across measures.
             // For now, focusing on the attributes explicitly handled in the Dart version's loop.
             // List<Clef> activeClefs = null;
@@ -76,7 +76,18 @@ namespace MusicXMLParser.Parser
                 );
                 // 调试输出 measure 主要内容
                 Console.WriteLine($"[PartParser] Parsed measure: number={measure?.Number}, notes={measure?.Notes?.Count ?? -1}");
-                partBuilder.AddMeasure(measure);
+                if (measure != null)
+                {
+                    partBuilder.AddMeasure(measure);
+                    if (measure.KeySignature != null)
+                    {
+                        activeKeySignature = measure.KeySignature;
+                    }
+                    if (measure.TimeSignature != null)
+                    {
+                        activeTimeSignature = measure.TimeSignature;
+                    }
+                }
 
                 // Update active attributes for the *next* measure
                 var attributesInMeasure = measureElement.Elements("attributes").FirstOrDefault();

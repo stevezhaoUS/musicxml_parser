@@ -20,7 +20,7 @@ namespace MusicXMLParser.Models
             StaffDistance = staffDistance;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is StaffLayout other)
             {

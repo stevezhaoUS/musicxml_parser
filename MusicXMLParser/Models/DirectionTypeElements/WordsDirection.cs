@@ -13,39 +13,39 @@ namespace MusicXMLParser.Models.DirectionTypeElements
         public string Text { get; }
 
         // Attributes from <words> element
-        public string Color { get; }
+        public string? Color { get; }
         public double? DefaultX { get; }
         public double? DefaultY { get; }
-        public string Dir { get; } // text-direction
-        public string Enclosure { get; } // enclosure-shape
-        public string FontFamily { get; }
-        public string FontSize { get; } // font-size (CSS size or numeric point size)
-        public string FontStyle { get; } // font-style (normal or italic)
-        public string FontWeight { get; } // font-weight (normal or bold)
-        public string Halign { get; } // left-center-right
-        public string Id { get; }
-        public string Justify { get; } // left-center-right
-        public string LetterSpacing { get; } // number-or-normal
-        public string LineHeight { get; } // number-or-normal
+        public string? Dir { get; } // text-direction
+        public string? Enclosure { get; } // enclosure-shape
+        public string? FontFamily { get; }
+        public string? FontSize { get; } // font-size (CSS size or numeric point size)
+        public string? FontStyle { get; } // font-style (normal or italic)
+        public string? FontWeight { get; } // font-weight (normal or bold)
+        public string? Halign { get; } // left-center-right
+        public string? Id { get; }
+        public string? Justify { get; } // left-center-right
+        public string? LetterSpacing { get; } // number-or-normal
+        public string? LineHeight { get; } // number-or-normal
         public int? LineThrough { get; } // number-of-lines
         public int? Overline { get; } // number-of-lines
         public double? RelativeX { get; }
         public double? RelativeY { get; }
         public double? Rotation { get; } // rotation-degrees
         public int? Underline { get; } // number-of-lines
-        public string Valign { get; } // valign
-        public string XmlLang { get; }
-        public string XmlSpace { get; } // preserve or default
+        public string? Valign { get; } // valign
+        public string? XmlLang { get; }
+        public string? XmlSpace { get; } // preserve or default
 
         /// <summary>
         /// Creates a new <see cref="WordsDirection"/> instance.
         /// </summary>
-        public WordsDirection(string text, string color = null, double? defaultX = null, double? defaultY = null,
-                              string dir = null, string enclosure = null, string fontFamily = null, string fontSize = null,
-                              string fontStyle = null, string fontWeight = null, string halign = null, string id = null,
-                              string justify = null, string letterSpacing = null, string lineHeight = null,
+        public WordsDirection(string text, string? color = null, double? defaultX = null, double? defaultY = null,
+                              string? dir = null, string? enclosure = null, string? fontFamily = null, string? fontSize = null,
+                              string? fontStyle = null, string? fontWeight = null, string? halign = null, string? id = null,
+                              string? justify = null, string? letterSpacing = null, string? lineHeight = null,
                               int? lineThrough = null, int? overline = null, double? relativeX = null, double? relativeY = null,
-                              double? rotation = null, int? underline = null, string valign = null, string xmlLang = null, string xmlSpace = null)
+                              double? rotation = null, int? underline = null, string? valign = null, string? xmlLang = null, string? xmlSpace = null)
         {
             Text = text;
             Color = color;
@@ -73,9 +73,9 @@ namespace MusicXMLParser.Models.DirectionTypeElements
             XmlSpace = xmlSpace;
         }
 
-        public override bool Equals(object obj) => Equals(obj as WordsDirection);
+        public override bool Equals(object? obj) => Equals(obj as WordsDirection);
 
-        public bool Equals(WordsDirection other) =>
+        public bool Equals(WordsDirection? other) =>
             other != null &&
             Text == other.Text &&
             Color == other.Color &&

@@ -21,8 +21,8 @@ namespace MusicXMLParser.Parser
             int? currentDivisions)
         {
             int? divisions = currentDivisions;
-            KeySignature keySignature = null;
-            TimeSignature timeSignature = null;
+            KeySignature? keySignature = null;
+            TimeSignature? timeSignature = null;
             List<Clef> clefs = new List<Clef>();
 
             // Parse divisions
@@ -70,12 +70,23 @@ namespace MusicXMLParser.Parser
                 clefs.Add(ParseClef(clefElement, partId, measureNumber));
             }
 
-            var parsedAttributes = new Dictionary<string, object>
+            var parsedAttributes = new Dictionary<string, object>();
+            
+            if (divisions.HasValue)
             {
-                { "divisions", divisions },
-                { "keySignature", keySignature },
-                { "timeSignature", timeSignature }
-            };
+                parsedAttributes["divisions"] = divisions.Value;
+            }
+            
+            if (keySignature != null)
+            {
+                parsedAttributes["keySignature"] = keySignature;
+            }
+            
+            if (timeSignature != null)
+            {
+                parsedAttributes["timeSignature"] = timeSignature;
+            }
+            
             if (clefs.Any())
             {
                 parsedAttributes["clefs"] = clefs;
@@ -246,7 +257,7 @@ namespace MusicXMLParser.Parser
                 }
             }
 
-            string numberStr = XmlHelper.GetAttributeValue(element, "number");
+            string? numberStr = XmlHelper.GetAttributeValue(element, "number");
             int? number = null;
             if (numberStr != null)
             {

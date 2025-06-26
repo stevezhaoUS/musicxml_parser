@@ -97,18 +97,21 @@ namespace MusicXMLParser.Parser
                 {
                     case "attributes":
                         var attributesData = _attributesParser.Parse(child, partId, numberAttr, currentDivisions);
-                        currentDivisions = (int?)attributesData["divisions"] ?? currentDivisions;
-                        if (attributesData["keySignature"] != null)
+                        if (attributesData.TryGetValue("divisions", out var divisionsObj) && divisionsObj is int divisionsValue)
                         {
-                            measureBuilder.SetKeySignature((KeySignature)attributesData["keySignature"]);
+                            currentDivisions = divisionsValue;
                         }
-                        if (attributesData["timeSignature"] != null)
+                        if (attributesData.TryGetValue("keySignature", out var keySignatureObj) && keySignatureObj is KeySignature keySignature)
                         {
-                            measureBuilder.SetTimeSignature((TimeSignature)attributesData["timeSignature"]);
+                            measureBuilder.SetKeySignature(keySignature);
                         }
-                        if (attributesData["clefs"] != null)
+                        if (attributesData.TryGetValue("timeSignature", out var timeSignatureObj) && timeSignatureObj is TimeSignature timeSignature)
                         {
-                            measureBuilder.SetClefs((List<Clef>)attributesData["clefs"]);
+                            measureBuilder.SetTimeSignature(timeSignature);
+                        }
+                        if (attributesData.TryGetValue("clefs", out var clefsObj) && clefsObj is List<Clef> clefs)
+                        {
+                            measureBuilder.SetClefs(clefs);
                         }
                         break;
                     case "note":
@@ -201,11 +204,11 @@ namespace MusicXMLParser.Parser
 
         private Barline ParseBarline(XElement barlineElement)
         {
-            string location = XmlHelper.GetAttributeValue(barlineElement, "location");
+            string location = XmlHelper.GetAttributeValue(barlineElement, "location") ?? "";
             XElement barStyleElement = barlineElement.Element("bar-style");
-            string barStyle = barStyleElement?.Value.Trim();
+            string barStyle = barStyleElement?.Value.Trim() ?? "";
             XElement repeatElement = barlineElement.Element("repeat");
-            string repeatDirection = null;
+            string? repeatDirection = null;
             int? repeatTimes = null;
             if (repeatElement != null)
             {
@@ -213,7 +216,7 @@ namespace MusicXMLParser.Parser
                 string timesStr = XmlHelper.GetAttributeValue(repeatElement, "times");
                 repeatTimes = !string.IsNullOrEmpty(timesStr) && int.TryParse(timesStr, out int times) ? times : (int?)null;
             }
-            return new Barline(location, barStyle, repeatDirection, repeatTimes);
+            return new Barline(location, barStyle, repeatDirection ?? "", repeatTimes);
         }
 
         private Ending? ParseEnding(XElement endingElement, string partId, string measureNumber)
@@ -239,7 +242,7 @@ namespace MusicXMLParser.Parser
             if (!string.IsNullOrEmpty(number) || !string.IsNullOrEmpty(type))
             {
                 string printObjectStr = printObject == true ? "yes" : (printObject == false ? "no" : "yes");
-                return new Ending(number, type, printObjectStr);
+                return new Ending(number ?? "", type ?? "", printObjectStr);
             }
 
             return null;
@@ -447,14 +450,14 @@ namespace MusicXMLParser.Parser
             var newSystem = newSystemAttr == "yes";
             int? blankPage = !string.IsNullOrEmpty(blankPageStr) && int.TryParse(blankPageStr, out int bp) ? bp : (int?)null;
 
-            PageLayout localPageLayout = null;
+            PageLayout? localPageLayout = null;
             var pageLayoutElement = printElement.Element("page-layout");
             if (pageLayoutElement != null)
             {
                 localPageLayout = _pageLayoutParser.Parse(pageLayoutElement);
             }
 
-            SystemLayout localSystemLayout = null;
+            SystemLayout? localSystemLayout = null;
             var systemLayoutElement = printElement.Element("system-layout");
             if (systemLayoutElement != null)
             {
@@ -467,7 +470,7 @@ namespace MusicXMLParser.Parser
                 localStaffLayouts.Add(_staffLayoutParser.Parse(staffLayoutElement));
             }
 
-            MeasureLayoutInfo measureLayout = null;
+            MeasureLayoutInfo? measureLayout = null;
             var measureLayoutElement = printElement.Element("measure-layout");
             if (measureLayoutElement != null)
             {
@@ -475,7 +478,7 @@ namespace MusicXMLParser.Parser
                 measureLayout = new MeasureLayoutInfo(measureDistance);
             }
 
-            MeasureNumbering measureNumbering = null;
+            MeasureNumbering? measureNumbering = null;
             var measureNumberingElement = printElement.Element("measure-numbering");
             if (measureNumberingElement != null)
             {

@@ -4,23 +4,23 @@ namespace MusicXMLParser.Models.DirectionTypeElements
 {
     public class Segno : IDirectionTypeElement, IEquatable<Segno>
     {
-        public string Color { get; }
+        public string? Color { get; }
         public double? DefaultX { get; }
         public double? DefaultY { get; }
-        public string FontFamily { get; }
-        public string FontSize { get; }
-        public string FontStyle { get; }
-        public string FontWeight { get; }
-        public string Halign { get; }
-        public string Id { get; }
+        public string? FontFamily { get; }
+        public string? FontSize { get; }
+        public string? FontStyle { get; }
+        public string? FontWeight { get; }
+        public string? Halign { get; }
+        public string? Id { get; }
         public double? RelativeX { get; }
         public double? RelativeY { get; }
-        public string Smufl { get; }
-        public string Valign { get; }
+        public string? Smufl { get; }
+        public string? Valign { get; }
 
-        public Segno(string color = null, double? defaultX = null, double? defaultY = null, string fontFamily = null,
-                     string fontSize = null, string fontStyle = null, string fontWeight = null, string halign = null,
-                     string id = null, double? relativeX = null, double? relativeY = null, string smufl = null, string valign = null)
+        public Segno(string? color = null, double? defaultX = null, double? defaultY = null, string? fontFamily = null,
+                     string? fontSize = null, string? fontStyle = null, string? fontWeight = null, string? halign = null,
+                     string? id = null, double? relativeX = null, double? relativeY = null, string? smufl = null, string? valign = null)
         {
             Color = color;
             DefaultX = defaultX;
@@ -37,9 +37,9 @@ namespace MusicXMLParser.Models.DirectionTypeElements
             Valign = valign;
         }
 
-        public override bool Equals(object obj) => Equals(obj as Segno);
+        public override bool Equals(object? obj) => Equals(obj as Segno);
 
-        public bool Equals(Segno other) =>
+        public bool Equals(Segno? other) =>
             other != null &&
             Color == other.Color &&
             DefaultX == other.DefaultX &&

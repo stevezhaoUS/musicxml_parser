@@ -57,7 +57,7 @@ namespace MusicXMLParser.Parser
             var line = XmlHelper.GetLineNumber(element);
             var version = XmlHelper.GetAttributeValue(element, "version");
 
-            var scoreBuilder = new ScoreBuilder(version);
+            var scoreBuilder = new ScoreBuilder(version ?? "3.0");
 
             // 使用优化的方法获取元素
             var workElement = element.Element("work");

@@ -69,9 +69,9 @@ namespace MusicXMLParser.Parser
                 beams.Sort((a, b) => a.NoteIndices.First().CompareTo(b.NoteIndices.First()));
 
                 // Temporary storage for the currently processed beam group
-                Beam currentBeamContext = null;
+                Beam? currentBeamContext = null;
                 List<int> currentNoteIndices = new List<int>();
-                string currentType = null; // Stores the type of the start of the beam ('begin')
+                string? currentType = null; // Stores the type of the start of the beam ('begin')
 
                 // Process each beam in order
                 foreach (var beam in beams)
