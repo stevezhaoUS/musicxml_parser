@@ -37,12 +37,12 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// The key signature active at the beginning of this measure, if specified.
         /// </summary>
-        public KeySignature KeySignature { get; }
+        public KeySignature? KeySignature { get; }
 
         /// <summary>
         /// The time signature active at the beginning of this measure, if specified.
         /// </summary>
-        public TimeSignature TimeSignature { get; }
+        public TimeSignature? TimeSignature { get; }
 
         /// <summary>
         /// A list of <see cref="Clef"/> objects active at the beginning of this measure.
@@ -73,7 +73,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Repeat <see cref="Ending"/> information for this measure, if applicable.
         /// </summary>
-        public Ending Ending { get; }
+        public Ending? Ending { get; }
 
         /// <summary>
         /// List of <see cref="Direction"/> objects associated with this measure.
@@ -83,11 +83,11 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Print-related hints and overrides for this measure.
         /// </summary>
-        public PrintObject PrintObject { get; }
+        public PrintObject? PrintObject { get; }
 
-        public Measure(string number, List<Note> notes, KeySignature keySignature = null, TimeSignature timeSignature = null,
-                       List<Clef> clefs = null, bool isPickup = false, double? width = null, List<Beam> beams = null,
-                       List<Barline> barlines = null, Ending ending = null, List<Direction> directions = null, PrintObject printObject = null)
+        public Measure(string number, List<Note>? notes = null, KeySignature? keySignature = null, TimeSignature? timeSignature = null,
+                       List<Clef>? clefs = null, bool isPickup = false, double? width = null, List<Beam>? beams = null,
+                       List<Barline>? barlines = null, Ending? ending = null, List<Direction>? directions = null, PrintObject? printObject = null)
         {
             Number = number;
             Notes = notes ?? new List<Note>();
@@ -109,15 +109,15 @@ namespace MusicXMLParser.Models
             other != null &&
             Number == other.Number &&
             (Notes == null ? other.Notes == null : Notes.SequenceEqual(other.Notes ?? new List<Note>())) &&
-            EqualityComparer<KeySignature>.Default.Equals(KeySignature, other.KeySignature) &&
-            EqualityComparer<TimeSignature>.Default.Equals(TimeSignature, other.TimeSignature) &&
+            EqualityComparer<KeySignature?>.Default.Equals(KeySignature, other.KeySignature) &&
+            EqualityComparer<TimeSignature?>.Default.Equals(TimeSignature, other.TimeSignature) &&
             (Clefs == null ? other.Clefs == null : Clefs.SequenceEqual(other.Clefs ?? new List<Clef>())) &&
             Width == other.Width &&
             (Beams == null ? other.Beams == null : Beams.SequenceEqual(other.Beams ?? new List<Beam>())) &&
             (Barlines == null ? other.Barlines == null : Barlines.SequenceEqual(other.Barlines ?? new List<Barline>())) &&
-            EqualityComparer<Ending>.Default.Equals(Ending, other.Ending) &&
+            EqualityComparer<Ending?>.Default.Equals(Ending, other.Ending) &&
             (Directions == null ? other.Directions == null : Directions.SequenceEqual(other.Directions ?? new List<Direction>())) &&
-            EqualityComparer<PrintObject>.Default.Equals(PrintObject, other.PrintObject);
+            EqualityComparer<PrintObject?>.Default.Equals(PrintObject, other.PrintObject);
 
 
         public override int GetHashCode()
@@ -163,16 +163,16 @@ namespace MusicXMLParser.Models
     {
         private readonly string _number;
         private List<Note> _notes = new List<Note>();
-        private KeySignature _keySignature;
-        private TimeSignature _timeSignature;
+        private KeySignature? _keySignature;
+        private TimeSignature? _timeSignature;
         private List<Clef> _clefs = new List<Clef>();
         private double? _width;
         private List<Beam> _beams = new List<Beam>();
         private bool _isPickup = false;
         private List<Barline> _barlines = new List<Barline>();
-        private Ending _ending;
+        private Ending? _ending;
         private List<Direction> _directions = new List<Direction>();
-        private PrintObject _printObject;
+        private PrintObject? _printObject;
 
         public MeasureBuilder(string number, int? line = null, Dictionary<string, object> context = null)
         {
@@ -180,21 +180,21 @@ namespace MusicXMLParser.Models
             // line and context are currently unused in C# version, similar to Dart
         }
 
-        public MeasureBuilder SetNotes(List<Note> notes) { _notes = notes; return this; }
+        public MeasureBuilder SetNotes(List<Note>? notes) { _notes = notes ?? new List<Note>(); return this; }
         public MeasureBuilder AddNote(Note note) { _notes.Add(note); return this; }
-        public MeasureBuilder SetKeySignature(KeySignature keySignature) { _keySignature = keySignature; return this; }
-        public MeasureBuilder SetTimeSignature(TimeSignature timeSignature) { _timeSignature = timeSignature; return this; }
-        public MeasureBuilder SetClefs(List<Clef> clefs) { _clefs = clefs; return this; }
+        public MeasureBuilder SetKeySignature(KeySignature? keySignature) { _keySignature = keySignature; return this; }
+        public MeasureBuilder SetTimeSignature(TimeSignature? timeSignature) { _timeSignature = timeSignature; return this; }
+        public MeasureBuilder SetClefs(List<Clef>? clefs) { _clefs = clefs ?? new List<Clef>(); return this; }
         public MeasureBuilder SetWidth(double? width) { _width = width; return this; }
-        public MeasureBuilder SetBeams(List<Beam> beams) { _beams = beams; return this; }
+        public MeasureBuilder SetBeams(List<Beam>? beams) { _beams = beams ?? new List<Beam>(); return this; }
         public MeasureBuilder AddBeam(Beam beam) { _beams.Add(beam); return this; }
         public MeasureBuilder SetIsPickup(bool isPickup) { _isPickup = isPickup; return this; }
-        public MeasureBuilder SetBarlines(List<Barline> barlines) { _barlines = barlines; return this; }
+        public MeasureBuilder SetBarlines(List<Barline>? barlines) { _barlines = barlines ?? new List<Barline>(); return this; }
         public MeasureBuilder AddBarline(Barline barline) { _barlines.Add(barline); return this; }
-        public MeasureBuilder SetEnding(Ending ending) { _ending = ending; return this; }
-        public MeasureBuilder SetDirections(List<Direction> directions) { _directions = directions; return this; }
+        public MeasureBuilder SetEnding(Ending? ending) { _ending = ending; return this; }
+        public MeasureBuilder SetDirections(List<Direction>? directions) { _directions = directions ?? new List<Direction>(); return this; }
         public MeasureBuilder AddDirection(Direction direction) { _directions.Add(direction); return this; }
-        public MeasureBuilder SetPrintObject(PrintObject printObject) { _printObject = printObject; return this; }
+        public MeasureBuilder SetPrintObject(PrintObject? printObject) { _printObject = printObject; return this; }
 
         // For internal use, similar to Dart's @internal
         public int DebugGetNotesCount() => _notes.Count;

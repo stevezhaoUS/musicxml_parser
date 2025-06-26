@@ -23,7 +23,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// The display name of the part (e.g., "Violin I", "Piano Left Hand").
         /// </summary>
-        public string Name { get; }
+        public string? Name { get; }
 
         /// <summary>
         /// The list of <see cref="Measure"/> objects that constitute this part.
@@ -37,11 +37,11 @@ namespace MusicXMLParser.Models
         /// It is generally recommended to use <see cref="PartBuilder"/> for constructing <see cref="Part"/>
         /// objects, especially during parsing.
         /// </remarks>
-        public Part(string id, string name, List<Measure> measures)
+        public Part(string id, string? name, List<Measure>? measures)
         {
             Id = id;
             Name = name;
-            Measures = measures;
+            Measures = measures ?? new List<Measure>();
         }
 
         public override bool Equals(object obj)
@@ -83,7 +83,7 @@ namespace MusicXMLParser.Models
     public class PartBuilder
     {
         private readonly string _id;
-        private string _name;
+        private string? _name;
         private List<Measure> _measures = new List<Measure>();
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Sets the name of the part.
         /// </summary>
-        public PartBuilder SetName(string name)
+        public PartBuilder SetName(string? name)
         {
             _name = name;
             return this;
@@ -110,7 +110,7 @@ namespace MusicXMLParser.Models
         /// <summary>
         /// Sets all measures for the part.
         /// </summary>
-        public PartBuilder SetMeasures(List<Measure> measures)
+        public PartBuilder SetMeasures(List<Measure>? measures)
         {
             _measures = measures ?? new List<Measure>();
             return this;

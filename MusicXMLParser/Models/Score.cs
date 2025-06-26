@@ -91,7 +91,7 @@ namespace MusicXMLParser.Models
         /// </remarks>
         public Score(
             string? version,
-            List<Part> parts,
+            List<Part>? parts,
             Work? work = null,
             Identification? identification = null,
             PageLayout? pageLayout = null,
@@ -107,7 +107,7 @@ namespace MusicXMLParser.Models
                 throw new ArgumentException("Version cannot be null or empty.", nameof(version));
 
             Version = version;
-            Parts = parts ?? throw new ArgumentNullException(nameof(parts));
+            Parts = parts ?? new List<Part>();
             Work = work;
             Identification = identification;
             PageLayout = pageLayout;
@@ -183,16 +183,16 @@ namespace MusicXMLParser.Models
     public class ScoreBuilder
     {
         private string _version = "3.0"; // Default version
-        private Work _work;
-        private Identification _identification;
+        private Work? _work;
+        private Identification? _identification;
         private List<Part> _parts = new List<Part>();
-        private PageLayout _pageLayout;
-        private SystemLayout _defaultSystemLayout;
+        private PageLayout? _pageLayout;
+        private SystemLayout? _defaultSystemLayout;
         private List<StaffLayout> _defaultStaffLayouts = new List<StaffLayout>();
-        private Scaling _scaling;
-        private Appearance _appearance;
-        private string _title;
-        private string _composer;
+        private Scaling? _scaling;
+        private Appearance? _appearance;
+        private string? _title;
+        private string? _composer;
         private List<Credit> _credits = new List<Credit>();
 
         public ScoreBuilder(string version = "3.0")
@@ -206,20 +206,20 @@ namespace MusicXMLParser.Models
             return this;
         }
 
-        public ScoreBuilder SetWork(Work work) { _work = work; return this; }
-        public ScoreBuilder SetIdentification(Identification identification) { _identification = identification; return this; }
-        public ScoreBuilder SetParts(List<Part> parts) { _parts = parts ?? new List<Part>(); return this; }
-        public ScoreBuilder AddPart(Part part) { if (part != null) _parts.Add(part); return this; }
-        public ScoreBuilder SetPageLayout(PageLayout pageLayout) { _pageLayout = pageLayout; return this; }
-        public ScoreBuilder SetDefaultSystemLayout(SystemLayout systemLayout) { _defaultSystemLayout = systemLayout; return this; }
-        public ScoreBuilder setDefaultStaffLayouts(List<StaffLayout> staffLayouts) { _defaultStaffLayouts = staffLayouts ?? new List<StaffLayout>(); return this; }
-        public ScoreBuilder AddDefaultStaffLayout(StaffLayout staffLayout) { if (staffLayout != null) _defaultStaffLayouts.Add(staffLayout); return this; }
-        public ScoreBuilder SetScaling(Scaling scaling) { _scaling = scaling; return this; }
-        public ScoreBuilder SetAppearance(Appearance appearance) { _appearance = appearance; return this; }
-        public ScoreBuilder SetTitle(string title) { _title = title; return this; }
-        public ScoreBuilder SetComposer(string composer) { _composer = composer; return this; }
-        public ScoreBuilder SetCredits(List<Credit> credits) { _credits = credits ?? new List<Credit>(); return this; }
-        public ScoreBuilder AddCredit(Credit credit) { if (credit != null) _credits.Add(credit); return this; }
+        public ScoreBuilder SetWork(Work? work) { _work = work; return this; }
+        public ScoreBuilder SetIdentification(Identification? identification) { _identification = identification; return this; }
+        public ScoreBuilder SetParts(List<Part>? parts) { _parts = parts ?? new List<Part>(); return this; }
+        public ScoreBuilder AddPart(Part? part) { if (part != null) _parts.Add(part); return this; }
+        public ScoreBuilder SetPageLayout(PageLayout? pageLayout) { _pageLayout = pageLayout; return this; }
+        public ScoreBuilder SetDefaultSystemLayout(SystemLayout? systemLayout) { _defaultSystemLayout = systemLayout; return this; }
+        public ScoreBuilder setDefaultStaffLayouts(List<StaffLayout>? staffLayouts) { _defaultStaffLayouts = staffLayouts ?? new List<StaffLayout>(); return this; }
+        public ScoreBuilder AddDefaultStaffLayout(StaffLayout? staffLayout) { if (staffLayout != null) _defaultStaffLayouts.Add(staffLayout); return this; }
+        public ScoreBuilder SetScaling(Scaling? scaling) { _scaling = scaling; return this; }
+        public ScoreBuilder SetAppearance(Appearance? appearance) { _appearance = appearance; return this; }
+        public ScoreBuilder SetTitle(string? title) { _title = title; return this; }
+        public ScoreBuilder SetComposer(string? composer) { _composer = composer; return this; }
+        public ScoreBuilder SetCredits(List<Credit>? credits) { _credits = credits ?? new List<Credit>(); return this; }
+        public ScoreBuilder AddCredit(Credit? credit) { if (credit != null) _credits.Add(credit); return this; }
 
         public Score Build()
         {
