@@ -78,9 +78,22 @@ namespace MusicXMLParser.Parser
                 ParseDefaults(defaultElement, scoreBuilder);
             }
 
-            var creditElement = element.Element("credit");
-            if (creditElement != null)
+            // 处理所有<credit>元素，优先设置Title
+            var creditElements = element.Elements("credit").ToList();
+            bool titleSet = false;
+            foreach (var creditElement in creditElements)
             {
+                var creditType = XmlHelper.GetElementText(creditElement, "credit-type");
+                if (!titleSet && creditType == "title")
+                {
+                    // 合并所有credit-words内容
+                    var titleText = string.Join(" ", creditElement.Elements("credit-words").Select(e => e.Value.Trim()).Where(s => !string.IsNullOrEmpty(s)));
+                    if (!string.IsNullOrEmpty(titleText))
+                    {
+                        scoreBuilder.SetTitle(titleText);
+                        titleSet = true;
+                    }
+                }
                 scoreBuilder.AddCredit(ParseCredit(creditElement));
             }
 
