@@ -1,29 +1,15 @@
-using System; // For IEquatable if needed later
-
 namespace MusicXMLParser.Models
 {
-    public class Work : IEquatable<Work>
+    public class Work
     {
-        public string? Title { get; } // work-title
-
-        // Other potential fields from MusicXML <work> element:
-        // public string? WorkNumber { get; }
-        // public string? OpusLink { get; } // attribute of <opus>
-        // etc.
-
-        public Work(string? title = null)
+        internal Work()
         {
-            Title = title;
+            Title = string.Empty;
+            Number = string.Empty;
         }
 
-        public override bool Equals(object? obj) => Equals(obj as Work);
+        public string Title { get; internal set; }
 
-        public bool Equals(Work? other) =>
-            other != null &&
-            Title == other.Title;
-
-        public override int GetHashCode() => HashCode.Combine(Title);
-
-        public override string ToString() => $"Work{{Title: {Title ?? "N/A"}}}";
+        public string Number { get; internal set; }
     }
-}
+} 

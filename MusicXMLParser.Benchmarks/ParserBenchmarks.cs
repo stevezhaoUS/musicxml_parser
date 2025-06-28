@@ -1,7 +1,7 @@
 using System.IO;
 using System.Reflection;
 using BenchmarkDotNet.Attributes;
-using MusicXMLParser.Parser;
+using MusicXMLParser;
 
 namespace MusicXMLParser.Benchmarks
 {
@@ -11,7 +11,6 @@ namespace MusicXMLParser.Benchmarks
         private string _xmlContentSmall;
         private string _xmlContentMedium;
         private string _xmlContentLarge;
-        private MusicXmlParser _parser;
 
         private string ReadEmbeddedResource(string name)
         {
@@ -30,25 +29,24 @@ namespace MusicXMLParser.Benchmarks
             _xmlContentSmall = ReadEmbeddedResource("small.xml");
             _xmlContentMedium = ReadEmbeddedResource("medium.xml");
             _xmlContentLarge = ReadEmbeddedResource("large.xml");
-            _parser = new MusicXmlParser();
         }
 
         [Benchmark]
         public void Parse_SmallFile()
         {
-            var score = _parser.Parse(_xmlContentSmall);
+            var score = MusicXmlParser.GetScoreFromString(_xmlContentSmall);
         }
 
         [Benchmark]
         public void Parse_MediumFile()
         {
-            var score = _parser.Parse(_xmlContentMedium);
+            var score = MusicXmlParser.GetScoreFromString(_xmlContentMedium);
         }
 
         [Benchmark]
         public void Parse_LargeFile()
         {
-            var score = _parser.Parse(_xmlContentLarge);
+            var score = MusicXmlParser.GetScoreFromString(_xmlContentLarge);
         }
     }
 } 
