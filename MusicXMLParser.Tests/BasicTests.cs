@@ -6,6 +6,46 @@ namespace MusicXMLParser.Tests;
 public class BasicTests
 {
     [Fact]
+    public void ParseFileSync_LargeXml_ShouldReturnValidScore()
+    {
+        // Arrange
+        var filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "TestData", "large.xml");
+
+        // Act
+        var score = MusicXmlParser.GetScore(filePath);
+
+        // Assert (basic checks, can be expanded as needed)
+        Assert.NotNull(score);
+        Assert.NotNull(score.Parts);
+        Assert.True(score.Parts.Count > 0);
+        Assert.True(score.Parts[0].Measures.Count > 0);
+        // Optionally print some info for debug
+        Console.WriteLine($"[ParseFileSync] Work: {score.Work?.Title}");
+        Console.WriteLine($"[ParseFileSync] Parts: {score.Parts.Count}");
+        Console.WriteLine($"[ParseFileSync] First part name: {score.Parts[0].Name}");
+        Console.WriteLine($"[ParseFileSync] First measure notes: {score.Parts[0].Measures[0].Notes.Count}");
+    }
+    [Fact]
+    public void Parse_LargeXml_ShouldReturnValidScore()
+    {
+        // Arrange
+        var xmlContent = GetEmbeddedResource("large.xml");
+
+        // Act
+        var score = MusicXmlParser.GetScoreFromString(xmlContent);
+
+        // Assert (basic checks, can be expanded as needed)
+        Assert.NotNull(score);
+        Assert.NotNull(score.Parts);
+        Assert.True(score.Parts.Count > 0);
+        Assert.True(score.Parts[0].Measures.Count > 0);
+        // Optionally print some info for debug
+        Console.WriteLine($"Work: {score.Work?.Title}");
+        Console.WriteLine($"Parts: {score.Parts.Count}");
+        Console.WriteLine($"First part name: {score.Parts[0].Name}");
+        Console.WriteLine($"First measure notes: {score.Parts[0].Measures[0].Notes.Count}");
+    }
+    [Fact]
     public void Parse_SimpleXml_ShouldReturnValidScore()
     {
         // Arrange
@@ -142,7 +182,7 @@ public class BasicTests
     public void Parse_InvalidXml_ShouldThrowException()
     {
         // Arrange
-        var invalidXml = "<invalid>xml</invalid>";
+        var invalidXml = "<invalid>xml"; // 缺少闭合标签，必定抛出 XmlException
 
         // Act & Assert
         Assert.Throws<System.Xml.XmlException>(() => MusicXmlParser.GetScoreFromString(invalidXml));
@@ -166,6 +206,27 @@ public class BasicTests
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => MusicXmlParser.GetScoreFromString(nullXml!));
+    }
+
+    [Fact]
+    public void ParseFileSync_LargeMxl_ShouldReturnValidScore()
+    {
+        // Arrange
+        var filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "TestData", "large.mxl");
+
+        // Act
+        var score = MusicXmlParser.GetScore(filePath);
+
+        // Assert（与 large.xml 测试一致）
+        Assert.NotNull(score);
+        Assert.NotNull(score.Parts);
+        Assert.True(score.Parts.Count > 0);
+        Assert.True(score.Parts[0].Measures.Count > 0);
+        // Optionally print some info for debug
+        Console.WriteLine($"[ParseFileSync-MXL] Work: {score.Work?.Title}");
+        Console.WriteLine($"[ParseFileSync-MXL] Parts: {score.Parts.Count}");
+        Console.WriteLine($"[ParseFileSync-MXL] First part name: {score.Parts[0].Name}");
+        Console.WriteLine($"[ParseFileSync-MXL] First measure notes: {score.Parts[0].Measures[0].Notes.Count}");
     }
 
     private static string GetEmbeddedResource(string resourceName)

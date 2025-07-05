@@ -5,6 +5,8 @@ using System.IO;
 using System.Text;
 using System.Xml;
 using MusicXMLParser.Models;
+using System.IO.Compression;
+using System.Linq;
 
 namespace MusicXMLParser
 {
@@ -12,7 +14,20 @@ namespace MusicXMLParser
     {
         public static Score GetScore(string filename)
         {
-            return GetScore(GetXmlDocumentFromFile(filename));
+            if (filename.EndsWith(".mxl", StringComparison.OrdinalIgnoreCase))
+            {
+                using var archive = System.IO.Compression.ZipFile.OpenRead(filename);
+                // 找到第一个 .xml 文件
+                var entry = archive.Entries.FirstOrDefault(e => e.FullName.EndsWith(".xml", StringComparison.OrdinalIgnoreCase));
+                if (entry == null)
+                    throw new FileNotFoundException("No .xml file found in .mxl archive.");
+                using var stream = entry.Open();
+                return GetScore(GetXmlDocument(stream));
+            }
+            else
+            {
+                return GetScore(GetXmlDocumentFromFile(filename));
+            }
         }
 
         public static Score GetScoreFromString(string str)
