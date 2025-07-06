@@ -69,7 +69,7 @@ public class BasicTests
         Assert.Equal("P1", score.Parts[0].Id);
         Assert.Equal("Piano", score.Parts[0].Name);
         Assert.Single(score.Parts[0].Measures);
-        Assert.Equal("1", score.Parts[0].Measures[0].Number);
+        Assert.Equal(1, score.Parts[0].Measures[0].Number);
         Assert.Equal(4, score.Parts[0].Measures[0].Notes.Count);
         Assert.Equal('C', score.Parts[0].Measures[0].Notes[0].Pitch.Step);
         Assert.Equal(4, score.Parts[0].Measures[0].Notes[0].Pitch.Octave);
@@ -137,9 +137,11 @@ public class BasicTests
 
         // Assert
         var measure = score.Parts[0].Measures[0];
-        Assert.NotNull(measure.Attributes?.Clef);
-        Assert.Equal("G", measure.Attributes.Clef.Sign);
-        Assert.Equal(2, measure.Attributes.Clef.Line);
+        Assert.NotNull(measure.Attributes?.Clefs);
+        Assert.Single(measure.Attributes.Clefs); // 应该只有一个clef
+        Assert.Equal("G", measure.Attributes.Clefs[0].Sign);
+        Assert.Equal(2, measure.Attributes.Clefs[0].Line);
+        Assert.Equal(1, measure.Attributes.Clefs[0].Staff); // 默认staff为1
     }
 
     [Fact]

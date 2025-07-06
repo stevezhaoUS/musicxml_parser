@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace MusicXMLParser.Models
 {
     public class MeasureAttributes
@@ -5,6 +7,7 @@ namespace MusicXMLParser.Models
         internal MeasureAttributes()
         {
             Divisions = -1;
+            Clefs = new List<Clef>();
         }
 
         public int Divisions { get; internal set; }
@@ -13,6 +16,6 @@ namespace MusicXMLParser.Models
 
         public TimeSignature? Time { get; internal set; }
 
-        public Clef? Clef { get; internal set; }
+        public List<Clef> Clefs { get; internal set; }
     }
 } 

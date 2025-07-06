@@ -6,14 +6,14 @@ namespace MusicXMLParser.Models
     {
         internal Measure()
         {
-            Number = string.Empty;
+            Number = 0;
             Width = -1;
             Notes = new List<Note>();
             Directions = new List<Direction>();
             Barlines = new List<Barline>();
         }
 
-        public string Number { get; internal set; }
+        public int Number { get; internal set; }
 
         public decimal Width { get; internal set; }
 

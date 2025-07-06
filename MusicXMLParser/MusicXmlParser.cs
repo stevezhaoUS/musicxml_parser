@@ -126,8 +126,8 @@ namespace MusicXMLParser
             if (measureNode.Attributes != null)
             {
                 var numberAttr = measureNode.Attributes["number"];
-                if (numberAttr != null)
-                    measure.Number = numberAttr.InnerText;
+                if (numberAttr != null && int.TryParse(numberAttr.InnerText, out var number))
+                    measure.Number = number;
 
                 var widthAttr = measureNode.Attributes["width"];
                 if (widthAttr != null && decimal.TryParse(widthAttr.InnerText, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var width))
@@ -187,10 +187,16 @@ namespace MusicXMLParser
             if (timeNode != null)
                 attributes.Time = GetTimeSignature(timeNode);
 
-            // 解析 clef
-            var clefNode = attributesNode.SelectSingleNode("clef");
-            if (clefNode != null)
-                attributes.Clef = GetClef(clefNode);
+            // 解析 clef (支持多个clef)
+            var clefNodes = attributesNode.SelectNodes("clef");
+            if (clefNodes != null)
+            {
+                foreach (XmlNode clefNode in clefNodes)
+                {
+                    var clef = GetClef(clefNode);
+                    attributes.Clefs.Add(clef);
+                }
+            }
 
             return attributes;
         }
@@ -228,6 +234,14 @@ namespace MusicXMLParser
         private static Clef GetClef(XmlNode clefNode)
         {
             var clef = new Clef();
+
+            // 解析 number 属性（对应staff编号）
+            if (clefNode.Attributes != null)
+            {
+                var numberAttr = clefNode.Attributes["number"];
+                if (numberAttr != null && int.TryParse(numberAttr.InnerText, out var staffNumber))
+                    clef.Staff = staffNumber;
+            }
 
             var signNode = clefNode.SelectSingleNode("sign");
             if (signNode != null)
