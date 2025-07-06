@@ -7,6 +7,7 @@ namespace MusicXMLParser.Models
             Sign = string.Empty;
             Line = 1;
             OctaveChange = 0;
+            Staff = 1; // 默认staff为1
         }
 
         public string Sign { get; internal set; }
@@ -14,5 +15,7 @@ namespace MusicXMLParser.Models
         public int Line { get; internal set; }
 
         public int OctaveChange { get; internal set; }
+
+        public int Staff { get; internal set; }
     }
 } 

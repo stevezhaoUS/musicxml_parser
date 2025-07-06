@@ -7,7 +7,7 @@ namespace MusicXMLParser.Models
         internal Measure()
         {
             Number = 0;
-            Width = -1;
+            Width = -1.0f;
             Notes = new List<Note>();
             Directions = new List<Direction>();
             Barlines = new List<Barline>();
@@ -15,7 +15,7 @@ namespace MusicXMLParser.Models
 
         public int Number { get; internal set; }
 
-        public decimal Width { get; internal set; }
+        public float Width { get; internal set; }
 
         public MeasureAttributes? Attributes { get; internal set; }
 

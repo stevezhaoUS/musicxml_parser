@@ -231,6 +231,27 @@ public class BasicTests
         Console.WriteLine($"[ParseFileSync-MXL] First measure notes: {score.Parts[0].Measures[0].Notes.Count}");
     }
 
+    [Fact]
+    public void Parse_MeasureWidth_ShouldParseCorrectly()
+    {
+        // Arrange
+        var xmlContent = GetEmbeddedResource("complex.xml");
+
+        // Act
+        var score = MusicXmlParser.GetScoreFromString(xmlContent);
+
+        // Assert
+        var measure = score.Parts[0].Measures[0];
+        Assert.Equal(160.41f, measure.Width); // 第一个measure的width应该是160.41
+        
+        // 检查其他measure的width
+        var measure14 = score.Parts[0].Measures[14];
+        Assert.Equal(313.46f, measure14.Width);
+        
+        var measure33 = score.Parts[0].Measures[33];
+        Assert.Equal(539.03f, measure33.Width);
+    }
+
     private static string GetEmbeddedResource(string resourceName)
     {
         var assembly = Assembly.GetExecutingAssembly();

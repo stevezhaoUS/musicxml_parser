@@ -130,7 +130,7 @@ namespace MusicXMLParser
                     measure.Number = number;
 
                 var widthAttr = measureNode.Attributes["width"];
-                if (widthAttr != null && decimal.TryParse(widthAttr.InnerText, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var width))
+                if (widthAttr != null && float.TryParse(widthAttr.InnerText, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var width))
                     measure.Width = width;
             }
 
