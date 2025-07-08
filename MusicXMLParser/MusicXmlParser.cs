@@ -86,12 +86,16 @@ namespace MusicXMLParser
                     var measuresXpath = $"//part[@id='{part.Id}']/measure";
                     var measureNodes = document.SelectNodes(measuresXpath);
 
+                    MeasureAttributes? lastAttributes = null;
                     if (measureNodes != null)
                     {
                         foreach (XmlNode measureNode in measureNodes)
                         {
-                            var measure = GetMeasure(measureNode);
+                            var measure = GetMeasure(measureNode, lastAttributes);
                             part.Measures.Add(measure);
+                            // 更新lastAttributes
+                            if (measure.Attributes != null)
+                                lastAttributes = measure.Attributes;
                         }
                     }
                 }
@@ -118,7 +122,8 @@ namespace MusicXMLParser
             return work;
         }
 
-        private static Measure GetMeasure(XmlNode measureNode)
+        // 新增：带属性继承的GetMeasure
+        private static Measure GetMeasure(XmlNode measureNode, MeasureAttributes? inheritedAttributes)
         {
             var measure = new Measure();
 
@@ -140,6 +145,11 @@ namespace MusicXMLParser
             {
                 measure.Attributes = GetMeasureAttributes(attributesNode);
             }
+            else if (inheritedAttributes != null)
+            {
+                // 深拷贝继承
+                measure.Attributes = CloneMeasureAttributes(inheritedAttributes);
+            }
 
             // 解析 measure 内容
             var childNodes = measureNode.ChildNodes;
@@ -159,13 +169,63 @@ namespace MusicXMLParser
                         var barline = GetBarline(node);
                         measure.Barlines.Add(barline);
                         break;
+                    case "forward":
+                        // 处理 forward 标签，插入等时值的休止符 note
+                        var durationNode = node.SelectSingleNode("duration");
+                        if (durationNode != null && int.TryParse(durationNode.InnerText, out int forwardDuration))
+                        {
+                            var restNote = new Models.Note
+                            {
+                                IsRest = true,
+                                Duration = forwardDuration,
+                                // 暂时不设置Type，等measure解析完成后再处理
+                                // 其他属性可根据需要补充
+                            };
+                            measure.Notes.Add(restNote);
+                        }
+                        break;
                     case "print":
                         // 处理 print 元素
                         break;
                 }
             }
 
+            // 处理forward生成的rest note的Type
+            ProcessForwardRestNotes(measure);
+
             return measure;
+        }
+
+        // 兼容原有调用
+        private static Measure GetMeasure(XmlNode measureNode)
+        {
+            return GetMeasure(measureNode, null);
+        }
+
+        // 深拷贝MeasureAttributes
+        private static MeasureAttributes CloneMeasureAttributes(MeasureAttributes src)
+        {
+            var clone = new MeasureAttributes
+            {
+                Divisions = src.Divisions,
+                Key = src.Key == null ? null : new KeySignature { Fifths = src.Key.Fifths, Mode = src.Key.Mode },
+                Time = src.Time == null ? null : new TimeSignature { Beats = src.Time.Beats, BeatType = src.Time.BeatType },
+                Clefs = new List<Clef>()
+            };
+            if (src.Clefs != null)
+            {
+                foreach (var clef in src.Clefs)
+                {
+                    clone.Clefs.Add(new Clef
+                    {
+                        Sign = clef.Sign,
+                        Line = clef.Line,
+                        OctaveChange = clef.OctaveChange,
+                        Staff = clef.Staff
+                    });
+                }
+            }
+            return clone;
         }
 
         private static MeasureAttributes GetMeasureAttributes(XmlNode attributesNode)
@@ -577,6 +637,56 @@ namespace MusicXMLParser
             document.XmlResolver = null;
             document.Load(stream);
             return document;
+        }
+
+        // 处理forward生成的rest note的Type
+        private static void ProcessForwardRestNotes(Measure measure)
+        {
+            // 添加调试信息
+            if (measure.Attributes == null)
+            {
+                Console.WriteLine("DEBUG: measure.Attributes is null");
+                return;
+            }
+            
+            if (measure.Attributes.Divisions <= 0)
+            {
+                Console.WriteLine("DEBUG: measure.Attributes.Divisions <= 0");
+                return;
+            }
+            
+            var divisions = measure.Attributes.Divisions;
+            Console.WriteLine($"DEBUG: Processing {measure.Notes.Count} notes with divisions {divisions}");
+            
+            foreach (var note in measure.Notes)
+            {
+                // 只为forward生成的rest note设置Type（Type为空且IsRest为true）
+                if (note.IsRest && string.IsNullOrEmpty(note.Type))
+                {
+                    note.Type = InferNoteType(note.Duration, divisions);
+                    Console.WriteLine($"DEBUG: Set rest note type to {note.Type} for duration {note.Duration}");
+                }
+            }
+        }
+
+        // 根据duration和divisions推断note类型
+        private static string InferNoteType(int duration, int divisions)
+        {
+            if (divisions <= 0) return string.Empty;
+            
+            // 使用浮点数计算避免整数除法问题
+            double ratio = (double)duration / divisions;
+            
+            // 常见类型映射（允许小的误差）
+            if (Math.Abs(ratio - 4.0) < 0.1) return "whole";
+            if (Math.Abs(ratio - 2.0) < 0.1) return "half";
+            if (Math.Abs(ratio - 1.0) < 0.1) return "quarter";
+            if (Math.Abs(ratio - 0.5) < 0.1) return "eighth";
+            if (Math.Abs(ratio - 0.25) < 0.1) return "16th";
+            if (Math.Abs(ratio - 0.125) < 0.1) return "32nd";
+            
+            // 其他情况返回空
+            return string.Empty;
         }
     }
 } 
