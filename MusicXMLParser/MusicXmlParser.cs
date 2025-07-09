@@ -389,6 +389,24 @@ namespace MusicXMLParser
             // 解析 beam
             note.Beams = GetBeams(noteNode);
 
+            // 解析 stem
+            var stemNode = noteNode.SelectSingleNode("stem");
+            if (stemNode != null)
+            {
+                switch (stemNode.InnerText.Trim().ToLowerInvariant())
+                {
+                    case "up":
+                        note.Stem = 1;
+                        break;
+                    case "down":
+                        note.Stem = -1;
+                        break;
+                    default:
+                        note.Stem = 0;
+                        break;
+                }
+            }
+
             return note;
         }
 

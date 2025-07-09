@@ -33,6 +33,8 @@ namespace MusicXMLParser.Models
 
         public string Accidental { get; internal set; }
 
+        public int Stem { get; internal set; }
+
         public Pitch? Pitch { get; internal set; }
 
         public Tie? Tie { get; internal set; }

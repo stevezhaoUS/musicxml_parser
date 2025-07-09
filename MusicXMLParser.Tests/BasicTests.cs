@@ -560,6 +560,58 @@ public class BasicTests
         Assert.False(measure.Notes[0].IsRest);
     }
 
+    [Fact]
+    public void Parse_WithStem_ShouldParseStemDirectionCorrectly()
+    {
+        // Arrange
+        var xmlContent = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<score-partwise version=""3.1"">
+  <part-list>
+    <score-part id=""P1"">
+      <part-name>Piano</part-name>
+    </score-part>
+  </part-list>
+  <part id=""P1"">
+    <measure number=""1"">
+      <note>
+        <pitch><step>C</step><octave>4</octave></pitch>
+        <duration>1</duration>
+        <type>quarter</type>
+        <stem>up</stem>
+      </note>
+      <note>
+        <pitch><step>D</step><octave>4</octave></pitch>
+        <duration>1</duration>
+        <type>quarter</type>
+        <stem>down</stem>
+      </note>
+      <note>
+        <pitch><step>E</step><octave>4</octave></pitch>
+        <duration>1</duration>
+        <type>quarter</type>
+        <stem>none</stem>
+      </note>
+      <note>
+        <pitch><step>F</step><octave>4</octave></pitch>
+        <duration>1</duration>
+        <type>quarter</type>
+        <!-- 没有stem元素 -->
+      </note>
+    </measure>
+  </part>
+</score-partwise>";
+
+        // Act
+        var score = MusicXmlParser.GetScoreFromString(xmlContent);
+        var notes = score.Parts[0].Measures[0].Notes;
+
+        // Assert
+        Assert.Equal(1, notes[0].Stem);   // up
+        Assert.Equal(-1, notes[1].Stem);  // down
+        Assert.Equal(0, notes[2].Stem);   // none
+        Assert.Equal(0, notes[3].Stem);   // missing
+    }
+
     private static string GetEmbeddedResource(string resourceName)
     {
         var assembly = Assembly.GetExecutingAssembly();
