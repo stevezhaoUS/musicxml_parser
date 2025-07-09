@@ -406,6 +406,160 @@ public class BasicTests
         Assert.False(measure.Notes[0].IsRest);
     }
 
+    [Fact]
+    public void Parse_WithBackup_ShouldInsertRestNotes()
+    {
+        // Arrange
+        var xmlContent = GetEmbeddedResource("backup.xml");
+
+        // Act
+        var score = MusicXmlParser.GetScoreFromString(xmlContent);
+
+        // Assert
+        Assert.Single(score.Parts);
+        Assert.Equal("P1", score.Parts[0].Id);
+        Assert.Equal("Piano", score.Parts[0].Name);
+        Assert.Equal(2, score.Parts[0].Measures.Count);
+
+        // 检查第一个measure - backup会插入rest note
+        var measure1 = score.Parts[0].Measures[0];
+        Assert.Equal(1, measure1.Number);
+        Assert.Equal(4, measure1.Notes.Count); // 2个音符 + 2个backup生成的rest
+
+        // 检查音符
+        Assert.Equal('C', measure1.Notes[0].Pitch.Step);
+        Assert.Equal(4, measure1.Notes[0].Pitch.Octave);
+        Assert.Equal(480, measure1.Notes[0].Duration);
+        Assert.Equal("quarter", measure1.Notes[0].Type);
+        Assert.False(measure1.Notes[0].IsRest);
+
+        // 检查第一个backup生成的rest
+        Assert.True(measure1.Notes[1].IsRest);
+        Assert.Equal(480, measure1.Notes[1].Duration);
+        Assert.Equal("quarter", measure1.Notes[1].Type);
+        Assert.Null(measure1.Notes[1].Pitch);
+
+        // 检查音符
+        Assert.Equal('E', measure1.Notes[2].Pitch.Step);
+        Assert.Equal(4, measure1.Notes[2].Pitch.Octave);
+        Assert.Equal(480, measure1.Notes[2].Duration);
+        Assert.Equal("quarter", measure1.Notes[2].Type);
+        Assert.False(measure1.Notes[2].IsRest);
+
+        // 检查第二个backup生成的rest
+        Assert.True(measure1.Notes[3].IsRest);
+        Assert.Equal(960, measure1.Notes[3].Duration);
+        Assert.Equal("half", measure1.Notes[3].Type);
+        Assert.Null(measure1.Notes[3].Pitch);
+
+        // 检查第二个measure
+        var measure2 = score.Parts[0].Measures[1];
+        Assert.Equal(2, measure2.Number);
+        Assert.Equal(3, measure2.Notes.Count); // 2个音符 + 1个backup生成的rest
+
+        // 检查音符
+        Assert.Equal('G', measure2.Notes[0].Pitch.Step);
+        Assert.Equal(4, measure2.Notes[0].Pitch.Octave);
+        Assert.Equal(480, measure2.Notes[0].Duration);
+        Assert.Equal("quarter", measure2.Notes[0].Type);
+        Assert.False(measure2.Notes[0].IsRest);
+
+        // 检查backup生成的rest
+        Assert.True(measure2.Notes[1].IsRest);
+        Assert.Equal(240, measure2.Notes[1].Duration);
+        Assert.Equal("eighth", measure2.Notes[1].Type);
+        Assert.Null(measure2.Notes[1].Pitch);
+
+        // 检查音符
+        Assert.Equal('A', measure2.Notes[2].Pitch.Step);
+        Assert.Equal(4, measure2.Notes[2].Pitch.Octave);
+        Assert.Equal(720, measure2.Notes[2].Duration);
+        Assert.Equal("dotted-half", measure2.Notes[2].Type);
+        Assert.False(measure2.Notes[2].IsRest);
+    }
+
+    [Fact]
+    public void Parse_BackupWithoutDuration_ShouldNotInsertRest()
+    {
+        // Arrange
+        var xmlContent = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<score-partwise version=""3.1"">
+  <part-list>
+    <score-part id=""P1"">
+      <part-name>Piano</part-name>
+    </score-part>
+  </part-list>
+  <part id=""P1"">
+    <measure number=""1"">
+      <attributes>
+        <divisions>480</divisions>
+      </attributes>
+      <note>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>480</duration>
+        <type>quarter</type>
+      </note>
+      <backup>
+        <!-- 没有duration子元素 -->
+      </backup>
+    </measure>
+  </part>
+</score-partwise>";
+
+        // Act
+        var score = MusicXmlParser.GetScoreFromString(xmlContent);
+
+        // Assert
+        var measure = score.Parts[0].Measures[0];
+        Assert.Single(measure.Notes); // 只有原始音符，backup没有duration不插入rest
+        Assert.Equal('C', measure.Notes[0].Pitch.Step);
+        Assert.False(measure.Notes[0].IsRest);
+    }
+
+    [Fact]
+    public void Parse_BackupWithInvalidDuration_ShouldNotInsertRest()
+    {
+        // Arrange
+        var xmlContent = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<score-partwise version=""3.1"">
+  <part-list>
+    <score-part id=""P1"">
+      <part-name>Piano</part-name>
+    </score-part>
+  </part-list>
+  <part id=""P1"">
+    <measure number=""1"">
+      <attributes>
+        <divisions>480</divisions>
+      </attributes>
+      <note>
+        <pitch>
+          <step>C</step>
+          <octave>4</octave>
+        </pitch>
+        <duration>480</duration>
+        <type>quarter</type>
+      </note>
+      <backup>
+        <duration>invalid</duration>
+      </backup>
+    </measure>
+  </part>
+</score-partwise>";
+
+        // Act
+        var score = MusicXmlParser.GetScoreFromString(xmlContent);
+
+        // Assert
+        var measure = score.Parts[0].Measures[0];
+        Assert.Single(measure.Notes); // 只有原始音符，backup无效duration不插入rest
+        Assert.Equal('C', measure.Notes[0].Pitch.Step);
+        Assert.False(measure.Notes[0].IsRest);
+    }
+
     private static string GetEmbeddedResource(string resourceName)
     {
         var assembly = Assembly.GetExecutingAssembly();

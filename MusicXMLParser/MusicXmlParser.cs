@@ -184,6 +184,21 @@ namespace MusicXMLParser
                             measure.Notes.Add(restNote);
                         }
                         break;
+                    case "backup":
+                        // 处理 backup 标签，插入等时值的休止符 note
+                        var backupDurationNode = node.SelectSingleNode("duration");
+                        if (backupDurationNode != null && int.TryParse(backupDurationNode.InnerText, out int backupDuration))
+                        {
+                            var backupRestNote = new Models.Note
+                            {
+                                IsRest = true,
+                                Duration = backupDuration,
+                                // 暂时不设置Type，等measure解析完成后再处理
+                                // Voice将在后续处理中设置
+                            };
+                            measure.Notes.Add(backupRestNote);
+                        }
+                        break;
                     case "print":
                         // 处理 print 元素
                         break;
@@ -639,7 +654,7 @@ namespace MusicXMLParser
             return document;
         }
 
-        // 处理forward生成的rest note的Type
+        // 处理forward和backup生成的rest note的Type和Voice
         private static void ProcessForwardRestNotes(Measure measure)
         {
             // 添加调试信息
@@ -658,13 +673,27 @@ namespace MusicXMLParser
             var divisions = measure.Attributes.Divisions;
             Console.WriteLine($"DEBUG: Processing {measure.Notes.Count} notes with divisions {divisions}");
             
-            foreach (var note in measure.Notes)
+            // 为backup生成的rest note设置voice（与后续音符一致）
+            for (int i = 0; i < measure.Notes.Count; i++)
             {
-                // 只为forward生成的rest note设置Type（Type为空且IsRest为true）
+                var note = measure.Notes[i];
+                // 处理rest note的Type
                 if (note.IsRest && string.IsNullOrEmpty(note.Type))
                 {
                     note.Type = InferNoteType(note.Duration, divisions);
-                    Console.WriteLine($"DEBUG: Set rest note type to {note.Type} for duration {note.Duration}");
+                }
+                // backup rest note直接赋值后续第一个音符的voice
+                if (note.IsRest && note.Voice == -1)
+                {
+                    for (int j = i + 1; j < measure.Notes.Count; j++)
+                    {
+                        var nextNote = measure.Notes[j];
+                        if (!nextNote.IsRest)
+                        {
+                            note.Voice = nextNote.Voice;
+                            break;
+                        }
+                    }
                 }
             }
         }
